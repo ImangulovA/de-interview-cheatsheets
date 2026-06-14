@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distributed Systems (Intermediate) — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a; --card: #151d30; --card2: #1b2641; --text: #e7ecf5; --muted: #94a3b8;
+    --border: #25304d; --accent: #1877F2; --green: #02e2ac; --orange: #f59e0b; --purple: #a855f7;
+    --red: #ff5d6c; --code-bg: #0d1322; --shadow: rgba(0,0,0,0.45);
+  }
+  [data-theme="light"] {
+    --bg: #f4f6fb; --card: #ffffff; --card2: #eef2fa; --text: #14213d; --muted: #5b6b86;
+    --border: #d6deec; --accent: #1259c3; --green: #058f6e; --orange: #c2790a; --purple: #8b3fd6;
+    --red: #d12b3c; --code-bg: #f0f3fa; --shadow: rgba(40,60,100,0.12);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.58; font-size: 15px; transition: background .25s, color .25s; }
+  code, pre, .mono { font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  nav { position: sticky; top: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); display: flex; align-items: center;
+    gap: 4px; padding: 8px 14px; overflow-x: auto; white-space: nowrap; }
+  nav .brand { font-weight: 700; color: var(--accent); margin-right: 10px; font-size: 14px; flex-shrink:0; }
+  nav a { color: var(--muted); text-decoration: none; font-size: 12.5px; padding: 5px 9px; border-radius: 7px; flex-shrink:0; }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn { background: var(--card2); color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600; }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  header.hero { padding: 34px 20px 18px; max-width: 1000px; margin: 0 auto; }
+  header.hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -.5px; }
+  header.hero .sub { color: var(--muted); font-size: 15px; max-width: 760px; }
+
+  .levels { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .level { padding: 7px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--card2);
+    color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none; }
+  .level:hover { border-color: var(--accent); }
+  .level.active { border-color: var(--accent); color: var(--text); }
+
+  main { max-width: 1000px; margin: 0 auto; padding: 6px 20px 80px; }
+  section { margin: 26px 0; }
+  h2 { font-size: 21px; margin: 28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size: 16px; margin: 14px 0 6px; }
+  .lead { color: var(--muted); font-size: 13.5px; margin: 2px 0 12px; }
+  p { margin: 8px 0; }
+  ul { margin: 8px 0; padding-left: 22px; } li { margin: 5px 0; }
+  strong { color: var(--text); } em { color: var(--purple); font-style: normal; font-weight: 600; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px;
+    margin: 14px 0; box-shadow: 0 4px 18px var(--shadow); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  code.inline { background: var(--code-bg); border:1px solid var(--border); border-radius: 5px; padding: 1px 6px;
+    font-size: 12.5px; color: var(--green); }
+  .ascii { background: var(--code-bg); border:1px solid var(--border); border-radius:10px; padding: 14px;
+    overflow-x:auto; font-size: 12.5px; line-height: 1.45; color: var(--text); white-space: pre; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--accent); font-weight: 650; border-bottom: 2px solid var(--border); }
+
+  .analogy, .key, .good { border-left: 4px solid; border-radius: 0 10px 10px 0; padding: 11px 15px; margin: 12px 0; font-size: 14px; }
+  .analogy { border-color: var(--purple); background: color-mix(in srgb, var(--purple) 9%, var(--card)); }
+  .key { border-color: var(--green); background: color-mix(in srgb, var(--green) 9%, var(--card)); }
+  .good { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color: var(--purple); } .key .lbl { color: var(--green); } .good .lbl { color: var(--accent); }
+
+  .pill { display:inline-block; font-size: 11px; padding: 1px 8px; border-radius: 12px; font-weight:600; margin-right:4px; }
+  .p-grn { background: rgba(2,226,172,.16); color: var(--green); }
+  .p-org { background: rgba(245,158,11,.16); color: var(--orange); }
+  .p-red { background: rgba(255,93,108,.16); color: var(--red); }
+  .p-acc { background: rgba(24,119,242,.16); color: var(--accent); }
+
+  .flip-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 14px 0; }
+  .flip { perspective: 1200px; height: 185px; cursor: pointer; }
+  .flip-inner { position: relative; width:100%; height:100%; transition: transform .5s; transform-style: preserve-3d; }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility: hidden; border:1px solid var(--border);
+    border-radius: 12px; padding: 15px 17px; display:flex; flex-direction:column; justify-content:center; box-shadow: 0 4px 18px var(--shadow); }
+  .flip-front { background: var(--card); } .flip-front .q { font-weight:650; font-size:14.5px; }
+  .flip-front .tap { color: var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background: var(--card2); transform: rotateY(180deg); font-size: 13px; overflow-y:auto; }
+
+  .reveal { opacity:0; transform: translateY(16px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color: var(--muted); font-size:12.5px; padding: 30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🧮 DistSys · <span class="en">Intermediate</span><span class="ru">Средний</span></span>
+  <a href="#cap">CAP/PACELC</a>
+  <a href="#consistency"><span class="en">Consistency</span><span class="ru">Согласованность</span></a>
+  <a href="#partition"><span class="en">Partitioning</span><span class="ru">Партиции</span></a>
+  <a href="#replication"><span class="en">Replication</span><span class="ru">Репликация</span></a>
+  <a href="#consensus"><span class="en">Consensus</span><span class="ru">Консенсус</span></a>
+  <a href="#faults"><span class="en">Failures</span><span class="ru">Сбои</span></a>
+  <a href="#delivery"><span class="en">Delivery</span><span class="ru">Доставка</span></a>
+  <a href="#flow"><span class="en">Backpressure</span><span class="ru">Backpressure</span></a>
+  <a href="#stream"><span class="en">Batch/Stream</span><span class="ru">Batch/Stream</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Distributed Systems — the core ideas</span><span class="ru">Распределённые системы — ключевые идеи</span></h1>
+  <div class="sub">
+    <span class="en">The real names and the working knowledge: CAP/PACELC, consistency, replication &amp; quorums, consensus, failures, exactly-once, backpressure, watermarks. Comfortable middle level — done with this, the Advanced page is just more depth and edge cases.</span>
+    <span class="ru">Настоящие термины и рабочее понимание: CAP/PACELC, согласованность, репликация и кворумы, консенсус, сбои, exactly-once, backpressure, watermarks. Комфортный средний уровень — после него «Продвинутый» это лишь больше глубины и краевых случаев.</span>
+  </div>
+  <div class="levels">
+    <a class="level" href="distributed-systems-beginner.html">🟢 <span class="en">Beginner</span><span class="ru">Новичок</span></a>
+    <a class="level active" href="distributed-systems-intermediate.html">🟡 <span class="en">Intermediate</span><span class="ru">Средний</span></a>
+    <a class="level" href="distributed-systems-advanced.html">🔴 <span class="en">Advanced</span><span class="ru">Продвинутый</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="model">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">0. The one mental model</span><span class="ru">0. Одна мысленная модель</span></h2>
+  <div class="card reveal">
+    <p class="en">Assume <strong>partial failure is normal</strong>: at any moment some node is down, some message is lost or late, and clocks disagree. A good answer always covers: what can fail → how you detect it → how the system behaves during the failure → how it recovers → what guarantee still holds.</p>
+    <p class="ru">Исходи из того, что <strong>частичный отказ — это норма</strong>: в любой момент какая-то нода лежит, какое-то сообщение потеряно или опоздало, а часы расходятся. Хороший ответ всегда покрывает: что может сломаться → как это обнаружить → как система ведёт себя во время сбоя → как восстанавливается → какая гарантия при этом сохраняется.</p>
+    <div class="key">
+      <span class="lbl"><span class="en">Keep this anchor</span><span class="ru">Держи этот якорь</span></span>
+      <span class="en">You can never tell "dead" from "slow". So make every write retry-safe (idempotent), every consumer replay-safe (dedup + checkpoint), and make timeouts/backpressure explicit so a slow dependency degrades instead of collapsing.</span>
+      <span class="ru">Никогда нельзя отличить «мёртв» от «тормозит». Поэтому делай каждую запись безопасной к повтору (идемпотентной), каждого консьюмера — безопасным к перечитке (дедуп + чекпоинт), а таймауты/backpressure — явными, чтобы медленная зависимость деградировала, а не обрушивалась.</span>
+    </div>
+  </div>
+</section>
+
+<section id="cap">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">1. CAP and PACELC</span><span class="ru">1. CAP и PACELC</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>CAP:</strong> during a network <strong>P</strong>artition, a system can keep at most one of <strong>C</strong>onsistency (every read sees the latest write) or <strong>A</strong>vailability (every node still answers). When there's no partition, you can have both — CAP only describes the partition case.</p>
+    <p class="ru"><strong>CAP:</strong> во время сетевого разрыва (<strong>P</strong>artition) система может сохранить максимум одно из <strong>C</strong>onsistency (любое чтение видит последнюю запись) или <strong>A</strong>vailability (каждая нода всё ещё отвечает). Когда разрыва нет — можно и то, и другое; CAP описывает только случай разрыва.</p>
+    <ul class="en">
+      <li><span class="pill p-acc">CP</span> refuse on the cut-off side to stay correct (e.g. ZooKeeper, etcd, HBase).</li>
+      <li><span class="pill p-org">AP</span> keep answering, reconcile later, tolerate stale reads (e.g. Cassandra, Dynamo).</li>
+      <li>"CA" isn't a real choice — partitions <em>will</em> happen, so you only choose C-vs-A <em>for</em> the partition.</li>
+    </ul>
+    <ul class="ru">
+      <li><span class="pill p-acc">CP</span> отказывать на отрезанной стороне, чтобы остаться верным (например ZooKeeper, etcd, HBase).</li>
+      <li><span class="pill p-org">AP</span> продолжать отвечать, сверяться позже, терпеть устаревшие чтения (например Cassandra, Dynamo).</li>
+      <li>«CA» — не реальный выбор: разрывы <em>будут</em>, поэтому C-или-A выбирают только <em>на время</em> разрыва.</li>
+    </ul>
+    <p class="en"><strong>PACELC</strong> is the more useful version: <em>if Partition</em> → trade A vs C; <em>Else</em> (healthy) → trade <strong>Latency vs Consistency</strong>. Since there's almost never a partition, the everyday trade-off is the EL/EC one: synchronous strong reads cost latency; fast reads may be slightly stale.</p>
+    <p class="ru"><strong>PACELC</strong> — более полезная версия: <em>если Partition</em> → выбор A vs C; <em>иначе (Else)</em> при здоровой сети → выбор <strong>Latency vs Consistency</strong>. Так как разрыва почти никогда нет, ежедневный компромисс — именно EL/EC: синхронные строгие чтения стоят задержки; быстрые чтения могут быть слегка устаревшими.</p>
+    <div class="key">
+      <span class="lbl"><span class="en">Common gotcha</span><span class="ru">Частая ловушка</span></span>
+      <span class="en">"Consistency" in CAP means <em>linearizability</em> (a very strong model), NOT the "C" in ACID. And labels aren't binary — many systems are tunable (e.g. Cassandra QUORUM). Talk about <em>knobs</em>, not fixed labels.</span>
+      <span class="ru">«Consistency» в CAP — это <em>линеаризуемость</em> (очень строгая модель), а НЕ «C» из ACID. И ярлыки не бинарны — многие системы настраиваемы (например Cassandra с QUORUM). Говори про <em>«ручки» настройки</em>, а не про фиксированные ярлыки.</span>
+    </div>
+  </div>
+</section>
+
+<section id="consistency">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">2. Consistency models (the spectrum)</span><span class="ru">2. Модели согласованности (спектр)</span></h2>
+  <p class="lead"><span class="en">From "always correct, slower" to "fast, but surprising".</span><span class="ru">От «всегда верно, но медленнее» до «быстро, но с сюрпризами».</span></p>
+  <div class="card reveal">
+    <div class="ascii">STRONGER / SLOWER  ───────────────────────▶  WEAKER / FASTER
+ Linearizable ─ Causal ─ Read-your-writes ─ Eventual</div>
+    <table class="en">
+      <tr><th>Model</th><th>Guarantee</th><th>Use for</th></tr>
+      <tr><td>Linearizable (strong)</td><td>Every read returns the latest committed write; behaves like one copy.</td><td>Locks, leader election, balances, config.</td></tr>
+      <tr><td>Causal</td><td>Cause-and-effect operations seen in order by everyone; concurrent ones may differ.</td><td>Comments/replies, messaging.</td></tr>
+      <tr><td>Read-your-writes</td><td>A client always sees its own previous writes.</td><td>"I posted but don't see it" bugs.</td></tr>
+      <tr><td>Eventual</td><td>If writes stop, all replicas converge — eventually. No ordering promise.</td><td>Caches, feeds, analytics, metrics.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Модель</th><th>Гарантия</th><th>Где применять</th></tr>
+      <tr><td>Линеаризуемая (строгая)</td><td>Любое чтение возвращает последнюю закоммиченную запись; ведёт себя как одна копия.</td><td>Блокировки, выбор лидера, балансы, конфиги.</td></tr>
+      <tr><td>Причинная (causal)</td><td>Причинно-связанные операции все видят по порядку; конкурентные могут отличаться.</td><td>Комментарии/ответы, мессенджеры.</td></tr>
+      <tr><td>Read-your-writes</td><td>Клиент всегда видит свои предыдущие записи.</td><td>Баги «я запостил, но не вижу».</td></tr>
+      <tr><td>Eventual (итоговая)</td><td>Если записи прекратились, все реплики сойдутся — со временем. Порядок не гарантирован.</td><td>Кэши, ленты, аналитика, метрики.</td></tr>
+    </table>
+    <div class="key">
+      <span class="lbl"><span class="en">"Eventual" is underspecified</span><span class="ru">«Eventual» — недосказана</span></span>
+      <span class="en">Plain eventual gives no session guarantees: a user can write, then read an older replica and not see it. <strong>Read-your-writes</strong> and <strong>causal</strong> are the practical session guarantees that make eventual systems usable for humans.</span>
+      <span class="ru">Чистая eventual не даёт сессионных гарантий: пользователь может записать, затем прочитать старую реплику и не увидеть запись. <strong>Read-your-writes</strong> и <strong>causal</strong> — практические сессионные гарантии, которые делают eventual-системы пригодными для людей.</span>
+    </div>
+  </div>
+</section>
+
+<section id="partition">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">3. Partitioning / sharding</span><span class="ru">3. Партиционирование / шардирование</span></h2>
+  <p class="lead"><span class="en">How you split data decides hotspots and how painful it is to add a node.</span><span class="ru">Как делишь данные — так и получаешь горячие точки и боль при добавлении ноды.</span></p>
+  <div class="grid2">
+    <div class="card reveal">
+      <h3><span class="en">Hash partitioning</span><span class="ru">Хеш-партиционирование</span></h3>
+      <p class="en"><code class="inline">node = hash(key) % N</code>. Even spread, kills hotspots — but <strong>no range queries</strong>, and changing N reshuffles almost everything.</p>
+      <p class="ru"><code class="inline">node = hash(key) % N</code>. Ровное распределение, убирает горячие точки — но <strong>нет диапазонных запросов</strong>, и смена N перемешивает почти всё.</p>
+      <span class="pill p-grn"><span class="en">even load</span><span class="ru">ровно</span></span><span class="pill p-red"><span class="en">no ranges</span><span class="ru">нет диапазонов</span></span>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">Range partitioning</span><span class="ru">Диапазонное партиционирование</span></h3>
+      <p class="en">Contiguous ranges per shard (e.g. by date). Great for scans, but <strong>sequential keys create hotspots</strong> (the "always newest" trap).</p>
+      <p class="ru">Непрерывные диапазоны на шард (например по дате). Отлично для сканов, но <strong>последовательные ключи дают горячие точки</strong> (ловушка «всё самое новое»).</p>
+      <span class="pill p-grn"><span class="en">range scans</span><span class="ru">сканы диапазонов</span></span><span class="pill p-red"><span class="en">hot range</span><span class="ru">горячий диапазон</span></span>
+    </div>
+  </div>
+  <div class="card reveal">
+    <h3><span class="en">Consistent hashing — how you add a node cheaply</span><span class="ru">Consistent hashing — как дёшево добавить ноду</span></h3>
+    <p class="en">Keys and nodes both hash onto a <strong>ring</strong>; a key belongs to the next node clockwise. Adding/removing a node only moves about <code class="inline">1/N</code> of keys, not all of them. <strong>Virtual nodes</strong> (many ring points per machine) keep the load smooth and rebalancing proportional.</p>
+    <p class="ru">Ключи и ноды хешируются на <strong>кольцо</strong>; ключ принадлежит следующей ноде по часовой. Добавление/удаление ноды двигает лишь около <code class="inline">1/N</code> ключей, а не все. <strong>Виртуальные ноды</strong> (много точек кольца на машину) держат нагрузку ровной, а ребаланс — пропорциональным.</p>
+    <div class="key">
+      <span class="lbl"><span class="en">Hotspot fix (ties to Spark)</span><span class="ru">Лечение горячей точки (связь со Spark)</span></span>
+      <span class="en">A hot shard usually means a skewed key (a "celebrity"/whale, a null, or a sequential key). Fixes: <strong>salt</strong> the key (add a bucket suffix), use a composite key, or split the hot range. This is the exact same cure as a skewed join key in Spark.</span>
+      <span class="ru">Горячий шард обычно значит перекошенный ключ («звезда»/кит, null или последовательный ключ). Лечение: <strong>солить</strong> ключ (добавить суффикс-бакет), составной ключ или разбить горячий диапазон. Это ровно то же лечение, что и перекошенный ключ джоина в Spark.</span>
+    </div>
+  </div>
+</section>
+
+<section id="replication">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">4. Replication &amp; quorums</span><span class="ru">4. Репликация и кворумы</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Topology</th><th>How</th><th>Main trade-off</th></tr>
+      <tr><td>Leader–follower</td><td>All writes to one leader, copied to followers.</td><td>Simple, no conflicts; but leader is a bottleneck/SPOF and async followers lag.</td></tr>
+      <tr><td>Multi-leader</td><td>Several leaders accept writes (e.g. per region).</td><td>Fast local writes; but <strong>write conflicts</strong> need resolving.</td></tr>
+      <tr><td>Leaderless (quorum)</td><td>Client writes/reads many replicas; a quorum decides.</td><td>Highly available, tunable; you reason about quorums yourself.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Топология</th><th>Как</th><th>Главный компромисс</th></tr>
+      <tr><td>Лидер–фолловер</td><td>Все записи в одного лидера, копируются фолловерам.</td><td>Просто, нет конфликтов; но лидер — узкое место/SPOF, а асинхронные фолловеры отстают.</td></tr>
+      <tr><td>Мульти-лидер</td><td>Несколько лидеров принимают записи (например по регионам).</td><td>Быстрые локальные записи; но <strong>конфликты записи</strong> надо разрешать.</td></tr>
+      <tr><td>Без лидера (кворум)</td><td>Клиент пишет/читает много реплик; решает кворум.</td><td>Высокая доступность, настраиваемо; кворумы считаешь сам.</td></tr>
+    </table>
+    <h3><span class="en">The quorum rule: R + W &gt; N</span><span class="ru">Правило кворума: R + W &gt; N</span></h3>
+    <p class="en">With <strong>N</strong> replicas, read from <strong>R</strong> and write to <strong>W</strong>. If <code class="inline">R + W &gt; N</code>, the read set and write set always <strong>overlap</strong> by at least one replica — so a read is guaranteed to see the latest acknowledged write.</p>
+    <p class="ru">При <strong>N</strong> репликах читаем из <strong>R</strong> и пишем в <strong>W</strong>. Если <code class="inline">R + W &gt; N</code>, множества чтения и записи всегда <strong>пересекаются</strong> хотя бы на одной реплике — поэтому чтение гарантированно видит последнюю подтверждённую запись.</p>
+    <div class="ascii">N = 3
+W=2, R=2  →  R+W = 4 > 3   ✓ overlap (balanced)
+W=1, R=1  →  R+W = 2 ≤ 3   ✗ may read stale (pure eventual)</div>
+    <div class="key">
+      <span class="lbl"><span class="en">Sync vs async</span><span class="ru">Sync vs async</span></span>
+      <span class="en"><strong>Sync</strong> replication = leader waits for a follower's ack → no data loss on crash, but slower. <strong>Async</strong> = fast, but a crash can lose the un-replicated tail. Semi-sync (wait for ≥1 follower) is the common middle ground.</span>
+      <span class="ru"><strong>Синхронная</strong> репликация = лидер ждёт ack фолловера → нет потерь при падении, но медленнее. <strong>Асинхронная</strong> = быстро, но падение может потерять нереплицированный «хвост». Semi-sync (ждать ≥1 фолловера) — частая золотая середина.</span>
+    </div>
+  </div>
+</section>
+
+<section id="consensus">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">5. Consensus &amp; leader election</span><span class="ru">5. Консенсус и выбор лидера</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Consensus</strong> = getting a group of nodes to agree on one value (the next log entry, or who is leader) despite crashes and delays. It needs a <strong>strict majority</strong> to commit, which is why these clusters are odd-sized (3, 5): a partition leaves at most one side with a majority, so only that side makes progress — <strong>no split-brain</strong>. 3 nodes tolerate 1 failure; 5 tolerate 2.</p>
+    <p class="ru"><strong>Консенсус</strong> = заставить группу нод согласиться об одном значении (следующая запись лога или кто лидер) несмотря на падения и задержки. Чтобы закоммитить, нужно <strong>строгое большинство</strong> — поэтому такие кластеры нечётны (3, 5): при разрыве большинство будет максимум у одной стороны, только она движется вперёд — <strong>нет split-brain</strong>. 3 ноды переживают 1 отказ; 5 — 2 отказа.</p>
+    <p class="en"><strong>Raft</strong> is the teachable algorithm: a randomized timeout triggers an election, a candidate that wins a majority becomes leader for a <em>term</em>, and a log entry <strong>commits</strong> once a majority has it. <strong>Paxos</strong> solves the same problem and is famously harder to reason about.</p>
+    <p class="ru"><strong>Raft</strong> — «понятный» алгоритм: случайный таймаут запускает выборы, кандидат, набравший большинство, становится лидером на <em>term</em>, а запись лога <strong>коммитится</strong>, когда она есть у большинства. <strong>Paxos</strong> решает ту же задачу и славится тем, что в нём труднее разобраться.</p>
+    <div class="key">
+      <span class="lbl"><span class="en">Fencing tokens (says senior)</span><span class="ru">Fencing tokens (признак сеньора)</span></span>
+      <span class="en">Electing a leader isn't enough. A "slow-then-revived" old leader must be stopped: give each leader a monotonic <strong>fencing token</strong> (an ever-increasing id), and have storage reject any write carrying an older token. This prevents the #1 cause of split-brain corruption.</span>
+      <span class="ru">Выбрать лидера мало. «Затормозившего, но ожившего» старого лидера надо остановить: дай каждому лидеру монотонный <strong>fencing token</strong> (всё возрастающий id), и пусть хранилище отвергает любую запись со старым токеном. Это предотвращает главную причину порчи данных при split-brain.</span>
+    </div>
+  </div>
+</section>
+
+<section id="faults">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">6. Failure modes &amp; mitigations</span><span class="ru">6. Режимы сбоев и меры</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Failure</th><th>Detect</th><th>Mitigation</th></tr>
+      <tr><td>Node crash</td><td>Missed heartbeats / lease expiry</td><td>Replication + failover; replay from a durable log</td></tr>
+      <tr><td>Gray failure (slow node)</td><td>p99 latency, error rate vs peers</td><td>Hedged requests, timeouts, eject from pool, circuit breaker</td></tr>
+      <tr><td>Network partition</td><td>Quorum loss, heartbeat gaps</td><td>CP: minority stops; AP: degrade + reconcile; fencing tokens</td></tr>
+      <tr><td>Clock skew</td><td>NTP drift monitoring</td><td>Logical clocks; never trust wall-clock for ordering</td></tr>
+      <tr><td>Poison message</td><td>Same record retried forever</td><td>Dead-letter queue, retry cap, skip-and-log</td></tr>
+      <tr><td>Retry storm</td><td>Spike right after recovery</td><td>Exponential backoff + <strong>jitter</strong>, retry budgets</td></tr>
+      <tr><td>Cascading failure</td><td>Saturation spreading to callers</td><td>Bulkheads, timeouts everywhere, backpressure, load shedding</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Сбой</th><th>Обнаружение</th><th>Мера</th></tr>
+      <tr><td>Падение ноды</td><td>Пропуск heartbeat / истёк lease</td><td>Репликация + failover; перечитка из надёжного лога</td></tr>
+      <tr><td>Серый сбой (медленная нода)</td><td>p99-задержка, error rate против соседей</td><td>Hedged-запросы, таймауты, вывод из пула, circuit breaker</td></tr>
+      <tr><td>Сетевой разрыв</td><td>Потеря кворума, пропуски heartbeat</td><td>CP: меньшинство останавливается; AP: деградация + сверка; fencing tokens</td></tr>
+      <tr><td>Расхождение часов</td><td>Мониторинг дрейфа NTP</td><td>Логические часы; никогда не доверять wall-clock для порядка</td></tr>
+      <tr><td>Poison message</td><td>Одна запись ретраится вечно</td><td>Dead-letter queue, лимит ретраев, skip-and-log</td></tr>
+      <tr><td>Шторм ретраев</td><td>Всплеск сразу после восстановления</td><td>Экспоненциальный backoff + <strong>jitter</strong>, бюджеты ретраев</td></tr>
+      <tr><td>Каскадный отказ</td><td>Насыщение расползается на вызывающих</td><td>Bulkheads, таймауты везде, backpressure, сброс нагрузки</td></tr>
+    </table>
+    <div class="key">
+      <span class="lbl"><span class="en">Gray failure is the killer</span><span class="ru">Серый сбой — главный убийца</span></span>
+      <span class="en">A crash is easy: the node is gone, failover fires. A <strong>gray failure</strong> (30% slow, dropping 2% of requests, GC-pausing) passes naive health checks while poisoning tail latency — the cause of most real incidents. Detect with <em>differential</em> metrics (this replica vs peers) and <em>hedged requests</em>.</span>
+      <span class="ru">Падение — это легко: ноды нет, срабатывает failover. <strong>Серый сбой</strong> (на 30% медленнее, теряет 2% запросов, встаёт на GC) проходит наивные health-check'и, отравляя tail latency — причина большинства реальных инцидентов. Лови <em>дифференциальными</em> метриками (эта реплика vs соседи) и <em>hedged-запросами</em>.</span>
+    </div>
+  </div>
+</section>
+
+<section id="delivery">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">7. Delivery semantics &amp; exactly-once</span><span class="ru">7. Семантики доставки и exactly-once</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Semantic</th><th>Means</th><th>Risk</th></tr>
+      <tr><td>At-most-once</td><td>0 or 1 delivery (no retry)</td><td>Data loss</td></tr>
+      <tr><td>At-least-once</td><td>1+ deliveries (retry until acked)</td><td>Duplicates → double counting</td></tr>
+      <tr><td>Exactly-once (effect)</td><td>At-least-once + dedup / idempotent writes</td><td>Cost, complexity</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Семантика</th><th>Значит</th><th>Риск</th></tr>
+      <tr><td>At-most-once</td><td>0 или 1 доставка (без ретраев)</td><td>Потеря данных</td></tr>
+      <tr><td>At-least-once</td><td>1+ доставок (ретрай до ack)</td><td>Дубли → двойной счёт</td></tr>
+      <tr><td>Exactly-once (эффект)</td><td>At-least-once + дедуп / идемпотентная запись</td><td>Цена, сложность</td></tr>
+    </table>
+    <div class="key">
+      <span class="lbl"><span class="en">The truth about exactly-once</span><span class="ru">Правда об exactly-once</span></span>
+      <span class="en">Exactly-once <em>delivery</em> over a network is impossible (you can never confirm your ack arrived — the Two Generals problem). What you achieve is exactly-once <em>effect</em>: accept duplicate delivery, but make the effect idempotent. Formula: <strong>at-least-once + idempotent write (upsert by key) + dedup (idempotency key / offset) + atomic commit of write&amp;offset</strong>.</span>
+      <span class="ru">Exactly-once <em>доставка</em> по сети невозможна (нельзя подтвердить, что твой ack дошёл — проблема двух генералов). Достижим exactly-once <em>эффект</em>: принимай дубли доставки, но делай эффект идемпотентным. Формула: <strong>at-least-once + идемпотентная запись (upsert по ключу) + дедуп (idempotency key / оффсет) + атомарный коммит записи и оффсета</strong>.</span>
+    </div>
+    <p class="en"><strong>In practice:</strong> Kafka EOS = idempotent producer + transactions + <code class="inline">read_committed</code> (exactly-once <em>within Kafka</em>; an external sink still needs to be idempotent). Flink = checkpoints + two-phase-commit sink. Spark Structured Streaming = checkpointed offsets + idempotent <code class="inline">MERGE</code> upsert.</p>
+    <p class="ru"><strong>На практике:</strong> Kafka EOS = идемпотентный продюсер + транзакции + <code class="inline">read_committed</code> (exactly-once <em>внутри Kafka</em>; внешнему приёмнику всё равно нужна идемпотентность). Flink = чекпоинты + sink с two-phase-commit. Spark Structured Streaming = чекпоинт оффсетов + идемпотентный <code class="inline">MERGE</code>-upsert.</p>
+    <div class="good">
+      <span class="lbl"><span class="en">Design rule</span><span class="ru">Правило дизайна</span></span>
+      <span class="en">Prefer naturally idempotent writes: <strong>upsert by key</strong> and <strong>SET x = v</strong> (not <code class="inline">x = x + 1</code>). If you must aggregate, dedup first on a stable <code class="inline">event_id</code> so reprocessing is safe.</span>
+      <span class="ru">Предпочитай естественно идемпотентные записи: <strong>upsert по ключу</strong> и <strong>SET x = v</strong> (а не <code class="inline">x = x + 1</code>). Если надо агрегировать, сначала дедуп по стабильному <code class="inline">event_id</code>, чтобы переобработка была безопасной.</span>
+    </div>
+  </div>
+</section>
+
+<section id="flow">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">8. Backpressure &amp; flow control</span><span class="ru">8. Backpressure и контроль потока</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Backpressure</strong> is a feedback signal that slows the producer when the consumer can't keep up — instead of letting buffers grow until the process runs out of memory. Without it, a brief slowdown becomes a crash.</p>
+    <p class="ru"><strong>Backpressure</strong> — сигнал обратной связи, который тормозит продюсера, когда консьюмер не успевает — вместо того чтобы буферы росли до нехватки памяти. Без него короткое замедление превращается в падение.</p>
+    <div class="ascii">FAST PRODUCER ──▶ [ bounded queue ] ──▶ SLOW CONSUMER
+                         │ full?
+                         ▼  signal upstream: slow down / shed</div>
+    <ul class="en">
+      <li><strong>Pull-based / demand</strong> (Reactive Streams, Flink credit-based): consumer asks for N items; producer can't exceed demand.</li>
+      <li><strong>Bounded buffer + blocking</strong>: producer blocks when full (TCP flow control works like this).</li>
+      <li><strong>Load shedding</strong>: drop low-priority work when overloaded — better to drop 1% than fall over.</li>
+      <li><strong>Buffer to a durable log</strong> (Kafka): absorbs spikes; the log is the shock absorber.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Pull / по требованию</strong> (Reactive Streams, кредитный Flink): консьюмер просит N элементов; продюсер не превышает спрос.</li>
+      <li><strong>Ограниченный буфер + блокировка</strong>: продюсер блокируется при заполнении (так работает TCP flow control).</li>
+      <li><strong>Сброс нагрузки</strong>: отбрасывать низкоприоритетное при перегрузе — лучше отбросить 1%, чем упасть.</li>
+      <li><strong>Буфер в надёжный лог</strong> (Kafka): гасит всплески; лог — амортизатор.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">Kafka buys time, not infinity</span><span class="ru">Kafka даёт время, не бесконечность</span></span>
+      <span class="en">A log absorbs spikes, but if the consumer is <em>chronically</em> slower, lag grows until retention deletes un-consumed data — silent loss. Always monitor consumer lag and scale partitions/consumers.</span>
+      <span class="ru">Лог гасит всплески, но если консьюмер <em>хронически</em> медленнее, лаг растёт, пока retention не удалит непрочитанное — тихая потеря. Всегда мониторь лаг консьюмера и масштабируй партиции/консьюмеров.</span>
+    </div>
+  </div>
+</section>
+
+<section id="stream">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">9. Batch vs streaming &amp; watermarks</span><span class="ru">9. Batch vs streaming и watermarks</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th></th><th>Batch</th><th>Streaming</th></tr>
+      <tr><td>Latency</td><td>Minutes–hours</td><td>ms–seconds</td></tr>
+      <tr><td>Correctness</td><td>Easy (complete data, reprocess freely)</td><td>Harder (late / out-of-order data)</td></tr>
+      <tr><td>Use for</td><td>Daily aggregates, backfills, training data</td><td>Alerting, fraud, real-time dashboards</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th></th><th>Batch</th><th>Streaming</th></tr>
+      <tr><td>Задержка</td><td>Минуты–часы</td><td>мс–секунды</td></tr>
+      <tr><td>Корректность</td><td>Легко (полные данные, свободная переобработка)</td><td>Труднее (опоздавшие / неупорядоченные данные)</td></tr>
+      <tr><td>Для чего</td><td>Дневные агрегаты, бэкфилы, обучающие данные</td><td>Алертинг, фрод, дашборды в реальном времени</td></tr>
+    </table>
+    <h3><span class="en">Event time, processing time, watermarks</span><span class="ru">Event time, processing time, watermarks</span></h3>
+    <p class="en">Events arrive late and out of order. You usually aggregate by <strong>event time</strong> (when it happened), not <strong>processing time</strong> (when you saw it). A <strong>watermark</strong> is the system's claim "I've now seen all events up to time W" — it decides when a time window is allowed to close.</p>
+    <p class="ru">События приходят с опозданием и вне порядка. Обычно агрегируешь по <strong>event time</strong> (когда случилось), а не по <strong>processing time</strong> (когда увидел). <strong>Watermark</strong> — утверждение системы «я уже видел все события до момента W» — оно решает, когда временно́му окну можно закрыться.</p>
+    <ul class="en">
+      <li><strong>Tighter</strong> watermark → lower latency, but more late data dropped.</li>
+      <li><strong>Looser</strong> watermark → more complete, but higher latency and more state held.</li>
+      <li>Very-late events → side-output / dead-letter, or a <strong>batch reconciliation</strong> pass to true-up the number.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Туже</strong> watermark → меньше задержка, но больше опоздавших отбрасывается.</li>
+      <li><strong>Свободнее</strong> watermark → полнее, но выше задержка и больше удерживаемого состояния.</li>
+      <li>Сильно опоздавшие → side-output / dead-letter или проход <strong>батч-сверки</strong>, чтобы уточнить число.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">Don't order by wall-clock</span><span class="ru">Не упорядочивай по wall-clock</span></span>
+      <span class="en">Processing-time windows give wrong results whenever ingestion lags or you replay. Key correctness on a trustworthy <code class="inline">event_time</code> in the payload; treat the watermark as your completeness-vs-latency dial.</span>
+      <span class="ru">Окна по processing-time дают неверный результат при отставании ingestion или перечитке. Опирай корректность на надёжный <code class="inline">event_time</code> в payload; watermark — это «ручка» полнота-vs-задержка.</span>
+    </div>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">10. Self-quiz</span><span class="ru">10. Самопроверка</span></h2>
+  <p class="lead"><span class="en">Answer out loud, then flip.</span><span class="ru">Ответь вслух, потом переверни.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What does PACELC add over CAP?</span><span class="ru">Что PACELC добавляет к CAP?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">The <strong>Else</strong> case: when healthy (almost always), you still trade <strong>Latency vs Consistency</strong>. CAP only covers behavior during a partition; PACELC covers the everyday path too.</span><span class="ru">Случай <strong>Else</strong>: при здоровой сети (почти всегда) всё равно есть компромисс <strong>Latency vs Consistency</strong>. CAP описывает только поведение при разрыве; PACELC — ещё и обычный путь.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">N=5: pick R, W to survive 2 write-path failures with overlap.</span><span class="ru">N=5: подбери R, W, чтобы пережить 2 отказа на записи с пересечением.</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en"><strong>W=3, R=3</strong> → R+W=6 &gt; 5 (overlap) and W=3 is a majority (tolerates 2 of 5 down). Note: quorum overlap is not full linearizability under concurrent writes.</span><span class="ru"><strong>W=3, R=3</strong> → R+W=6 &gt; 5 (пересечение), и W=3 — большинство (переживает 2 из 5). Заметь: пересечение кворума ≠ полная линеаризуемость при конкурентных записях.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Is exactly-once delivery possible?</span><span class="ru">Возможна ли exactly-once доставка?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">No (Two Generals). You get exactly-once <strong>effect</strong> = at-least-once + idempotent write + dedup + atomic commit of write &amp; offset.</span><span class="ru">Нет (два генерала). Достигаешь exactly-once <strong>эффект</strong> = at-least-once + идемпотентная запись + дедуп + атомарный коммит записи и оффсета.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why odd cluster sizes, and what stops a revived old leader?</span><span class="ru">Почему нечётный размер кластера и что останавливает ожившего старого лидера?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Only one side of a partition can hold a majority → no split-brain. A revived stale leader is stopped by <strong>fencing tokens</strong>: storage rejects writes carrying an older token.</span><span class="ru">Большинство может быть только у одной стороны разрыва → нет split-brain. Ожившего старого лидера останавливают <strong>fencing tokens</strong>: хранилище отвергает записи со старым токеном.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why is gray failure harder than a crash?</span><span class="ru">Почему серый сбой труднее падения?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A crash trips health checks and fails over. A gray failure stays "up" while slow/partially-erroring — it passes naive checks and poisons tail latency. Detect with differential metrics + hedged requests.</span><span class="ru">Падение валит health-check и делает failover. Серый сбой остаётся «живым», будучи медленным/частично ошибочным — проходит наивные проверки и отравляет tail latency. Лови дифференциальными метриками + hedged-запросами.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What does tuning a watermark cost?</span><span class="ru">Чем стоит настройка watermark?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Tighter → lower latency but more dropped late data. Looser → more complete but higher latency + more state. Very-late data → side-output or a batch true-up.</span><span class="ru">Туже → меньше задержка, но больше отброшенных опоздавших. Свободнее → полнее, но выше задержка + больше состояния. Сильно опоздавшие → side-output или батч-уточнение.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Distributed Systems — Intermediate · part of the DE interview cheatsheets · built for Amal Imangulov · ready for <a href="distributed-systems-advanced.html">Advanced →</a></span>
+  <span class="ru">Распределённые системы — Средний · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · готов к <a href="distributed-systems-advanced.html">Продвинутому →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>

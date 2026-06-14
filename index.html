@@ -146,10 +146,10 @@
   <div class="nav-links">
     <a href="#streaming"><span class="en">Streaming</span><span class="ru">Стриминг</span></a>
     <a href="#compute"><span class="en">Compute</span><span class="ru">Вычисления</span></a>
+    <a href="#distsys"><span class="en">Distributed sys</span><span class="ru">Распред. системы</span></a>
     <a href="#storage"><span class="en">Storage</span><span class="ru">Хранение</span></a>
     <a href="#pipelines"><span class="en">Pipelines</span><span class="ru">Пайплайны</span></a>
     <a href="#quality"><span class="en">Quality</span><span class="ru">Качество</span></a>
-    <a href="#coding"><span class="en">Coding</span><span class="ru">Код</span></a>
     <a href="#design"><span class="en">Design</span><span class="ru">Дизайн</span></a>
     <a href="#behavioral"><span class="en">Behavioral</span><span class="ru">Поведенческое</span></a>
     <button class="toggle-btn" id="langBtn">🌐 RU</button>
@@ -221,8 +221,30 @@
     </div>
   </section>
 
+  <section id="distsys">
+    <div class="sec-head"><span class="num">03</span><h2><span class="en">Distributed Systems</span><span class="ru">Распределённые системы</span></h2></div>
+    <p class="sec-sub"><span class="en">The technical heart of senior DE. Three difficulty levels — start wherever you're comfortable and climb.</span><span class="ru">Техническое ядро senior DE. Три уровня сложности — начни с комфортного и поднимайся.</span></p>
+    <div class="grid">
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🟢</span><h4><span class="en">Beginner</span><span class="ru">Новичок</span></h4></div>
+        <div class="desc"><span class="en">Plain ideas and everyday analogies: what it is, why things fail, copies, splitting, idempotency, the CAP idea.</span><span class="ru">Простые идеи и аналогии из жизни: что это, почему всё ломается, копии, разбиение, идемпотентность, идея CAP.</span></div>
+        <a class="open" href="cheatsheets/distributed-systems-beginner.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🟡</span><h4><span class="en">Intermediate</span><span class="ru">Средний</span></h4></div>
+        <div class="desc"><span class="en">The real names and working knowledge: CAP/PACELC, consistency, quorums, consensus, exactly-once, watermarks.</span><span class="ru">Настоящие термины и рабочее понимание: CAP/PACELC, согласованность, кворумы, консенсус, exactly-once, watermarks.</span></div>
+        <a class="open" href="cheatsheets/distributed-systems-intermediate.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🔴</span><h4><span class="en">Advanced</span><span class="ru">Продвинутый</span></h4></div>
+        <div class="desc"><span class="en">Dense interview prep: failure-mode reasoning, PACELC, quorums, fencing, skew/shuffles, pipelines at scale.</span><span class="ru">Плотная подготовка к интервью: рассуждения о сбоях, PACELC, кворумы, fencing, skew/shuffle, пайплайны на масштабе.</span></div>
+        <a class="open" href="cheatsheets/distributed-systems-advanced.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+    </div>
+  </section>
+
   <section id="storage">
-    <div class="sec-head"><span class="num">03</span><h2><span class="en">Storage &amp; Data Modeling</span><span class="ru">Хранение и моделирование данных</span></h2></div>
+    <div class="sec-head"><span class="num">04</span><h2><span class="en">Storage &amp; Data Modeling</span><span class="ru">Хранение и моделирование данных</span></h2></div>
     <p class="sec-sub"><span class="en">Table formats, warehousing, modeling, governance and lineage.</span><span class="ru">Табличные форматы, warehousing, моделирование, governance и lineage.</span></p>
     <div class="grid">
       <div class="topic reveal">
@@ -244,7 +266,7 @@
   </section>
 
   <section id="pipelines">
-    <div class="sec-head"><span class="num">04</span><h2><span class="en">Pipelines &amp; Platform</span><span class="ru">Пайплайны и платформа</span></h2></div>
+    <div class="sec-head"><span class="num">05</span><h2><span class="en">Pipelines &amp; Platform</span><span class="ru">Пайплайны и платформа</span></h2></div>
     <p class="sec-sub"><span class="en">Orchestration, pipeline design, DataOps/CI-CD and modernizing legacy systems.</span><span class="ru">Оркестрация, дизайн пайплайнов, DataOps/CI-CD и модернизация legacy.</span></p>
     <div class="grid">
       <div class="topic reveal">
@@ -271,7 +293,7 @@
   </section>
 
   <section id="quality">
-    <div class="sec-head"><span class="num">05</span><h2><span class="en">Quality, Testing &amp; ML</span><span class="ru">Качество, тестирование и ML</span></h2></div>
+    <div class="sec-head"><span class="num">06</span><h2><span class="en">Quality, Testing &amp; ML</span><span class="ru">Качество, тестирование и ML</span></h2></div>
     <p class="sec-sub"><span class="en">Making data trustworthy: testing, observability and ML-assisted quality.</span><span class="ru">Как сделать данные надёжными: тестирование, наблюдаемость и ML для качества.</span></p>
     <div class="grid">
       <div class="topic reveal">
@@ -293,7 +315,7 @@
   </section>
 
   <section id="design">
-    <div class="sec-head"><span class="num">06</span><h2><span class="en">System Design &amp; Domain</span><span class="ru">Системный дизайн и домен</span></h2></div>
+    <div class="sec-head"><span class="num">07</span><h2><span class="en">System Design &amp; Domain</span><span class="ru">Системный дизайн и домен</span></h2></div>
     <p class="sec-sub"><span class="en">Designing a data platform end-to-end, plus a worked domain example.</span><span class="ru">Сквозной дизайн дата-платформы плюс разобранный доменный пример.</span></p>
     <div class="grid">
       <div class="topic reveal">
@@ -306,16 +328,11 @@
         <div class="desc"><span class="en">Vintages, revisions, point-in-time, seasonality, frequency, bitemporal data.</span><span class="ru">Vintages, ревизии, point-in-time, сезонность, частота, битемпоральные данные.</span></div>
         <a class="open" href="cheatsheets/economics-timeseries-domain.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
       </div>
-      <div class="topic reveal soon">
-        <div class="top"><span class="ico">🧮</span><h4><span class="en">Distributed Systems</span><span class="ru">Распределённые системы</span></h4><span class="badge"><span class="en">Soon</span><span class="ru">Скоро</span></span></div>
-        <div class="desc"><span class="en">A dedicated multi-level project (beginner → intermediate → advanced) is in the works.</span><span class="ru">Готовится отдельный многоуровневый проект (новичок → средний → продвинутый).</span></div>
-        <a class="open" href="#" onclick="return false" style="opacity:.6;cursor:default"><span class="en">Coming soon</span><span class="ru">Скоро</span></a>
-      </div>
     </div>
   </section>
 
   <section id="behavioral">
-    <div class="sec-head"><span class="num">07</span><h2><span class="en">Behavioral &amp; Collaboration</span><span class="ru">Поведенческое и взаимодействие</span></h2></div>
+    <div class="sec-head"><span class="num">08</span><h2><span class="en">Behavioral &amp; Collaboration</span><span class="ru">Поведенческое и взаимодействие</span></h2></div>
     <p class="sec-sub"><span class="en">Values, mentorship, and translating between stakeholders and data work.</span><span class="ru">Ценности, менторство и перевод между стейкхолдерами и работой с данными.</span></p>
     <div class="grid">
       <div class="topic reveal">

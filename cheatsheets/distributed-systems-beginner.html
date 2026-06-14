@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distributed Systems (Beginner) — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a; --card: #151d30; --card2: #1b2641; --text: #e7ecf5; --muted: #94a3b8;
+    --border: #25304d; --accent: #1877F2; --green: #02e2ac; --orange: #f59e0b; --purple: #a855f7;
+    --code-bg: #0d1322; --shadow: rgba(0,0,0,0.45);
+  }
+  [data-theme="light"] {
+    --bg: #f4f6fb; --card: #ffffff; --card2: #eef2fa; --text: #14213d; --muted: #5b6b86;
+    --border: #d6deec; --accent: #1259c3; --green: #058f6e; --orange: #c2790a; --purple: #8b3fd6;
+    --code-bg: #f0f3fa; --shadow: rgba(40,60,100,0.12);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6; font-size: 15.5px; transition: background .25s, color .25s; }
+  code, pre, .mono { font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+
+  /* i18n */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  nav { position: sticky; top: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); display: flex; align-items: center;
+    gap: 4px; padding: 8px 14px; overflow-x: auto; white-space: nowrap; }
+  nav .brand { font-weight: 700; color: var(--accent); margin-right: 10px; font-size: 14px; flex-shrink:0; }
+  nav a { color: var(--muted); text-decoration: none; font-size: 12.5px; padding: 5px 9px; border-radius: 7px; flex-shrink:0; }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn { background: var(--card2); color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600; }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  header.hero { padding: 34px 20px 18px; max-width: 940px; margin: 0 auto; }
+  header.hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -.5px; }
+  header.hero .sub { color: var(--muted); font-size: 15.5px; }
+
+  .levels { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .level { padding: 7px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--card2);
+    color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none; }
+  .level:hover { border-color: var(--accent); }
+  .level.active { border-color: var(--accent); color: var(--text); }
+
+  main { max-width: 940px; margin: 0 auto; padding: 6px 20px 80px; }
+  section { margin: 26px 0; }
+  h2 { font-size: 21px; margin: 28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size: 16px; margin: 14px 0 6px; }
+  p { margin: 9px 0; }
+  ul { margin: 8px 0; padding-left: 22px; } li { margin: 5px 0; }
+  strong { color: var(--text); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px;
+    margin: 14px 0; box-shadow: 0 4px 18px var(--shadow); }
+  code.inline { background: var(--code-bg); border:1px solid var(--border); border-radius: 5px; padding: 1px 6px;
+    font-size: 13px; color: var(--green); }
+  .ascii { background: var(--code-bg); border:1px solid var(--border); border-radius:10px; padding: 14px;
+    overflow-x:auto; font-size: 12.5px; line-height: 1.45; color: var(--text); white-space: pre; }
+
+  .analogy, .key, .takeaway { border-left: 4px solid; border-radius: 0 10px 10px 0; padding: 11px 15px; margin: 12px 0; font-size: 14.5px; }
+  .analogy { border-color: var(--purple); background: color-mix(in srgb, var(--purple) 9%, var(--card)); }
+  .key { border-color: var(--green); background: color-mix(in srgb, var(--green) 9%, var(--card)); }
+  .takeaway { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color: var(--purple); } .key .lbl { color: var(--green); } .takeaway .lbl { color: var(--accent); }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--accent); font-weight: 650; border-bottom: 2px solid var(--border); }
+
+  .flip-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 14px 0; }
+  .flip { perspective: 1200px; height: 175px; cursor: pointer; }
+  .flip-inner { position: relative; width:100%; height:100%; transition: transform .5s; transform-style: preserve-3d; }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility: hidden; border:1px solid var(--border);
+    border-radius: 12px; padding: 16px; display:flex; flex-direction:column; justify-content:center; box-shadow: 0 4px 18px var(--shadow); }
+  .flip-front { background: var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color: var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background: var(--card2); transform: rotateY(180deg); font-size: 13.5px; overflow-y:auto; }
+
+  .reveal { opacity:0; transform: translateY(16px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color: var(--muted); font-size:12.5px; padding: 30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🧮 DistSys · <span class="en">Beginner</span><span class="ru">Новичок</span></span>
+  <a href="#what"><span class="en">What is it</span><span class="ru">Что это</span></a>
+  <a href="#why"><span class="en">Why</span><span class="ru">Зачем</span></a>
+  <a href="#hard"><span class="en">3 hard truths</span><span class="ru">3 истины</span></a>
+  <a href="#copies"><span class="en">Copies</span><span class="ru">Копии</span></a>
+  <a href="#split"><span class="en">Splitting</span><span class="ru">Разбиение</span></a>
+  <a href="#choice"><span class="en">The choice</span><span class="ru">Выбор</span></a>
+  <a href="#twice"><span class="en">Doing it twice</span><span class="ru">Дважды</span></a>
+  <a href="#agree"><span class="en">Agreeing</span><span class="ru">Согласие</span></a>
+  <a href="#late"><span class="en">Late data</span><span class="ru">Опоздания</span></a>
+  <a href="#quiz"><span class="en">Quiz</span><span class="ru">Квиз</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Distributed Systems — the friendly intro</span><span class="ru">Распределённые системы — дружелюбное введение</span></h1>
+  <div class="sub">
+    <span class="en">No jargon, just plain ideas and everyday analogies. Start here, then move up to Intermediate and Advanced.</span>
+    <span class="ru">Без жаргона: простые идеи и аналогии из жизни. Начни здесь, потом переходи к «Среднему» и «Продвинутому».</span>
+  </div>
+  <div class="levels">
+    <a class="level active" href="distributed-systems-beginner.html">🟢 <span class="en">Beginner</span><span class="ru">Новичок</span></a>
+    <a class="level" href="distributed-systems-intermediate.html">🟡 <span class="en">Intermediate</span><span class="ru">Средний</span></a>
+    <a class="level" href="distributed-systems-advanced.html">🔴 <span class="en">Advanced</span><span class="ru">Продвинутый</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. What is a distributed system?</span><span class="ru">1. Что такое распределённая система?</span></h2>
+  <div class="card reveal">
+    <p class="en">A <strong>distributed system</strong> is just <strong>several computers working together</strong> to do one job, talking to each other over a network. To the user it looks like one app; behind the scenes the work is spread over many machines.</p>
+    <p class="ru">«<strong>Распределённая система</strong>» — это просто <strong>несколько компьютеров, которые вместе делают одну задачу</strong> и общаются по сети. Пользователю это выглядит как одно приложение; за кулисами работа размазана по множеству машин.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">One cook in a tiny kitchen can make a few meals. A big restaurant has many cooks, stations, and waiters working at once. The food still arrives as one order, but lots of people made it happen together. That's a distributed system.</span>
+      <span class="ru">Один повар в маленькой кухне приготовит пару блюд. В большом ресторане — много поваров, станций и официантов работают одновременно. Заказ всё равно приходит как одно блюдо, но над ним работали вместе. Это и есть распределённая система.</span>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Why not just use one big computer?</span><span class="ru">2. Почему не взять один большой компьютер?</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><strong>Too much work for one.</strong> Millions of users or billions of events won't fit on a single machine.</li>
+      <li><strong>One machine can break.</strong> If everything lives on one computer and it dies, your whole app is down.</li>
+      <li><strong>Speed and location.</strong> Users are all over the world; having machines closer to them is faster.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Слишком много работы для одного.</strong> Миллионы пользователей или миллиарды событий не влезут в одну машину.</li>
+      <li><strong>Одна машина может сломаться.</strong> Если всё на одном компьютере и он умирает — падает всё приложение.</li>
+      <li><strong>Скорость и расположение.</strong> Пользователи по всему миру; держать машины ближе к ним — быстрее.</li>
+    </ul>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Takeaway</span><span class="ru">Вывод</span></span>
+      <span class="en">We use many computers for <strong>scale</strong> (handle more) and <strong>reliability</strong> (survive failures). But splitting work creates new problems — that's the rest of this page.</span>
+      <span class="ru">Много компьютеров берут ради <strong>масштаба</strong> (тянуть больше) и <strong>надёжности</strong> (переживать сбои). Но разделение работы рождает новые проблемы — о них дальше.</span>
+    </div>
+  </div>
+</section>
+
+<section id="hard">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">3. The three hard truths</span><span class="ru">3. Три суровые истины</span></h2>
+  <p class="sub" style="color:var(--muted);font-size:14px"><span class="en">Almost everything in distributed systems exists to deal with these three facts.</span><span class="ru">Почти всё в распределённых системах придумано, чтобы справляться с этими тремя фактами.</span></p>
+  <div class="card reveal">
+    <h3><span class="en">① Things fail — all the time</span><span class="ru">① Всё ломается — постоянно</span></h3>
+    <p class="en">With thousands of machines, something is <em>always</em> broken: a disk dies, a server reboots, a cable is unplugged. Failure isn't a rare emergency; it's the normal background state.</p>
+    <p class="ru">Когда машин тысячи, что-то <em>всегда</em> сломано: умер диск, перезагрузился сервер, выдернули кабель. Сбой — не редкое ЧП, а нормальный фон.</p>
+
+    <h3><span class="en">② Messages get lost, duplicated, or delayed</span><span class="ru">② Сообщения теряются, дублируются или опаздывают</span></h3>
+    <p class="en">Computers talk over a network, and the network is unreliable. A message might never arrive, arrive twice, or arrive much later than expected.</p>
+    <p class="ru">Компьютеры общаются по сети, а сеть ненадёжна. Сообщение может не дойти, прийти дважды или прийти намного позже, чем ждали.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">You text a friend "running late". Maybe it doesn't send. Maybe it sends twice. Maybe it arrives an hour later. You can't be sure they got it — so you might call to confirm. Computers have the same problem.</span>
+      <span class="ru">Ты пишешь другу «опаздываю». Может не отправиться. Может отправиться дважды. Может дойти через час. Ты не уверен, что он получил — поэтому можешь перезвонить. У компьютеров та же проблема.</span>
+    </div>
+
+    <h3><span class="en">③ There is no shared clock</span><span class="ru">③ Нет общих часов</span></h3>
+    <p class="en">Each machine has its own clock, and they drift apart. So you can't always say which of two events happened "first" just by comparing timestamps.</p>
+    <p class="ru">У каждой машины свои часы, и они расходятся. Поэтому нельзя всегда сказать, какое из двух событий случилось «первым», просто сравнив отметки времени.</p>
+    <div class="key">
+      <span class="lbl"><span class="en">The big one</span><span class="ru">Главное</span></span>
+      <span class="en">If a machine stops answering, you <strong>cannot tell whether it crashed or is just slow</strong>. This single uncertainty is the root of most distributed-systems difficulty.</span>
+      <span class="ru">Если машина перестала отвечать, ты <strong>не можешь понять, упала она или просто тормозит</strong>. Именно эта неопределённость — корень большинства сложностей.</span>
+    </div>
+  </div>
+</section>
+
+<section id="copies">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">4. Copies = Replication</span><span class="ru">4. Копии = Репликация</span></h2>
+  <div class="card reveal">
+    <p class="en">Since machines fail, we keep <strong>several copies</strong> of the data on different machines. If one is lost, the others still have it. Keeping copies in sync is called <strong>replication</strong>.</p>
+    <p class="ru">Раз машины ломаются, мы держим <strong>несколько копий</strong> данных на разных машинах. Если одна потеряна — у других данные есть. Поддержание копий в синхроне называется <strong>репликацией</strong>.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">Write an important phone number in three notebooks kept in three places. Lose one notebook and you're fine. But now if you change the number, you must update all three — or they'll disagree. That "keeping them equal" is the hard part.</span>
+      <span class="ru">Запиши важный номер в три блокнота в трёх местах. Потеряешь один — не страшно. Но если меняешь номер, надо обновить все три — иначе они разойдутся. Вот это «держать их одинаковыми» и есть сложность.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Word to know</span><span class="ru">Слово на заметку</span></span>
+      <span class="en"><strong>Replication</strong> = keeping copies of data on multiple machines for safety and availability.</span>
+      <span class="ru"><strong>Репликация</strong> = хранение копий данных на нескольких машинах ради сохранности и доступности.</span>
+    </div>
+  </div>
+</section>
+
+<section id="split">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">5. Splitting = Partitioning (sharding)</span><span class="ru">5. Разбиение = Партиционирование (шардирование)</span></h2>
+  <div class="card reveal">
+    <p class="en">When data is too big for one machine, we <strong>split it into pieces</strong> and put each piece on a different machine. Each piece is a <strong>partition</strong> (or <strong>shard</strong>).</p>
+    <p class="ru">Когда данных слишком много для одной машины, мы <strong>делим их на части</strong> и кладём каждую часть на отдельную машину. Каждая часть — это <strong>партиция</strong> (или <strong>шард</strong>).</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">A huge phone book won't fit on one shelf. Put names A–F on shelf 1, G–M on shelf 2, and so on. To find "Ivanov" you go straight to the right shelf. Splitting by a rule lets many shelves (machines) share the load.</span>
+      <span class="ru">Огромная телефонная книга не влезет на одну полку. Имена А–Е — на полку 1, Ж–М — на полку 2, и так далее. Чтобы найти «Иванов», идёшь сразу к нужной полке. Деление по правилу позволяет многим полкам (машинам) делить нагрузку.</span>
+    </div>
+    <div class="key">
+      <span class="lbl"><span class="en">Watch out: hotspots</span><span class="ru">Осторожно: горячие точки</span></span>
+      <span class="en">If everyone wants the same shelf (say one super-popular name), that one machine gets swamped while others sit idle. Splitting evenly is the trick.</span>
+      <span class="ru">Если всем нужна одна полка (например, одно супер-популярное имя), эта машина перегружена, а остальные простаивают. Хитрость — делить равномерно.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Two ideas, often together</span><span class="ru">Две идеи, часто вместе</span></span>
+      <span class="en"><strong>Partition</strong> to share the load + <strong>replicate</strong> each partition for safety. Real systems do both.</span>
+      <span class="ru"><strong>Партиционируй</strong>, чтобы делить нагрузку, + <strong>реплицируй</strong> каждую партицию ради сохранности. Реальные системы делают и то, и другое.</span>
+    </div>
+  </div>
+</section>
+
+<section id="choice">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">6. The big choice: be correct, or be available?</span><span class="ru">6. Главный выбор: быть точным или доступным?</span></h2>
+  <div class="card reveal">
+    <p class="en">Imagine the network breaks and two machines can't talk. A request comes in. You have two options:</p>
+    <p class="ru">Представь: сеть оборвалась, и две машины не могут общаться. Приходит запрос. У тебя два варианта:</p>
+    <ul class="en">
+      <li><strong>Refuse to answer</strong> until you're sure the data is correct (you stay <em>consistent</em>, but you're temporarily <em>unavailable</em>).</li>
+      <li><strong>Answer anyway</strong> with maybe-slightly-old data (you stay <em>available</em>, but you might be <em>inconsistent</em> for a moment).</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Отказаться отвечать</strong>, пока не уверен, что данные верны (остаёшься <em>согласованным</em>, но временно <em>недоступен</em>).</li>
+      <li><strong>Ответить всё равно</strong>, может быть, слегка устаревшими данными (остаёшься <em>доступным</em>, но на миг можешь быть <em>несогласованным</em>).</li>
+    </ul>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">Two shops share one stock list, but the phone line between them is cut. A customer wants the last item. Shop A can say "sorry, I can't confirm right now" (correct but unhelpful) — or sell it and risk Shop B selling the same last item too (helpful but maybe wrong). You can't have both during the outage.</span>
+      <span class="ru">Два магазина ведут один список товара, но связь между ними оборвана. Покупатель хочет последнюю единицу. Магазин A может сказать «извините, не могу подтвердить сейчас» (точно, но бесполезно) — или продать и рискнуть, что магазин B продаст ту же последнюю единицу (полезно, но, возможно, неверно). Во время обрыва оба сразу не получится.</span>
+    </div>
+    <div class="key">
+      <span class="lbl"><span class="en">This is the famous "CAP" idea</span><span class="ru">Это и есть знаменитая идея «CAP»</span></span>
+      <span class="en">When the network is split, you pick <strong>Consistency</strong> (always correct) <em>or</em> <strong>Availability</strong> (always answers) — not both. When the network is healthy, you can have both. You'll meet "CAP" by name in the Intermediate page.</span>
+      <span class="ru">Когда сеть разорвана, ты выбираешь <strong>Согласованность</strong> (всегда верно) <em>или</em> <strong>Доступность</strong> (всегда отвечает) — не оба. Когда сеть здорова, можно и то, и другое. С названием «CAP» познакомишься на странице «Средний».</span>
+    </div>
+  </div>
+</section>
+
+<section id="twice">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">7. "Safe to do twice" = Idempotency</span><span class="ru">7. «Безопасно сделать дважды» = Идемпотентность</span></h2>
+  <div class="card reveal">
+    <p class="en">Remember truth ②: messages can arrive twice. So a good system makes sure that <strong>doing the same thing twice has the same result as doing it once</strong>. This property has a fancy name: <strong>idempotency</strong>.</p>
+    <p class="ru">Вспомни истину ②: сообщения могут прийти дважды. Поэтому хорошая система следит, чтобы <strong>сделать одно и то же дважды давало тот же результат, что и один раз</strong>. У этого свойства есть умное название: <strong>идемпотентность</strong>.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">A light switch set to "ON" is idempotent: flip it to ON twice, it's still just ON. But "add one cookie to the jar" is <em>not</em> — do it twice by accident and you have an extra cookie. Designs prefer "set to this value" over "add one".</span>
+      <span class="ru">Выключатель в положении «ВКЛ» идемпотентен: переведи в ВКЛ дважды — всё равно просто ВКЛ. А «добавь одно печенье в банку» — <em>нет</em>: сделаешь случайно дважды, и печенья лишнее. В дизайне предпочитают «установить значение» вместо «прибавить один».</span>
+    </div>
+    <p class="en">The usual trick: give each request a unique <strong>id</strong>. If the system sees the same id again, it knows "I already did this" and safely ignores the duplicate. Combined with <strong>retries</strong> (try again if unsure), you get reliability without double-counting.</p>
+    <p class="ru">Обычный приём: давать каждому запросу уникальный <strong>id</strong>. Если система снова видит тот же id, она понимает «я это уже сделала» и безопасно игнорирует дубль. Вместе с <strong>ретраями</strong> (повторить, если не уверен) получается надёжность без двойного счёта.</p>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Why it matters</span><span class="ru">Почему это важно</span></span>
+      <span class="en">"Retry until it works" is the main way to survive lost messages. Idempotency is what makes retrying <em>safe</em>. They go together.</span>
+      <span class="ru">«Повторяй, пока не сработает» — главный способ пережить потерю сообщений. Идемпотентность делает повтор <em>безопасным</em>. Они идут в паре.</span>
+    </div>
+  </div>
+</section>
+
+<section id="agree">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">8. How machines agree: voting</span><span class="ru">8. Как машины договариваются: голосование</span></h2>
+  <div class="card reveal">
+    <p class="en">Sometimes a group of machines must <strong>agree on one answer</strong> — for example, "who is in charge right now?". They do it by <strong>voting</strong>: the choice that gets more than half the votes (a <strong>majority</strong>) wins. This is called <strong>consensus</strong>.</p>
+    <p class="ru">Иногда группе машин надо <strong>договориться об одном ответе</strong> — например, «кто сейчас главный?». Делают это <strong>голосованием</strong>: вариант, набравший больше половины голосов (<strong>большинство</strong>), побеждает. Это называется <strong>консенсус</strong>.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">A group of friends picks one restaurant by majority vote. If the group splits into two rooms that can't talk, only the room with more than half the people can decide — the smaller room has to wait. That's why you can't end up with two different decisions.</span>
+      <span class="ru">Компания выбирает один ресторан большинством голосов. Если компания разделилась на две комнаты без связи, решать может только та, где больше половины людей — меньшая комната ждёт. Поэтому не выйдет двух разных решений.</span>
+    </div>
+    <div class="key">
+      <span class="lbl"><span class="en">Why odd numbers (3, 5)</span><span class="ru">Почему нечётные (3, 5)</span></span>
+      <span class="en">An odd number of voters means there's always a clear majority and no ties. If the group is split by a network break, only one side can have "more than half" — so only one side acts. No two bosses.</span>
+      <span class="ru">Нечётное число голосующих гарантирует чёткое большинство без ничьих. Если группу разорвало сетью, «больше половины» может быть только у одной стороны — действует только она. Двух начальников не будет.</span>
+    </div>
+  </div>
+</section>
+
+<section id="late">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">9. Fast vs complete: live data and latecomers</span><span class="ru">9. Быстро vs полно: «живые» данные и опоздавшие</span></h2>
+  <div class="card reveal">
+    <p class="en">There are two ways to process data:</p>
+    <p class="ru">Есть два способа обрабатывать данные:</p>
+    <ul class="en">
+      <li><strong>Batch</strong>: wait, collect a lot, then process it all at once. Slower, but you have the full picture. (Like doing all the laundry once a week.)</li>
+      <li><strong>Streaming</strong>: process each item the moment it arrives. Fast and live, but you might not have everything yet. (Like washing each sock as it appears.)</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Батч (Batch)</strong>: подождать, собрать много, потом обработать всё разом. Медленнее, но видишь полную картину. (Как стирать всё бельё раз в неделю.)</li>
+      <li><strong>Стриминг (Streaming)</strong>: обрабатывать каждый элемент в момент прихода. Быстро и «вживую», но может быть ещё не всё. (Как стирать каждый носок по мере появления.)</li>
+    </ul>
+    <div class="analogy">
+      <span class="lbl"><span class="en">The latecomer problem</span><span class="ru">Проблема опоздавших</span></span>
+      <span class="en">Remember truth ②: data can arrive late. Imagine counting today's votes, but some ballots arrive by mail two days later. Do you publish the count now (fast, maybe slightly off) or wait for the stragglers (slow, but complete)? Systems set a cutoff and sometimes correct the number afterwards. That cutoff is called a <strong>watermark</strong>.</span>
+      <span class="ru">Вспомни истину ②: данные могут опоздать. Представь, что считаешь голоса за сегодня, но часть бюллетеней приходит почтой через два дня. Опубликовать сейчас (быстро, чуть неточно) или ждать опоздавших (медленно, но полно)? Системы ставят «отсечку» и иногда потом поправляют число. Эта отсечка называется <strong>watermark</strong>.</span>
+    </div>
+  </div>
+</section>
+
+<section id="glossary">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">10. Mini-glossary (you're ready for Intermediate)</span><span class="ru">10. Мини-словарь (ты готов к «Среднему»)</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Word</th><th>Plain meaning</th></tr>
+      <tr><td>Node</td><td>One computer/server in the system.</td></tr>
+      <tr><td>Replication</td><td>Keeping copies of data on several nodes.</td></tr>
+      <tr><td>Partition / Shard</td><td>A piece of the data, split across nodes. (Also: a network split.)</td></tr>
+      <tr><td>Consistency</td><td>Everyone sees the same, up-to-date data.</td></tr>
+      <tr><td>Availability</td><td>The system keeps answering requests.</td></tr>
+      <tr><td>Idempotency</td><td>Doing it twice = doing it once. Makes retries safe.</td></tr>
+      <tr><td>Consensus</td><td>Machines agreeing on one value by majority vote.</td></tr>
+      <tr><td>Latency</td><td>How long one request takes (waiting time).</td></tr>
+      <tr><td>Throughput</td><td>How much work per second the system handles.</td></tr>
+      <tr><td>Watermark</td><td>The cutoff for "I think I've seen all the data up to here".</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Слово</th><th>Простой смысл</th></tr>
+      <tr><td>Нода (Node)</td><td>Один компьютер/сервер в системе.</td></tr>
+      <tr><td>Репликация</td><td>Хранение копий данных на нескольких нодах.</td></tr>
+      <tr><td>Партиция / Шард</td><td>Кусок данных, разнесённый по нодам. (Ещё: разрыв сети.)</td></tr>
+      <tr><td>Согласованность</td><td>Все видят одинаковые, свежие данные.</td></tr>
+      <tr><td>Доступность</td><td>Система продолжает отвечать на запросы.</td></tr>
+      <tr><td>Идемпотентность</td><td>Дважды = один раз. Делает ретраи безопасными.</td></tr>
+      <tr><td>Консенсус</td><td>Машины договариваются об одном значении большинством голосов.</td></tr>
+      <tr><td>Задержка (Latency)</td><td>Сколько длится один запрос (время ожидания).</td></tr>
+      <tr><td>Пропускная способность (Throughput)</td><td>Сколько работы в секунду тянет система.</td></tr>
+      <tr><td>Watermark</td><td>Отсечка «кажется, все данные до этого момента я уже видел».</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">11. Quick self-check</span><span class="ru">11. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why use many computers instead of one?</span><span class="ru">Зачем много компьютеров вместо одного?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">For <strong>scale</strong> (handle more work/users) and <strong>reliability</strong> (keep working when a machine fails). One machine is a limit and a single point of failure.</span><span class="ru">Ради <strong>масштаба</strong> (тянуть больше работы/пользователей) и <strong>надёжности</strong> (работать, когда машина падает). Одна машина — это потолок и единая точка отказа.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">A machine stops replying. Crashed or slow?</span><span class="ru">Машина не отвечает. Упала или тормозит?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">You <strong>can't tell</strong> — and that's the whole challenge. The system must behave correctly either way (e.g. retry safely, don't let a "maybe-dead" boss cause damage).</span><span class="ru">Ты <strong>не можешь понять</strong> — и в этом вся сложность. Система должна вести себя верно в обоих случаях (например, безопасно ретраить и не дать «возможно-мёртвому» начальнику навредить).</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Replication vs partitioning?</span><span class="ru">Репликация vs партиционирование?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en"><strong>Replication</strong> = copies of the same data (for safety). <strong>Partitioning</strong> = splitting data into different pieces (for scale). Systems usually do both.</span><span class="ru"><strong>Репликация</strong> = копии одних и тех же данных (ради сохранности). <strong>Партиционирование</strong> = разбиение данных на разные куски (ради масштаба). Обычно делают и то, и другое.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why is "set to ON" better than "add one"?</span><span class="ru">Почему «установить ВКЛ» лучше «прибавить один»?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Because messages can arrive twice. "Set to ON" done twice is still ON (idempotent). "Add one" done twice over-counts. Idempotency makes retries safe.</span><span class="ru">Потому что сообщения могут прийти дважды. «Установить ВКЛ» дважды — всё ещё ВКЛ (идемпотентно). «Прибавить один» дважды — перебор. Идемпотентность делает ретраи безопасными.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">During a network split: correct or available?</span><span class="ru">При разрыве сети: точность или доступность?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">You can only pick one (the CAP idea). Refuse to answer = consistent but unavailable; answer anyway = available but maybe stale. When the network is fine, you get both.</span><span class="ru">Можно выбрать только одно (идея CAP). Отказать = согласованно, но недоступно; ответить = доступно, но, возможно, устарело. Когда сеть в порядке — доступно и то, и другое.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why odd numbers of voters?</span><span class="ru">Почему нечётное число голосующих?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">So there's always a clear majority and no ties. If the group splits, only one side can have more than half — so you never get two bosses making conflicting decisions.</span><span class="ru">Чтобы всегда было чёткое большинство без ничьих. Если группа разделилась, «больше половины» может быть лишь у одной стороны — и не будет двух начальников с противоречивыми решениями.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Distributed Systems — Beginner · part of the DE interview cheatsheets · built for Amal Imangulov · next up: <a href="distributed-systems-intermediate.html">Intermediate →</a></span>
+  <span class="ru">Распределённые системы — Новичок · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · далее: <a href="distributed-systems-intermediate.html">Средний →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
