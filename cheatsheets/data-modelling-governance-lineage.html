@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Modelling, Governance, Metadata & Lineage — Data Engineering Interview Cheatsheet</title>
+<style>
+:root{
+  --bg:#0a0e1a; --card:#151d30; --card2:#1b2540; --border:#26314f;
+  --text:#e6ebf5; --muted:#94a3c4; --accent:#1877F2; --green:#02e2ac;
+  --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1426; --shadow:rgba(0,0,0,.4);
+}
+[data-theme="light"]{
+  --bg:#f4f6fb; --card:#ffffff; --card2:#eef2fa; --border:#d6deec;
+  --text:#101828; --muted:#54637d; --accent:#1456c4; --green:#069f7c;
+  --orange:#b9770a; --purple:#8a3fd6; --code-bg:#f0f3fa; --shadow:rgba(0,0,0,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.55;font-size:15px;}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ---- i18n language toggle ---- */
+[data-lang="en"] .ru { display: none !important; }
+[data-lang="ru"] .en { display: none !important; }
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--border);}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;
+  gap:6px;padding:8px 14px;flex-wrap:wrap;}
+.nav-inner .brand{font-weight:700;color:var(--green);margin-right:10px;font-size:14px;white-space:nowrap}
+.nav-inner a{color:var(--muted);font-size:12.5px;padding:4px 8px;border-radius:6px}
+.nav-inner a:hover{background:var(--card2);color:var(--text);text-decoration:none}
+.toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+.toggle-btn {
+  background: var(--card2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+}
+.toggle-btn:hover { border-color: var(--accent); }
+
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 80px}
+header.hero{padding:26px 0 8px}
+header.hero h1{font-size:26px;margin:0 0 6px;line-height:1.25}
+header.hero .sub{color:var(--muted);font-size:14px}
+.tagrow{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--border);
+  background:var(--card2);color:var(--muted)}
+
+section{margin-top:30px}
+h2.sec{font-size:20px;border-left:4px solid var(--accent);padding-left:12px;margin:0 0 14px;scroll-margin-top:60px}
+h3{font-size:15.5px;margin:18px 0 8px;color:var(--green)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:16px 18px;margin:12px 0;box-shadow:0 2px 10px var(--shadow)}
+.card.reveal{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+.card.reveal.in{opacity:1;transform:none}
+p{margin:8px 0}
+ul{margin:8px 0 8px 0;padding-left:20px}
+li{margin:4px 0}
+.muted{color:var(--muted)}
+.kw{color:var(--purple);font-weight:600}
+.def{color:var(--green);font-weight:600}
+
+/* collapsible */
+.collapse-head{cursor:pointer;display:flex;align-items:center;gap:8px;
+  font-weight:600;color:var(--orange);user-select:none}
+.collapse-head .chev{transition:transform .25s;font-size:12px}
+.collapse-head.open .chev{transform:rotate(90deg)}
+.collapse-body{display:none;margin-top:10px;animation:fade .3s ease}
+.collapse-body.open{display:block}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* tables */
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--card2);color:var(--text);font-weight:600}
+tbody tr:nth-child(even){background:rgba(255,255,255,.02)}
+[data-theme="light"] tbody tr:nth-child(even){background:rgba(0,0,0,.02)}
+
+/* code */
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;overflow-x:auto;font-size:12.8px;line-height:1.5}
+code.inline{background:var(--code-bg);border:1px solid var(--border);border-radius:5px;
+  padding:1px 5px;font-size:12.6px}
+.tok-k{color:var(--purple)}      /* keyword */
+.tok-f{color:var(--accent)}      /* function */
+.tok-s{color:var(--green)}       /* string */
+.tok-c{color:var(--muted);font-style:italic} /* comment */
+.tok-n{color:var(--orange)}      /* number/literal */
+
+/* callouts */
+.callout{border-left:4px solid var(--orange);background:var(--card2);
+  border-radius:0 10px 10px 0;padding:10px 14px;margin:12px 0;font-size:13.8px}
+.callout.probe{border-color:var(--accent)}
+.callout.gotcha{border-color:var(--orange)}
+.callout.exp{border-color:var(--green)}
+.callout b{color:var(--text)}
+.callout .lab{display:block;font-size:11px;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:3px;font-weight:700}
+
+/* diagram */
+.diagram{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;
+  padding:14px;overflow-x:auto;font-size:12.5px;color:var(--muted);white-space:pre;line-height:1.4}
+
+/* flip cards */
+.flipgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:10px}
+.flip{perspective:1200px;height:165px;cursor:pointer}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .6s;
+  transform-style:preserve-3d}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;
+  border:1px solid var(--border);padding:14px;display:flex;flex-direction:column;
+  justify-content:center;overflow:auto}
+.flip-front{background:var(--card2)}
+.flip-back{background:linear-gradient(150deg,var(--card),var(--card2));transform:rotateY(180deg);
+  border-color:var(--green)}
+.flip-q{font-weight:600;font-size:14px}
+.flip-front .hint{margin-top:auto;font-size:11px;color:var(--muted)}
+.flip-a{font-size:12.7px;line-height:1.45}
+
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;
+  margin-right:6px;letter-spacing:.3px}
+.p-found{background:rgba(2,226,172,.15);color:var(--green);border:1px solid var(--green)}
+.p-core{background:rgba(24,119,242,.15);color:var(--accent);border:1px solid var(--accent)}
+.p-senior{background:rgba(168,85,247,.15);color:var(--purple);border:1px solid var(--purple)}
+.p-star{background:rgba(245,158,11,.15);color:var(--orange);border:1px solid var(--orange)}
+
+footer{margin-top:50px;border-top:1px solid var(--border);padding-top:16px;color:var(--muted);font-size:12.5px}
+.toc-mini{font-size:12px;color:var(--muted)}
+hr.soft{border:none;border-top:1px dashed var(--border);margin:16px 0}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <span class="brand">▣ <span class="en">DE Prep</span><span class="ru">DE Подготовка</span></span>
+    <a href="#modelling"><span class="en">Modelling</span><span class="ru">Моделирование</span></a>
+    <a href="#scd">SCD / <span class="en">Vintages</span><span class="ru">Версии</span></a>
+    <a href="#norm"><span class="en">Norm vs Denorm</span><span class="ru">Норм. vs Денорм.</span></a>
+    <a href="#vault">Data Vault</a>
+    <a href="#metadata"><span class="en">Metadata/Catalog</span><span class="ru">Метаданные/Каталог</span></a>
+    <a href="#lineage"><span class="en">Lineage</span><span class="ru">Линедж</span></a>
+    <a href="#profiling"><span class="en">Profiling</span><span class="ru">Профилирование</span></a>
+    <a href="#governance"><span class="en">Governance</span><span class="ru">Управление</span></a>
+    <a href="#dmbok">DMBOK / CDMP</a>
+    <a href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+    <span class="toggles">
+      <button class="toggle-btn" id="langBtn">🌐 RU</button>
+      <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+    </span>
+  </div>
+</nav>
+
+<div class="wrap">
+<header class="hero">
+  <h1 class="en">Data Modelling, Governance, Metadata, Lineage &amp; Lifecycle — <span style="color:var(--accent)">DE Interview Prep</span></h1>
+  <h1 class="ru">Моделирование данных, Управление, Метаданные, Линедж и Жизненный цикл — <span style="color:var(--accent)">Подготовка к DE-интервью</span></h1>
+  <div class="sub en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</div>
+  <div class="sub ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</div>
+  <div class="tagrow">
+    <span class="tag en">macro · survey · forecast · vendor-supplied time-series</span>
+    <span class="tag ru">макро · опросы · прогнозы · временные ряды от вендоров</span>
+    <span class="tag en">modelling · metadata · lineage · lifecycle · CDMP</span>
+    <span class="tag ru">моделирование · метаданные · линедж · жизненный цикл · CDMP</span>
+  </div>
+  <div class="callout exp en" style="margin-top:16px">
+    <span class="lab">Your edge</span>
+    Strong on modelling + dbt. Light on <b>formal governance vocabulary</b> — this sheet front-loads governance, lineage, DMBOK/CDMP so you can speak the language confidently. Your <b>Career.io shared customer/account spine across 8 brands</b> is a textbook MDM + conformed-dimension + governance story — use it.
+  </div>
+  <div class="callout exp ru" style="margin-top:16px">
+    <span class="lab">Твоё преимущество</span>
+    Силён в моделировании + dbt. Слабее в <b>формальной терминологии управления данными</b> — эта шпаргалка выносит вперёд governance, lineage, DMBOK/CDMP, чтобы ты уверенно говорил на языке. Твой <b>общий spine customer/account в Career.io на 8 брендов</b> — учебный пример MDM + conformed-dimension + governance — используй его.
+  </div>
+</header>
+
+<!-- ============ MODELLING ============ -->
+<section id="modelling">
+  <h2 class="sec"><span class="en">1 · Dimensional Modelling — Star, Snowflake, Facts &amp; Grain</span><span class="ru">1 · Размерное моделирование — звезда, снежинка, факты и зерно</span></h2>
+
+  <div class="card reveal">
+    <h3 class="en">Core vocabulary</h3>
+    <h3 class="ru">Основная терминология</h3>
+    <ul class="en">
+      <li><span class="def">Fact</span>: numeric measurements at a defined grain (e.g. the <code class="inline">value</code> of a series for a period/vintage). Types: transaction, periodic snapshot, accumulating snapshot.</li>
+      <li><span class="def">Dimension</span>: descriptive context you filter/group by (series metadata, geography, source, frequency).</li>
+      <li><span class="def">Grain</span>: the <b>exact meaning of one fact row</b>. Declare it first, in one English sentence. Wrong grain = double-counting &amp; fan-out joins (the #1 modelling bug).</li>
+      <li><span class="def">Surrogate key</span>: meaningless system-generated key (stable). <span class="def">Natural key</span>: business code (can change/collide). Join on surrogate, keep natural as attribute.</li>
+      <li><span class="def">Conformed dimension</span>: a shared dimension used by multiple facts → lets you compare across subject areas. The "spine."</li>
+      <li>Degenerate (ID on fact), junk (bag of flags), role-playing (one date used as period / vintage / publish date) dimensions.</li>
+    </ul>
+    <ul class="ru">
+      <li><span class="def">Факт (Fact)</span>: числовые измерения на определённом зерне (например, <code class="inline">value</code> временного ряда за период/версию). Типы: транзакция, периодический снимок, накапливающий снимок.</li>
+      <li><span class="def">Измерение (Dimension)</span>: описательный контекст для фильтрации/группировки (метаданные ряда, география, источник, частота).</li>
+      <li><span class="def">Зерно (Grain)</span>: <b>точный смысл одной строки факта</b>. Объявляй его первым делом, одним предложением. Неверное зерно = двойной подсчёт и множественные join'ы (ошибка моделирования №1).</li>
+      <li><span class="def">Суррогатный ключ (Surrogate key)</span>: бессмысленный системный ключ (стабилен). <span class="def">Натуральный ключ (Natural key)</span>: бизнес-код (может меняться/коллидировать). JOIN по суррогату, натуральный оставь как атрибут.</li>
+      <li><span class="def">Согласованное измерение (Conformed dimension)</span>: общее измерение для нескольких фактов → позволяет сравнивать по предметным областям. «Позвоночник» (spine).</li>
+      <li>Вырожденные (ID на факте), мусорные (мешок флагов), ролевые (одна дата используется как период / версия / дата публикации) измерения.</li>
+    </ul>
+  </div>
+
+  <div class="card reveal">
+    <h3 class="en">Star vs Snowflake</h3>
+    <h3 class="ru">Звезда vs Снежинка</h3>
+    <table class="en">
+      <thead><tr><th>Aspect</th><th>Star</th><th>Snowflake</th></tr></thead>
+      <tbody>
+        <tr><td>Dimensions</td><td>Denormalized (1 hop)</td><td>Normalized into sub-dims (multi-hop)</td></tr>
+        <tr><td>Joins / read speed</td><td>Fewer joins, faster, simpler BI</td><td>More joins, slower, more complex</td></tr>
+        <tr><td>Redundancy</td><td>Higher</td><td>Lower</td></tr>
+        <tr><td>Dim maintenance</td><td>Harder if dim is huge/volatile</td><td>Easier; shared sub-dims reused</td></tr>
+        <tr><td>Default?</td><td><b>Yes</b> — esp. on columnar warehouses (Snowflake/BigQuery make denorm cheap)</td><td>Only for very large/volatile dims</td></tr>
+      </tbody>
+    </table>
+    <table class="ru">
+      <thead><tr><th>Аспект</th><th>Звезда</th><th>Снежинка</th></tr></thead>
+      <tbody>
+        <tr><td>Измерения</td><td>Денормализованы (1 хоп)</td><td>Нормализованы в под-измерения (много хопов)</td></tr>
+        <tr><td>JOIN'ы / скорость чтения</td><td>Меньше JOIN'ов, быстрее, проще для BI</td><td>Больше JOIN'ов, медленнее, сложнее</td></tr>
+        <tr><td>Избыточность</td><td>Выше</td><td>Ниже</td></tr>
+        <tr><td>Обслуживание измерений</td><td>Сложнее, если измерение огромное/изменчивое</td><td>Легче; общие под-измерения переиспользуются</td></tr>
+        <tr><td>По умолчанию?</td><td><b>Да</b> — особенно на колоночных хранилищах (Snowflake/BigQuery делают денорм. дешёвой)</td><td>Только для очень больших/изменчивых измерений</td></tr>
+      </tbody>
+    </table>
+    <div class="callout probe en">
+      <span class="lab">Interviewer will probe</span>
+      "Define the grain of an economics fact." → <b>"One row per series, per reference period, per vintage."</b> Lead with grain before drawing tables.
+    </div>
+    <div class="callout probe ru">
+      <span class="lab">О чём спросит интервьюер</span>
+      «Определи зерно факта экономических данных.» → <b>«Одна строка на ряд, на отчётный период, на версию.»</b> Начинай с зерна, прежде чем рисовать таблицы.
+    </div>
+  </div>
+
+  <div class="card reveal">
+    <h3 class="en">Sketch: economics star + bi-temporal fact</h3>
+    <h3 class="ru">Набросок: звезда экономических данных + битемпоральный факт</h3>
+    <div class="diagram en">         dim_geography        dim_source/vendor
+                 \               /
+   dim_series ---- fct_observation ---- dim_date (role-playing)
+   (freq, unit,        |                  - reference_period (valid time)
+    SA flag,           |                  - vintage_date     (knowledge time)
+    geo, source)       |
+                  value, release_id, revision_number
+                  GRAIN: 1 row per (series_id, reference_period, vintage_date)
+                  append-only — every revision is a NEW row, never UPDATE</div>
+    <div class="diagram ru">         dim_geography        dim_source/vendor
+                 \               /
+   dim_series ---- fct_observation ---- dim_date (ролевое)
+   (freq, unit,        |                  - reference_period (valid time)
+    SA flag,           |                  - vintage_date     (knowledge time)
+    geo, source)       |
+                  value, release_id, revision_number
+                  ЗЕРНО: 1 строка на (series_id, reference_period, vintage_date)
+                  append-only — каждая ревизия — НОВАЯ строка, никогда UPDATE</div>
+  </div>
+</section>
+
+<!-- ============ SCD ============ -->
+<section id="scd">
+  <h2 class="sec"><span class="en">2 · Slowly Changing Dimensions &amp; Vintages</span><span class="ru">2 · Медленно меняющиеся измерения и версии</span> <span class="pill p-star">★</span></h2>
+
+  <div class="card reveal">
+    <h3 class="en">SCD types at a glance</h3>
+    <h3 class="ru">Типы SCD в один взгляд</h3>
+    <table class="en">
+      <thead><tr><th>Type</th><th>Behaviour</th><th>Use when</th></tr></thead>
+      <tbody>
+        <tr><td>Type 1</td><td>Overwrite, no history</td><td>Fix bad data nobody audits (typo in country name)</td></tr>
+        <tr><td><b>Type 2</b></td><td><b>New row per change; full history</b></td><td><b>Must answer "what did this look like at time T"</b></td></tr>
+        <tr><td>Type 3</td><td>Keep a "previous value" column</td><td>One step of history is enough</td></tr>
+        <tr><td>Type 4</td><td>Separate history table</td><td>Keep current table thin</td></tr>
+        <tr><td>Type 6</td><td>1 + 2 + 3 hybrid</td><td>Want current + historical + prior-value</td></tr>
+      </tbody>
+    </table>
+    <table class="ru">
+      <thead><tr><th>Тип</th><th>Поведение</th><th>Когда использовать</th></tr></thead>
+      <tbody>
+        <tr><td>Type 1</td><td>Перезапись, нет истории</td><td>Исправление плохих данных, которые никто не аудирует (опечатка в названии страны)</td></tr>
+        <tr><td><b>Type 2</b></td><td><b>Новая строка на изменение; полная история</b></td><td><b>Надо отвечать на "как это выглядело в момент T"</b></td></tr>
+        <tr><td>Type 3</td><td>Хранить колонку "предыдущее значение"</td><td>Достаточно одного шага истории</td></tr>
+        <tr><td>Type 4</td><td>Отдельная таблица истории</td><td>Держать текущую таблицу тонкой</td></tr>
+        <tr><td>Type 6</td><td>Гибрид 1 + 2 + 3</td><td>Нужны текущие + исторические + предыдущие значения</td></tr>
+      </tbody>
+    </table>
+    <p class="en"><b>SCD2 columns:</b> <code class="inline">surrogate_key</code>, <code class="inline">business_key</code>, <code class="inline">valid_from</code>, <code class="inline">valid_to</code>, <code class="inline">is_current</code>, often <code class="inline">version</code>. Use <b>half-open intervals</b> <code class="inline">[valid_from, valid_to)</code> to avoid overlap bugs.</p>
+    <p class="ru"><b>Колонки SCD2:</b> <code class="inline">surrogate_key</code>, <code class="inline">business_key</code>, <code class="inline">valid_from</code>, <code class="inline">valid_to</code>, <code class="inline">is_current</code>, часто <code class="inline">version</code>. Используй <b>полуоткрытые интервалы</b> <code class="inline">[valid_from, valid_to)</code>, чтобы избежать багов пересечения.</p>
+  </div>
+
+  <div class="card reveal">
+    <h3 class="en">The vintage / revision problem (the heart of Economics Data)</h3>
+    <h3 class="ru">Проблема версий/ревизий (сердце экономических данных)</h3>
+    <p class="en">A single <code class="inline">(series, period)</code> observation has <b>many values over time</b>: Q1 GDP printed in April, revised in May, rewritten at the annual benchmark. Clients need <b>both</b> "latest" and "as-it-was-on-date-X" (point-in-time / vintage).</p>
+    <p class="ru">Одно наблюдение <code class="inline">(series, period)</code> имеет <b>много значений во времени</b>: ВВП за Q1 опубликован в апреле, пересмотрен в мае, переписан при годовом бенчмарке. Клиенты нуждаются в <b>обоих</b>: «последнее» и «каким-оно-было-на-дату-X» (point-in-time / vintage).</p>
+    <p class="en">Model it <span class="kw">bi-temporally</span> — two time axes:</p>
+    <p class="ru">Моделируй это <span class="kw">битемпорально</span> — две временные оси:</p>
+    <ul class="en">
+      <li><span class="def">Valid time</span> = <code class="inline">reference_period</code>: the economic period the number describes (2026-Q1).</li>
+      <li><span class="def">Knowledge / transaction time</span> = <code class="inline">vintage_date</code>: when the value became known to us (the release/as-of date).</li>
+    </ul>
+    <ul class="ru">
+      <li><span class="def">Valid time</span> = <code class="inline">reference_period</code>: экономический период, который описывает число (2026-Q1).</li>
+      <li><span class="def">Knowledge / transaction time</span> = <code class="inline">vintage_date</code>: когда значение стало нам известно (дата релиза / as-of).</li>
+    </ul>
+    <p class="en">Physical model = <b>append-only ledger</b> = effectively SCD Type 2 on the measurement. Never UPDATE; each revision is a new row.</p>
+    <p class="ru">Физическая модель = <b>append-only журнал</b> = фактически SCD Type 2 на измерении. Никогда UPDATE; каждая ревизия — новая строка.</p>
+
+    <div class="collapse">
+      <div class="collapse-head"><span class="chev">▶</span> <span class="en">Show the two serving views (SQL)</span><span class="ru">Показать два сервисных view (SQL)</span></div>
+      <div class="collapse-body">
+<pre><span class="tok-c">-- LATEST view: newest known value per period</span>
+<span class="tok-k">SELECT</span> series_id, reference_period, value
+<span class="tok-k">FROM</span> fct_observation
+<span class="tok-k">QUALIFY</span> <span class="tok-f">ROW_NUMBER</span>() <span class="tok-k">OVER</span> (
+  <span class="tok-k">PARTITION BY</span> series_id, reference_period
+  <span class="tok-k">ORDER BY</span> vintage_date <span class="tok-k">DESC</span>) = <span class="tok-n">1</span>;
+
+<span class="tok-c">-- POINT-IN-TIME view: value as known on :as_of (no look-ahead bias)</span>
+<span class="tok-k">SELECT</span> series_id, reference_period, value
+<span class="tok-k">FROM</span> fct_observation
+<span class="tok-k">WHERE</span> vintage_date &lt;= <span class="tok-n">:as_of_date</span>
+<span class="tok-k">QUALIFY</span> <span class="tok-f">ROW_NUMBER</span>() <span class="tok-k">OVER</span> (
+  <span class="tok-k">PARTITION BY</span> series_id, reference_period
+  <span class="tok-k">ORDER BY</span> vintage_date <span class="tok-k">DESC</span>) = <span class="tok-n">1</span>;</pre>
+      </div>
+    </div>
+
+    <div class="callout gotcha en">
+      <span class="lab">Gotchas — raise these unprompted</span>
+      Seasonal adjustment changes the <b>whole history</b>; base-year <b>rebasing</b>; benchmark revisions rewrite years; frequency mismatches; real vs nominal; "preliminary / second / final" release tags; <b>look-ahead bias</b> if backtests use latest instead of PIT.
+    </div>
+    <div class="callout gotcha ru">
+      <span class="lab">Подводные камни — говори об этом без подсказок</span>
+      Сезонная корректировка меняет <b>всю историю</b>; <b>перебазирование</b>; бенчмарковые ревизии переписывают годы; несовпадения частоты; реальное vs номинальное; теги релизов «предварительный / вторичный / финальный»; <b>look-ahead bias</b>, если бэктесты используют latest вместо PIT.
+    </div>
+    <div class="callout exp en">
+      <span class="lab">Your story</span>
+      "At Meta I built append-only, late-arriving-tolerant facts over ~3.6B events/day. Revisioned macro series are the same shape with a <b>knowledge-time axis</b> added — I'd treat vintage as a first-class SCD2 column rather than overwriting." For reference data I'd use <b>dbt snapshots</b> (SCD2 out of the box).
+    </div>
+    <div class="callout exp ru">
+      <span class="lab">Твоя история</span>
+      «В Meta я строил append-only, late-arriving-tolerant факты на ~3.6B событий/день. Ревизионируемые макроэкономические ряды — та же форма с добавленной <b>осью времени знания</b> — я бы трактовал vintage как полноценную SCD2-колонку, а не перезаписывал бы.» Для справочных данных я бы использовал <b>dbt snapshots</b> (SCD2 из коробки).
+    </div>
+  </div>
+</section>
+
+<!-- ============ NORM ============ -->
+<section id="norm">
+  <h2 class="sec"><span class="en">3 · Normalization vs Denormalization</span><span class="ru">3 · Нормализация vs Денормализация</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <thead><tr><th></th><th>Normalization (3NF)</th><th>Denormalization</th></tr></thead>
+      <tbody>
+        <tr><td>Goal</td><td>Eliminate redundancy, integrity</td><td>Optimize reads, avoid joins</td></tr>
+        <tr><td>Fits</td><td>OLTP / write-heavy / sources</td><td>OLAP / analytics / read-heavy</td></tr>
+        <tr><td>Risk</td><td>Many joins</td><td>Update anomalies, drift, storage</td></tr>
+      </tbody>
+    </table>
+    <table class="ru">
+      <thead><tr><th></th><th>Нормализация (3NF)</th><th>Денормализация</th></tr></thead>
+      <tbody>
+        <tr><td>Цель</td><td>Устранить избыточность, целостность</td><td>Оптимизировать чтения, избежать JOIN'ов</td></tr>
+        <tr><td>Подходит</td><td>OLTP / write-heavy / источники</td><td>OLAP / аналитика / read-heavy</td></tr>
+        <tr><td>Риск</td><td>Много JOIN'ов</td><td>Аномалии обновления, рассинхронизация, хранилище</td></tr>
+      </tbody>
+    </table>
+    <p class="en"><b>Normal forms ladder:</b> 1NF (atomic values) → 2NF (no partial-key dependency) → 3NF (no transitive dependency).</p>
+    <p class="ru"><b>Лестница нормальных форм:</b> 1NF (атомарные значения) → 2NF (нет частичной зависимости от ключа) → 3NF (нет транзитивной зависимости).</p>
+    <p class="en"><b>Best practice:</b> normalized core → denormalized serving layer rebuilt from it (the dbt <code class="inline">staging → marts</code> pattern). Denormalize <b>derived</b> from a single source so it can't drift.</p>
+    <p class="ru"><b>Лучшая практика:</b> нормализованное ядро → денормализованный serving-слой, пересобранный из него (паттерн dbt <code class="inline">staging → marts</code>). Денормализуй <b>производное</b> из единого источника, чтобы оно не могло рассинхронизироваться.</p>
+  </div>
+</section>
+
+<!-- ============ VAULT ============ -->
+<section id="vault">
+  <h2 class="sec"><span class="en">4 · Data Vault 2.0 (study-gap — foundational)</span><span class="ru">4 · Data Vault 2.0 (пробел в знаниях — основополагающая тема)</span></h2>
+  <div class="card reveal">
+    <p class="en">An <b>integration / raw-history</b> modelling pattern. Not for direct querying — you build dimensional <b>marts on top</b> of it. Insert-only, highly auditable, integrates many sources by business key → <b>well suited to multi-vendor economics data &amp; revisions</b>.</p>
+    <p class="ru">Паттерн моделирования для <b>интеграции / сырой истории</b>. Не для прямых запросов — ты строишь размерные <b>marts поверх</b> него. Insert-only, высокая аудируемость, интегрирует много источников по бизнес-ключу → <b>отлично подходит для экономических данных от разных вендоров и ревизий</b>.</p>
+    <table class="en">
+      <thead><tr><th>Construct</th><th>Holds</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kw">Hub</span></td><td>Business keys (e.g. series_id) + hash key</td><td>One row per unique key</td></tr>
+        <tr><td><span class="kw">Link</span></td><td>Relationships between hubs</td><td>Hash-keyed associations</td></tr>
+        <tr><td><span class="kw">Satellite</span></td><td>Descriptive, time-stamped attributes</td><td><b>Insert-only — this is where SCD2 / vintage history lives</b></td></tr>
+      </tbody>
+    </table>
+    <table class="ru">
+      <thead><tr><th>Конструкт</th><th>Содержит</th><th>Замечание</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kw">Hub</span></td><td>Бизнес-ключи (например, series_id) + хеш-ключ</td><td>Одна строка на уникальный ключ</td></tr>
+        <tr><td><span class="kw">Link</span></td><td>Связи между хабами</td><td>Ассоциации с хеш-ключами</td></tr>
+        <tr><td><span class="kw">Satellite</span></td><td>Описательные атрибуты с временными метками</td><td><b>Insert-only — здесь живёт SCD2 / история версий</b></td></tr>
+      </tbody>
+    </table>
+    <div class="diagram en">  Hub(series) --< Link(series_source) >-- Hub(source)
+       |                                       |
+   Sat(series_meta)                       Sat(source_meta)
+   [insert-only, time-stamped = built-in vintage history]</div>
+    <div class="diagram ru">  Hub(series) --< Link(series_source) >-- Hub(source)
+       |                                       |
+   Sat(series_meta)                       Sat(source_meta)
+   [insert-only, time-stamped = встроенная история версий]</div>
+    <div class="callout probe en">
+      <span class="lab">One-liner if asked</span>
+      "Vault for the integrated, audited raw layer; star schemas as the serving layer. Vault's insert-only satellites are basically purpose-built for vintages." <span class="muted">Trade-off: more tables, not query-friendly, steeper learning curve.</span>
+    </div>
+    <div class="callout probe ru">
+      <span class="lab">Если спросят одной строкой</span>
+      «Vault для интегрированного, аудируемого сырого слоя; звёздные схемы как serving-слой. Insert-only satellites в Vault — по сути заточены под версии.» <span class="muted">Компромисс: больше таблиц, не удобен для запросов, крутая кривая обучения.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ METADATA ============ -->
+<section id="metadata">
+  <h2 class="sec"><span class="en">5 · Metadata Management &amp; Data Catalogs</span><span class="ru">5 · Управление метаданными и каталоги данных</span></h2>
+  <div class="card reveal">
+    <h3 class="en">Three flavours of metadata</h3>
+    <h3 class="ru">Три вида метаданных</h3>
+    <table class="en">
+      <thead><tr><th>Type</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kw">Technical</span></td><td>Schemas, types, partitions, formats, locations</td></tr>
+        <tr><td><span class="kw">Business</span></td><td>Definitions, owners, glossary, classification, semantics ("what does this series mean")</td></tr>
+        <tr><td><span class="kw">Operational</span></td><td>Freshness, row counts, run history, quality scores, lineage</td></tr>
+      </tbody>
+    </table>
+    <table class="ru">
+      <thead><tr><th>Тип</th><th>Примеры</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kw">Technical</span></td><td>Схемы, типы, партиции, форматы, расположения</td></tr>
+        <tr><td><span class="kw">Business</span></td><td>Определения, владельцы, глоссарий, классификация, семантика («что означает этот ряд»)</td></tr>
+        <tr><td><span class="kw">Operational</span></td><td>Свежесть, число строк, история запусков, оценки качества, линедж</td></tr>
+      </tbody>
+    </table>
+    <p class="en"><span class="def">Data catalog</span> = searchable inventory of assets + metadata. Enables <b>discovery</b> ("is there already a CPI series?"), <b>trust</b> (owner/freshness/quality), <b>governance</b> (classification/access), and <b>onboarding</b>.</p>
+    <p class="ru"><span class="def">Каталог данных (Data catalog)</span> = поисковый инвентарь активов + метаданные. Обеспечивает <b>поиск</b> («есть ли уже ряд CPI?»), <b>доверие</b> (владелец/свежесть/качество), <b>управление</b> (классификация/доступ) и <b>онбординг</b>.</p>
+    <p class="muted en">Tools: DataHub, OpenMetadata, Collibra, Alation, Atlan, Unity Catalog. (At Meta, the internal catalog plays this role.)</p>
+    <p class="muted ru">Инструменты: DataHub, OpenMetadata, Collibra, Alation, Atlan, Unity Catalog. (В Meta эту роль играет внутренний каталог.)</p>
+    <div class="callout probe en"><span class="lab">Why a senior cares</span> Without a catalog, knowledge lives in heads → duplicate datasets &amp; tech debt proliferate — exactly what the JD wants modernized.</div>
+    <div class="callout probe ru"><span class="lab">Почему это важно для сеньора</span> Без каталога знания живут в головах → дублирующиеся датасеты и технический долг множатся — именно то, что нужно модернизировать.</div>
+  </div>
+</section>
+
+<!-- ============ LINEAGE ============ -->
+<section id="lineage">
+  <h2 class="sec"><span class="en">6 · Data Lineage</span><span class="ru">6 · Линедж данных</span> <span class="pill p-star">★</span></h2>
+  <div class="card reveal">
+    <p class="en"><span class="def">Lineage</span> = documented flow of data from source → every transform → consumption. Answers "where did this number come from" and "what breaks if I change this."</p>
+    <p class="ru"><span class="def">Линедж (Lineage)</span> = задокументированный поток данных от источника → все трансформации → потребление. Отвечает на «откуда это число» и «что сломается, если я это изменю».</p>
+    <table class="en">
+      <thead><tr><th></th><th>Table-level</th><th>Column-level</th></tr></thead>
+      <tbody>
+        <tr><td>Granularity</td><td>Dataset A → B → dashboard C</td><td><code class="inline">fct.value = stg.raw * fx_rate</code></td></tr>
+        <tr><td>Good for</td><td>Orchestration / dependency graph</td><td>Precise impact analysis of a schema change</td></tr>
+      </tbody>
+    </table>
+    <table class="ru">
+      <thead><tr><th></th><th>Table-level</th><th>Column-level</th></tr></thead>
+      <tbody>
+        <tr><td>Гранулярность</td><td>Датасет A → B → дашборд C</td><td><code class="inline">fct.value = stg.raw * fx_rate</code></td></tr>
+        <tr><td>Для чего</td><td>Оркестрация / граф зависимостей</td><td>Точный анализ влияния изменения схемы</td></tr>
+      </tbody>
+    </table>
+    <h3 class="en">Why it matters — say all four</h3>
+    <h3 class="ru">Почему это важно — говори обо всех четырёх</h3>
+    <ul class="en">
+      <li><b>Trust / explainability</b>: client asks "why did this GDP print change?" → trace to vendor revision.</li>
+      <li><b>Impact analysis</b>: before changing a vendor mapping, see every downstream field / feed.</li>
+      <li><b>Root-cause / incident response</b>: bad value appears → walk back to the broken upstream node.</li>
+      <li><b>Governance / compliance</b>: provenance, retention, access must follow the data.</li>
+    </ul>
+    <ul class="ru">
+      <li><b>Доверие / объяснимость</b>: клиент спрашивает «почему это значение ВВП изменилось?» → трейсим до ревизии вендора.</li>
+      <li><b>Анализ влияния</b>: перед изменением маппинга вендора посмотри все downstream-поля / фиды.</li>
+      <li><b>Root-cause / реагирование на инциденты</b>: появилось плохое значение → пройдись назад до сломанного upstream-узла.</li>
+      <li><b>Управление / соответствие</b>: происхождение, хранение, доступ должны следовать за данными.</li>
+    </ul>
+    <p class="muted en">Produced by: parsing SQL (dbt column-level lineage via DAG + <code class="inline">manifest.json</code>), orchestration capture (Airflow), or a catalog (OpenMetadata, DataHub, Collibra, Atlan).</p>
+    <p class="muted ru">Создаётся: парсингом SQL (dbt column-level lineage через DAG + <code class="inline">manifest.json</code>), захватом оркестрации (Airflow) или каталогом (OpenMetadata, DataHub, Collibra, Atlan).</p>
+    <div class="callout gotcha en"><span class="lab">Gotcha</span> Manually-maintained lineage rots. Argue for <b>automatically derived</b> lineage from code / query logs.</div>
+    <div class="callout gotcha ru"><span class="lab">Подводный камень</span> Вручную поддерживаемый линедж устаревает. Настаивай на <b>автоматически выводимом</b> линедже из кода / логов запросов.</div>
+    <div class="callout exp en">
+      <span class="lab">Your story</span>
+      "The 6.2B-record entity-resolution fix at Meta was fundamentally a <b>lineage problem</b> — I traced which of 100+ downstream metrics &amp; ML features consumed the broken join to scope the blast radius. Column-level lineage turns that from archaeology into a query."
+    </div>
+    <div class="callout exp ru">
+      <span class="lab">Твоя история</span>
+      «Фикс entity-resolution на 6.2B записей в Meta был по сути <b>проблемой линеджа</b> — я отследил, какие из 100+ downstream-метрик и ML-фичей потребляли сломанный join, чтобы оценить радиус поражения. Column-level lineage превращает это из археологии в запрос.»
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROFILING ============ -->
+<section id="profiling">
+  <h2 class="sec"><span class="en">7 · Data Profiling</span><span class="ru">7 · Профилирование данных</span></h2>
+  <div class="card reveal">
+    <p class="en"><span class="def">Profiling</span> = analyzing data to understand structure, content &amp; quality <b>before/while</b> modelling. Profiling <b>feeds</b> your DQ tests: it defines the expected ranges/domains you later assert.</p>
+    <p class="ru"><span class="def">Профилирование (Profiling)</span> = анализ данных для понимания структуры, содержимого и качества <b>до/во время</b> моделирования. Профилирование <b>питает</b> DQ-тесты: оно определяет ожидаемые диапазоны/домены, которые ты потом проверяешь.</p>
+    <table class="en">
+      <thead><tr><th>Dimension</th><th>What you measure</th></tr></thead>
+      <tbody>
+        <tr><td>Structure</td><td>Types, formats, lengths, patterns</td></tr>
+        <tr><td>Content</td><td>Min/max/mean, distributions, distinct counts, null/blank rate, outliers</td></tr>
+        <tr><td>Relationships</td><td>Candidate keys (uniqueness), FK validity, cardinality, functional dependencies</td></tr>
+      </tbody>
+    </table>
+    <table class="ru">
+      <thead><tr><th>Измерение</th><th>Что измеряешь</th></tr></thead>
+      <tbody>
+        <tr><td>Структура</td><td>Типы, форматы, длины, паттерны</td></tr>
+        <tr><td>Содержимое</td><td>Min/max/mean, распределения, число distinct, процент null/blank, выбросы</td></tr>
+        <tr><td>Связи</td><td>Кандидаты в ключи (уникальность), валидность FK, кардинальность, функциональные зависимости</td></tr>
+      </tbody>
+    </table>
+    <p class="muted en">Tools: SQL (<code class="inline">COUNT DISTINCT</code>, <code class="inline">GROUP BY</code>, histograms), pandas <code class="inline">.describe()</code>, Great Expectations profiler, <code class="inline">dbt_profiler</code>, ydata-profiling.</p>
+    <p class="muted ru">Инструменты: SQL (<code class="inline">COUNT DISTINCT</code>, <code class="inline">GROUP BY</code>, гистограммы), pandas <code class="inline">.describe()</code>, Great Expectations profiler, <code class="inline">dbt_profiler</code>, ydata-profiling.</p>
+    <div class="callout gotcha en"><span class="lab">Vendor quirks to hunt</span> Sentinel values (<code class="inline">-999</code>, <code class="inline">9999</code>), mixed date formats, encoding issues, silently changed units, blanks-as-zero.</div>
+    <div class="callout gotcha ru"><span class="lab">Особенности вендоров, которые надо выявить</span> Sentinel-значения (<code class="inline">-999</code>, <code class="inline">9999</code>), смешанные форматы дат, проблемы кодировки, молча изменённые единицы измерения, blanks-as-zero.</div>
+  </div>
+</section>
+
+<!-- ============ GOVERNANCE ============ -->
+<section id="governance">
+  <h2 class="sec"><span class="en">8 · Data Governance</span><span class="ru">8 · Управление данными (Data Governance)</span> <span class="pill p-star">★</span></h2>
+  <div class="card reveal">
+    <p class="en"><span class="def">Data governance</span> = the system of <b>decision rights &amp; accountabilities</b> for data: who can do what, with which data, under what circumstances. Spans ownership, quality, metadata, security/access, privacy, retention, standards.</p>
+    <p class="ru"><span class="def">Data governance</span> = система <b>прав на решения и ответственностей</b> за данные: кто может делать что, с какими данными, при каких обстоятельствах. Охватывает владение, качество, метаданные, безопасность/доступ, конфиденциальность, хранение, стандарты.</p>
+    <table class="en">
+      <thead><tr><th>Role</th><th>RACI</th><th>Typically</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kw">Owner</span></td><td><b>Accountable</b> — decisions, funding, sign-off</td><td>Business / domain leader</td></tr>
+        <tr><td><span class="kw">Steward</span></td><td><b>Responsible</b> — day-to-day quality, definitions, metadata, issues</td><td>The DE / analyst (you)</td></tr>
+      </tbody>
+    </table>
+    <table class="ru">
+      <thead><tr><th>Роль</th><th>RACI</th><th>Обычно</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kw">Owner</span></td><td><b>Accountable</b> — решения, финансирование, подпись</td><td>Бизнес / руководитель домена</td></tr>
+        <tr><td><span class="kw">Steward</span></td><td><b>Responsible</b> — ежедневное качество, определения, метаданные, проблемы</td><td>DE / аналитик (ты)</td></tr>
+      </tbody>
+    </table>
+    <h3 class="en">Data contracts</h3>
+    <h3 class="ru">Контракты данных (Data contracts)</h3>
+    <p class="en">Explicit, <b>versioned</b> agreement between producer &amp; consumer: schema, semantics, SLAs (freshness/volume), quality guarantees, change/deprecation policy. <b>Enforced in CI</b> (schema diff fails the build) so producers can't silently break consumers.</p>
+    <p class="ru">Явное, <b>версионируемое</b> соглашение между продюсером и консьюмером: схема, семантика, SLA (свежесть/объём), гарантии качества, политика изменений/устаревания. <b>Проверяется в CI</b> (diff схемы фейлит билд), чтобы продюсеры не могли тихо ломать консьюмеров.</p>
+    <h3 class="en">Retention &amp; access</h3>
+    <h3 class="ru">Хранение и доступ</h3>
+    <ul class="en">
+      <li><b>Retention/lifecycle</b>: how long kept, archival, deletion (legal + cost). For vintages you typically <b>never delete</b> — PIT history is the product.</li>
+      <li><b>Access</b>: least privilege, RBAC, classification (public/internal/restricted), <b>entitlements</b>.</li>
+    </ul>
+    <ul class="ru">
+      <li><b>Retention/lifecycle</b>: как долго хранится, архивирование, удаление (юридически + цена). Для версий обычно <b>никогда не удаляешь</b> — PIT-история и есть продукт.</li>
+      <li><b>Доступ</b>: минимальные привилегии, RBAC, классификация (публичное/внутреннее/ограниченное), <b>права</b>.</li>
+    </ul>
+    <div class="callout exp en">
+      <span class="lab">Your governance story (use it!)</span>
+      "At Career.io I ran a governance program without the label: forcing <b>8 brands onto a shared customer/account spine</b> meant agreeing canonical definitions, ownership of the master entity, and conformed dimensions so board-level KPIs reconciled instead of double-counting. That's <b>MDM + conformed dimensions + stewardship</b>. The next maturity step is making those agreements explicit <b>data contracts in CI</b> — the direction I'd bring here."
+    </div>
+    <div class="callout exp ru">
+      <span class="lab">Твоя governance-история (используй её!)</span>
+      «В Career.io я вёл программу управления данными без ярлыка: принудительный <b>общий spine customer/account на 8 брендов</b> означал согласование канонических определений, владения мастер-сущностью и conformed dimensions, чтобы KPI уровня совета директоров сходились, а не двойным счётом. Это <b>MDM + conformed dimensions + stewardship</b>. Следующий шаг зрелости — сделать эти соглашения явными <b>контрактами данных в CI</b> — то направление, которое я бы привнёс сюда.»
+    </div>
+  </div>
+
+  <div class="card reveal">
+    <h3 class="en">Embedding DQ into pipelines</h3>
+    <h3 class="ru">Встраивание DQ в пайплайны</h3>
+    <p class="en">Validate at <b>boundaries</b>: on ingest (contract check), after transform (business rules), before publish (gate).</p>
+    <p class="ru">Валидируй на <b>границах</b>: при ingest (проверка контракта), после transform (бизнес-правила), перед publish (gate).</p>
+    <table class="en">
+      <thead><tr><th>Check class</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td>Schema / structural</td><td>Column presence, types, not-null, enum domains, drift detection</td></tr>
+        <tr><td>Volume / freshness</td><td>Row count in band, partition arrived on SLA</td></tr>
+        <tr><td>Statistical / profiling</td><td>Ranges, distribution drift, null %, uniqueness, RI</td></tr>
+        <tr><td>Domain rules</td><td>GDP growth plausible, FX &gt; 0, sum-of-parts = total</td></tr>
+      </tbody>
+    </table>
+    <table class="ru">
+      <thead><tr><th>Класс проверок</th><th>Примеры</th></tr></thead>
+      <tbody>
+        <tr><td>Схема / структура</td><td>Наличие колонок, типы, not-null, enum-домены, детекция дрейфа</td></tr>
+        <tr><td>Объём / свежесть</td><td>Число строк в диапазоне, партиция прибыла по SLA</td></tr>
+        <tr><td>Статистика / профилирование</td><td>Диапазоны, дрейф распределения, % null, уникальность, RI</td></tr>
+        <tr><td>Доменные правила</td><td>Рост ВВП разумен, FX &gt; 0, сумма частей = целое</td></tr>
+      </tbody>
+    </table>
+    <p class="muted en">Tools: dbt tests (<code class="inline">unique</code>, <code class="inline">not_null</code>, <code class="inline">accepted_values</code>, <code class="inline">relationships</code>, <code class="inline">dbt_expectations</code>), Great Expectations / Soda, custom Python anomaly detection.</p>
+    <p class="muted ru">Инструменты: dbt tests (<code class="inline">unique</code>, <code class="inline">not_null</code>, <code class="inline">accepted_values</code>, <code class="inline">relationships</code>, <code class="inline">dbt_expectations</code>), Great Expectations / Soda, кастомная детекция аномалий на Python.</p>
+    <div class="callout probe en"><span class="lab">Circuit-breaker pattern</span> Quarantine bad partition → don't publish → alert (routed by ownership) → remediate/backfill. Distinguish <b>blocking</b> vs <b>warning</b> severity.</div>
+    <div class="callout probe ru"><span class="lab">Паттерн circuit-breaker</span> Карантин плохой партиции → не публикуй → алерт (роутится по владельцу) → исправь/backfill. Различай <b>блокирующую</b> vs <b>предупреждающую</b> серьёзность.</div>
+    <div class="callout en"><span class="lab">DAMA's 6 DQ dimensions</span> <b>Completeness, Accuracy, Consistency, Validity, Timeliness, Uniqueness.</b> Operationalize each as a testable metric tracked over time.</div>
+    <div class="callout ru"><span class="lab">6 измерений DQ по DAMA</span> <b>Completeness (полнота), Accuracy (точность), Consistency (согласованность), Validity (валидность), Timeliness (своевременность), Uniqueness (уникальность).</b> Операционализируй каждое как проверяемую метрику, отслеживаемую во времени.</div>
+  </div>
+
+  <div class="card reveal">
+    <h3 class="en">Data lifecycle stages</h3>
+    <h3 class="ru">Стадии жизненного цикла данных</h3>
+    <div class="diagram en">create/ingest → store → process/transform → use/serve → archive → destroy/retain
+   └──────── governance · security · metadata apply at EVERY stage ────────┘</div>
+    <div class="diagram ru">создание/ingest → хранение → обработка/transform → использование/serve → архив → уничтожение/retain
+   └──────── governance · security · metadata применяются на КАЖДОЙ стадии ────────┘</div>
+    <p class="muted en">For vintages: ingest → validate → model (revisions) → serve (latest + PIT) → archive old vintages to cold storage → rarely delete (PIT history is the product), entitlement-aware access.</p>
+    <p class="muted ru">Для версий: ingest → валидация → модель (ревизии) → serve (latest + PIT) → архив старых версий в холодное хранилище → редко удаляешь (PIT-история и есть продукт), доступ с учётом прав.</p>
+  </div>
+</section>
+
+<!-- ============ DMBOK ============ -->
+<section id="dmbok">
+  <h2 class="sec"><span class="en">9 · DAMA-DMBOK &amp; CDMP</span><span class="ru">9 · DAMA-DMBOK и CDMP</span> <span class="pill p-core">CORE</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><span class="kw">DAMA</span> = Data Management Association International. <span class="kw">DMBOK</span> = Data Management Body of Knowledge — its reference framework.</li>
+      <li>Drawn as the <b>DAMA Wheel</b>: <b>Data Governance at the hub</b>, spokes = Architecture, Data Modelling &amp; Design, Storage &amp; Ops, Security, Integration &amp; Interoperability, Document &amp; Content, Reference &amp; Master Data, Warehousing &amp; BI, <b>Metadata</b>, <b>Data Quality</b>.</li>
+      <li><span class="kw">CDMP</span> = Certified Data Management Professional — DAMA's certification, exam based on DMBOK. Tiers: <b>Associate / Practitioner / Master / Fellow</b> (gated by exam score, e.g. 60 / 70 / 80%).</li>
+    </ul>
+    <ul class="ru">
+      <li><span class="kw">DAMA</span> = Data Management Association International. <span class="kw">DMBOK</span> = Data Management Body of Knowledge — эталонный фреймворк.</li>
+      <li>Рисуется как <b>Колесо DAMA</b>: <b>Data Governance в центре</b>, спицы = Architecture, Data Modelling &amp; Design, Storage &amp; Ops, Security, Integration &amp; Interoperability, Document &amp; Content, Reference &amp; Master Data, Warehousing &amp; BI, <b>Metadata</b>, <b>Data Quality</b>.</li>
+      <li><span class="kw">CDMP</span> = Certified Data Management Professional — сертификация DAMA, экзамен на основе DMBOK. Уровни: <b>Associate / Practitioner / Master / Fellow</b> (по баллам экзамена, например 60 / 70 / 80%).</li>
+    </ul>
+    <div class="callout exp en">
+      <span class="lab">How to answer "do you know CDMP?"</span>
+      "I know DMBOK as the vocabulary and operating model for what this role touches — governance, metadata, MDM, lineage, quality. I've practised most of these hands-on; <b>CDMP would formalize the framework and I'd be glad to pursue it</b>. It maps almost 1:1 to this JD." <span class="muted">Signal willingness; don't overclaim a cert you don't hold.</span>
+    </div>
+    <div class="callout exp ru">
+      <span class="lab">Как отвечать на «знаете ли CDMP?»</span>
+      «Я знаю DMBOK как терминологию и операционную модель для того, что затрагивает эта роль — governance, metadata, MDM, lineage, quality. Бóльшую часть этого я практиковал руками; <b>CDMP формализовал бы фреймворк, и я с радостью его получу</b>. Он почти 1:1 совпадает с этим JD.» <span class="muted">Сигналь готовность; не приписывай себе сертификат, которого нет.</span>
+    </div>
+  </div>
+
+  <div class="card reveal">
+    <h3 class="en">Master Data Management (MDM)</h3>
+    <h3 class="ru">Управление мастер-данными (MDM)</h3>
+    <p class="en">Single, authoritative, deduplicated <b>golden record</b> for core entities (customer, account, security, geography), shared across systems. Components: matching/dedup, survivorship rules, reference data, stewardship workflow.</p>
+    <p class="ru">Единственная, авторитетная, дедуплицированная <b>золотая запись (golden record)</b> для ключевых сущностей (customer, account, security, география), разделяемая между системами. Компоненты: matching/dedup, правила выживания, справочные данные, процесс stewardship.</p>
+    <p class="en"><b>Your analogue:</b> canonical <code class="inline">series_id</code> / geography / source dimensions shared across systems so the same indicator means the same thing everywhere. <span class="muted">(= your Career.io spine, one level up.)</span></p>
+    <p class="ru"><b>Твой аналог:</b> каноничный <code class="inline">series_id</code> / география / измерения источника, разделяемые между системами, чтобы один индикатор означал одно и то же везде. <span class="muted">(= твой spine из Career.io, уровнем выше.)</span></p>
+  </div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz">
+  <h2 class="sec"><span class="en">10 · Flip-to-Reveal Self-Quiz</span><span class="ru">10 · Самопроверка (переворачивай карточку)</span></h2>
+  <p class="toc-mini en">Tap a card to flip. Answer cold before flipping.</p>
+  <p class="toc-mini ru">Нажми на карточку, чтобы перевернуть. Отвечай до переворота.</p>
+  <div class="flipgrid" id="flipgrid">
+    <!-- cards injected by JS -->
+  </div>
+</section>
+
+<!-- ============ RANKED Q SUMMARY ============ -->
+<section id="ranked">
+  <h2 class="sec"><span class="en">11 · Ranked Question Map</span><span class="ru">11 · Карта вопросов по приоритетам</span></h2>
+  <div class="card reveal">
+    <p class="en"><span class="pill p-star">★</span> = top-5 most likely.</p>
+    <p class="ru"><span class="pill p-star">★</span> = топ-5 наиболее вероятных.</p>
+    <ul class="en">
+      <li><span class="pill p-star">★</span><span class="pill p-core">Core</span> Model a revisioned macro series (vintages / bi-temporal / SCD2).</li>
+      <li><span class="pill p-star">★</span><span class="pill p-core">Core</span> SCD Type 2 vs Type 1 — gotchas.</li>
+      <li><span class="pill p-star">★</span><span class="pill p-core">Core</span> Lineage: table vs column level, why it matters.</li>
+      <li><span class="pill p-star">★</span><span class="pill p-senior">Senior</span> Embed DQ/validation into a pipeline (circuit breaker).</li>
+      <li><span class="pill p-star">★</span><span class="pill p-senior">Senior</span> Governance: ownership, stewardship, data contracts.</li>
+      <li><span class="pill p-found">Found</span> Star vs snowflake; fact vs dimension; grain.</li>
+      <li><span class="pill p-found">Found</span> Normalization vs denormalization; surrogate vs natural key.</li>
+      <li><span class="pill p-senior">Senior</span> Data Vault — when over dimensional?</li>
+      <li><span class="pill p-core">Core</span> Profiling; metadata &amp; catalogs; lifecycle stages.</li>
+      <li><span class="pill p-core">Core</span> DMBOK / CDMP; MDM (Career.io spine).</li>
+      <li><span class="pill p-senior">Senior</span> Vendor schema break; reconcile disagreeing vendors; impact analysis; idempotency; 90-day governance plan.</li>
+    </ul>
+    <ul class="ru">
+      <li><span class="pill p-star">★</span><span class="pill p-core">Core</span> Моделирование ревизионируемого макро-ряда (версии / bi-temporal / SCD2).</li>
+      <li><span class="pill p-star">★</span><span class="pill p-core">Core</span> SCD Type 2 vs Type 1 — подводные камни.</li>
+      <li><span class="pill p-star">★</span><span class="pill p-core">Core</span> Линедж: table vs column level, почему это важно.</li>
+      <li><span class="pill p-star">★</span><span class="pill p-senior">Senior</span> Встраивание DQ/валидации в пайплайн (circuit breaker).</li>
+      <li><span class="pill p-star">★</span><span class="pill p-senior">Senior</span> Governance: владение, stewardship, data contracts.</li>
+      <li><span class="pill p-found">Found</span> Звезда vs снежинка; факт vs измерение; зерно.</li>
+      <li><span class="pill p-found">Found</span> Нормализация vs денормализация; суррогатный vs натуральный ключ.</li>
+      <li><span class="pill p-senior">Senior</span> Data Vault — когда вместо размерного?</li>
+      <li><span class="pill p-core">Core</span> Профилирование; метаданные и каталоги; стадии жизненного цикла.</li>
+      <li><span class="pill p-core">Core</span> DMBOK / CDMP; MDM (spine из Career.io).</li>
+      <li><span class="pill p-senior">Senior</span> Ломка схемы вендора; согласование расходящихся вендоров; анализ влияния; идемпотентность; 90-дневный план governance.</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="en">
+  Data Engineering Interview Prep · Data Modelling, Governance, Metadata, Lineage &amp; Lifecycle.
+  Self-contained — no CDN, no external fonts. Theme &amp; language preferences saved to localStorage.
+  <br>Built for Amal Imangulov — Data Engineering interview prep.
+</footer>
+<footer class="ru">
+  Подготовка к Data Engineering интервью · Моделирование, Управление, Метаданные, Линедж и Жизненный цикл.
+  Автономная — без CDN, без внешних шрифтов. Настройки темы и языка сохранены в localStorage.
+  <br>Собрано для Amal Imangulov — подготовка к DE-интервью.
+</footer>
+</div>
+
+<script>
+// ---- COMBINED theme + lang toggle (from kafka.html) ----
+(function(){
+  var themeKey = 'de_cheat_theme';
+  var langKey = 'de_cheat_lang';
+  var savedTheme = localStorage.getItem(themeKey) || 'dark';
+  var savedLang = localStorage.getItem(langKey) || 'en';
+
+  // apply saved theme
+  if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+
+  // apply saved lang
+  document.documentElement.setAttribute('data-lang', savedLang);
+
+  // update button labels
+  function updateLabels() {
+    var curLang = document.documentElement.getAttribute('data-lang') || 'en';
+    var curTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    document.getElementById('langBtn').textContent = (curLang === 'en') ? '🌐 RU' : '🌐 EN';
+    document.getElementById('themeBtn').textContent = (curTheme === 'dark') ? '☀ Light' : '🌙 Dark';
+  }
+  updateLabels();
+
+  // lang toggle
+  document.getElementById('langBtn').addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-lang') || 'en';
+    var next = (cur === 'en') ? 'ru' : 'en';
+    document.documentElement.setAttribute('data-lang', next);
+    localStorage.setItem(langKey, next);
+    updateLabels();
+  });
+
+  // theme toggle
+  document.getElementById('themeBtn').addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    var next = (cur === 'dark') ? 'light' : 'dark';
+    if (next === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    localStorage.setItem(themeKey, next);
+    updateLabels();
+  });
+})();
+
+// ---- collapsibles ----
+document.querySelectorAll('.collapse-head').forEach(function(h){
+  h.addEventListener('click',function(){
+    h.classList.toggle('open');
+    var body = h.nextElementSibling;
+    body.classList.toggle('open');
+  });
+});
+
+// ---- scroll reveal ----
+(function(){
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:0.08});
+  document.querySelectorAll('.card.reveal').forEach(function(c){io.observe(c);});
+})();
+
+// ---- flip cards (bilingual) ----
+var quiz = [
+  {q_en:"What 2 time axes model a revisioned macro series?",
+   q_ru:"Какие 2 временные оси моделируют ревизионируемый макро-ряд?",
+   a_en:"<b>Valid time</b> = reference_period (the economic period). <b>Knowledge/transaction time</b> = vintage_date (when we learned it). Bi-temporal; append-only; SCD2 on the measurement.",
+   a_ru:"<b>Valid time</b> = reference_period (экономический период). <b>Knowledge/transaction time</b> = vintage_date (когда мы об этом узнали). Битемпорально; append-only; SCD2 на измерении."},
+  {q_en:"Latest vs point-in-time view — one SQL difference?",
+   q_ru:"Latest vs point-in-time view — одна разница в SQL?",
+   a_en:"Both take newest vintage per period. PIT adds <code>WHERE vintage_date &lt;= :as_of</code> first, to avoid look-ahead bias in backtests.",
+   a_ru:"Оба берут новейшую версию на период. PIT добавляет <code>WHERE vintage_date &lt;= :as_of</code> сначала, чтобы избежать look-ahead bias в бэктестах."},
+  {q_en:"Owner vs Steward (RACI)?",
+   q_ru:"Owner vs Steward (RACI)?",
+   a_en:"Owner = <b>Accountable</b> (decisions, sign-off), usually business leader. Steward = <b>Responsible</b> (day-to-day quality, definitions, metadata), usually the DE.",
+   a_ru:"Owner = <b>Accountable</b> (решения, подпись), обычно бизнес-лидер. Steward = <b>Responsible</b> (ежедневное качество, определения, метаданные), обычно DE."},
+  {q_en:"What is a data contract and where is it enforced?",
+   q_ru:"Что такое data contract и где он проверяется?",
+   a_en:"Versioned producer/consumer agreement: schema, semantics, SLAs, quality, change policy. Enforced in <b>CI</b> — schema diff fails the build so producers can't silently break consumers.",
+   a_ru:"Версионированное соглашение продюсер/консьюмер: схема, семантика, SLA, качество, политика изменений. Проверяется в <b>CI</b> — diff схемы фейлит билд, чтобы продюсеры не могли тихо ломать консьюмеров."},
+  {q_en:"Column-level vs table-level lineage — when do you need column-level?",
+   q_ru:"Column-level vs table-level lineage — когда нужен column-level?",
+   a_en:"Column-level for precise <b>impact analysis</b>: which exact downstream fields a schema change hits. Table-level is enough for orchestration/dependency graphs.",
+   a_ru:"Column-level для точного <b>анализа влияния</b>: какие именно downstream-поля затронет изменение схемы. Table-level достаточно для оркестрации/графов зависимостей."},
+  {q_en:"Why never UPDATE a revised value in place?",
+   q_ru:"Почему никогда не UPDATE ревизионированное значение на месте?",
+   a_en:"You destroy vintage history. Append a new row per revision so PIT reconstruction & lineage stay intact. Also keeps loads idempotent.",
+   a_ru:"Ты уничтожаешь версионную историю. Добавляй новую строку на ревизию, чтобы PIT-реконструкция и линедж остались целыми. Также сохраняет идемпотентность загрузок."},
+  {q_en:"DAMA's 6 data-quality dimensions?",
+   q_ru:"6 измерений качества данных по DAMA?",
+   a_en:"Completeness, Accuracy, Consistency, Validity, Timeliness, Uniqueness.",
+   a_ru:"Completeness (полнота), Accuracy (точность), Consistency (согласованность), Validity (валидность), Timeliness (своевременность), Uniqueness (уникальность)."},
+  {q_en:"Data Vault: what lives in a Satellite?",
+   q_ru:"Data Vault: что живёт в Satellite?",
+   a_en:"Descriptive, time-stamped, <b>insert-only</b> attributes hanging off hubs/links — i.e. built-in vintage/SCD2 history. Hubs hold business keys, links hold relationships.",
+   a_ru:"Описательные атрибуты с временными метками, <b>insert-only</b>, висящие на хабах/линках — т.е. встроенная версионная/SCD2-история. Хабы хранят бизнес-ключи, линки — связи."},
+  {q_en:"What is CDMP and how should you answer 'do you have it'?",
+   q_ru:"Что такое CDMP и как отвечать на «есть ли он у вас»?",
+   a_en:"DAMA's Certified Data Management Professional (exam on DMBOK; tiers Associate/Practitioner/Master/Fellow). Say: practised hands-on, glad to pursue it, maps 1:1 to this JD. Don't overclaim.",
+   a_ru:"Certified Data Management Professional от DAMA (экзамен на DMBOK; уровни Associate/Practitioner/Master/Fellow). Говори: практиковал руками, с радостью получу, совпадает 1:1 с этим JD. Не приписывай себе."},
+  {q_en:"Your MDM story in one line?",
+   q_ru:"Твоя MDM-история одной строкой?",
+   a_en:"Career.io: forced 8 sibling brands onto one shared customer/account spine = golden record + conformed dimensions + stewardship so board KPIs reconciled.",
+   a_ru:"Career.io: принудительный общий spine customer/account на 8 брендов = golden record + conformed dimensions + stewardship, чтобы KPI совета директоров сходились."},
+  {q_en:"Why must SCD2 use a surrogate key?",
+   q_ru:"Почему SCD2 должен использовать суррогатный ключ?",
+   a_en:"The natural/business key now repeats across versions, so it's no longer unique. Surrogate key keys each version; keep natural key as an attribute.",
+   a_ru:"Натуральный/бизнес-ключ теперь повторяется по версиям, поэтому он больше не уникален. Суррогатный ключ ключит каждую версию; натуральный оставь как атрибут."},
+  {q_en:"Circuit-breaker pattern for a bad partition?",
+   q_ru:"Паттерн circuit-breaker для плохой партиции?",
+   a_en:"Quarantine it, don't publish, alert routed by ownership, remediate/backfill. Separate blocking vs warning severities.",
+   a_ru:"Карантин, не публикуй, алерт роутится по владельцу, исправь/backfill. Различай блокирующую vs предупреждающую серьёзность."}
+];
+var grid = document.getElementById('flipgrid');
+quiz.forEach(function(c){
+  var d = document.createElement('div'); d.className='flip';
+  var curLang = document.documentElement.getAttribute('data-lang') || 'en';
+  var q = (curLang === 'en') ? c.q_en : c.q_ru;
+  var a = (curLang === 'en') ? c.a_en : c.a_ru;
+  var hint = (curLang === 'en') ? 'tap to reveal ↻' : 'нажми чтобы раскрыть ↻';
+  d.innerHTML =
+    '<div class="flip-inner">'+
+      '<div class="flip-face flip-front"><div class="flip-q">'+q+'</div><div class="hint">'+hint+'</div></div>'+
+      '<div class="flip-face flip-back"><div class="flip-a">'+a+'</div></div>'+
+    '</div>';
+  d.addEventListener('click',function(){d.classList.toggle('flipped');});
+  grid.appendChild(d);
+});
+</script>
+</body>
+</html>

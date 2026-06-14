@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Behavioral, Mentorship & Values — Data Engineering Interview Cheatsheet</title>
+<style>
+:root{
+  --bg:#0a0e1a; --card:#151d30; --card2:#1b2540; --text:#e6ecf5; --muted:#92a0bd;
+  --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7;
+  --border:#243250; --code-bg:#0c1322; --shadow:rgba(0,0,0,.4);
+}
+[data-theme="light"]{
+  --bg:#f4f6fb; --card:#ffffff; --card2:#eef2fa; --text:#10182a;
+  --muted:#5b6884; --accent:#1877F2; --green:#0a9b78; --orange:#c2740a; --purple:#8b3fd6;
+  --border:#d6deec; --code-bg:#f0f3fa; --shadow:rgba(20,40,80,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.55;font-size:15px;transition:background .25s,color .25s}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code,pre,.mono{font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+
+/* ---- i18n language toggle ---- */
+[data-lang="en"] .ru { display: none !important; }
+[data-lang="ru"] .en { display: none !important; }
+
+/* NAV */
+nav{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+[data-theme="light"] nav{background:rgba(244,246,251,.92)}
+nav .brand{font-weight:700;color:var(--accent);white-space:nowrap;margin-right:6px}
+nav a.navlink{color:var(--muted);font-size:12.5px;padding:3px 8px;border-radius:6px}
+nav a.navlink:hover{color:var(--text);background:var(--card2);text-decoration:none}
+.toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+.toggle-btn {
+  background: var(--card2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+}
+.toggle-btn:hover { border-color: var(--accent); }
+
+.wrap{max-width:1080px;margin:0 auto;padding:24px 18px 80px}
+header.hero{padding:14px 0 8px}
+header.hero h1{font-size:26px;margin:0 0 6px;line-height:1.25}
+header.hero .sub{color:var(--muted);font-size:14px}
+.badges{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.badge{font-size:11.5px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card)}
+.badge.accent{border-color:var(--accent);color:var(--accent)}
+.badge.green{border-color:var(--green);color:var(--green)}
+.badge.orange{border-color:var(--orange);color:var(--orange)}
+.badge.purple{border-color:var(--purple);color:var(--purple)}
+
+section{margin-top:30px}
+h2.sec{font-size:19px;border-left:4px solid var(--accent);padding-left:10px;margin:0 0 14px;scroll-margin-top:60px}
+h3{font-size:15.5px;margin:18px 0 8px;color:var(--text)}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:12px 0;
+  box-shadow:0 1px 0 var(--shadow)}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s}
+.reveal.in{opacity:1;transform:none}
+
+/* collapsible */
+.collap > summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none;display:flex;align-items:center;gap:8px;
+  padding:4px 0}
+.collap > summary::-webkit-details-marker{display:none}
+.collap > summary::before{content:"▸";color:var(--accent);transition:transform .2s;display:inline-block}
+.collap[open] > summary::before{transform:rotate(90deg)}
+.collap{border:1px solid var(--border);border-radius:12px;background:var(--card);padding:12px 16px;margin:12px 0}
+
+ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.muted{color:var(--muted)}
+strong.k{color:var(--green)}
+.tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:5px;border:1px solid var(--border);margin-left:6px;vertical-align:middle}
+.tag.easy{color:var(--green);border-color:var(--green)}
+.tag.med{color:var(--orange);border-color:var(--orange)}
+.tag.hard{color:var(--purple);border-color:var(--purple)}
+.tag.likely{color:#ffd34d;border-color:#ffd34d}
+
+/* tables */
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--card2);color:var(--text);font-weight:600}
+tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+
+/* code */
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;overflow-x:auto;
+  font-size:12.5px;line-height:1.5}
+.kw{color:var(--purple)} .str{color:var(--green)} .cm{color:var(--muted);font-style:italic} .fn{color:var(--accent)} .num{color:var(--orange)}
+
+/* callout */
+.callout{border-left:4px solid var(--orange);background:linear-gradient(90deg,rgba(245,158,11,.10),transparent);
+  border-radius:0 8px 8px 0;padding:10px 14px;margin:12px 0;font-size:13.5px}
+.callout.probe{border-color:var(--purple);background:linear-gradient(90deg,rgba(168,85,247,.10),transparent)}
+.callout.good{border-color:var(--green);background:linear-gradient(90deg,rgba(2,226,172,.10),transparent)}
+.callout .lab{font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:3px}
+.callout.probe .lab{color:var(--purple)} .callout .lab{color:var(--orange)} .callout.good .lab{color:var(--green)}
+
+/* flip cards */
+.flipgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:10px}
+.flip{perspective:1200px;height:178px;cursor:pointer}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .55s;transform-style:preserve-3d}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--border);border-radius:12px;
+  padding:14px;display:flex;flex-direction:column;justify-content:center;overflow:auto}
+.flip-front{background:var(--card2)}
+.flip-back{background:var(--card);transform:rotateY(180deg);font-size:13px}
+.flip-q{font-weight:600;font-size:14px}
+.flip-hint{color:var(--muted);font-size:11px;margin-top:10px}
+.flip-back ul{padding-left:18px;margin:2px 0}
+.flip-back li{font-size:12.5px;margin:3px 0}
+
+/* ascii diagram */
+.diagram{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:14px;
+  font-family:"SF Mono",Menlo,monospace;font-size:12px;white-space:pre;overflow-x:auto;color:var(--muted);line-height:1.45}
+.diagram b{color:var(--green)} .diagram .a{color:var(--accent)} .diagram .o{color:var(--orange)}
+
+.story-pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:6px;margin-right:6px}
+.sa{background:rgba(168,85,247,.18);color:var(--purple)}
+.sb{background:rgba(24,119,242,.18);color:var(--accent)}
+.sc{background:rgba(2,226,172,.18);color:var(--green)}
+.sd{background:rgba(245,158,11,.18);color:var(--orange)}
+
+footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+.kbd{font-size:11px;border:1px solid var(--border);border-radius:4px;padding:1px 5px;background:var(--card2)}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand"><span class="en">Behavioral Prep</span><span class="ru">Поведенческие вопросы</span></span>
+  <a class="navlink" href="#stories"><span class="en">4 Stories</span><span class="ru">4 истории</span></a>
+  <a class="navlink" href="#star">STAR</a>
+  <a class="navlink" href="#values"><span class="en">Values Map</span><span class="ru">Ценности</span></a>
+  <a class="navlink" href="#mentor"><span class="en">Mentorship</span><span class="ru">Менторство</span></a>
+  <a class="navlink" href="#conflict"><span class="en">Conflict</span><span class="ru">Конфликт</span></a>
+  <a class="navlink" href="#gotchas"><span class="en">Gotchas</span><span class="ru">Подводные камни</span></a>
+  <a class="navlink" href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+  <a class="navlink" href="#ask"><span class="en">Ask Them</span><span class="ru">Что спросить</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<div class="wrap">
+<header class="hero">
+  <h1 class="en">Behavioral, Mentorship &amp; Values <span class="muted">— DE Interview Prep</span></h1>
+  <h1 class="ru">Поведенческие вопросы, менторство и ценности <span class="muted">— Подготовка к DE-интервью</span></h1>
+  <div class="sub en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</div>
+  <div class="sub ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</div>
+  <div class="badges">
+    <span class="badge accent"><span class="en">Ownership &amp; execution</span><span class="ru">Владение и исполнение</span></span>
+    <span class="badge green"><span class="en">Accuracy &amp; accountability</span><span class="ru">Точность и ответственность</span></span>
+    <span class="badge orange"><span class="en">Raise the bar / mentor</span><span class="ru">Повышение планки / менторство</span></span>
+    <span class="badge purple"><span class="en">Dealing with ambiguity</span><span class="ru">Работа с неопределённостью</span></span>
+    <span class="badge"><span class="en">Hands-on Python/SQL</span><span class="ru">Практический Python/SQL</span></span>
+  </div>
+</header>
+
+<!-- ============ THE FRAME ============ -->
+<section id="frame" class="reveal">
+  <h2 class="sec"><span class="en">The frame: what a Senior DE loop is really testing</span><span class="ru">Рамка: что действительно проверяет поведенческое интервью Senior DE</span></h2>
+  <div class="card">
+    <p class="en">This stage is behavioral + fit, not a coding screen. The interviewer is checking four things. Make sure <em>every</em> answer lands at least one:</p>
+    <p class="ru">Этот этап — поведенческий + fit, а не код. Интервьюер проверяет четыре вещи. Убедись, что <em>каждый</em> ответ затрагивает хотя бы одно:</p>
+    <div class="diagram en"><span class="a">┌────────────────────────────────────────────────────────────┐</span>
+<span class="a">│</span>  SENIOR SIGNAL = at least ONE of these per answer           <span class="a">│</span>
+<span class="a">├────────────────────────────────────────────────────────────┤</span>
+<span class="a">│</span>  1. <b>Raise the bar for OTHERS</b>   (mentor / standards)        <span class="a">│</span>
+<span class="a">│</span>  2. <b>End-to-end OWNERSHIP</b>       (migrations / redesigns)    <span class="a">│</span>
+<span class="a">│</span>  3. <b>Influence WITHOUT authority</b> (drive change)             <span class="a">│</span>
+<span class="a">│</span>  4. <b>Accuracy under pressure</b>    (own it when data is wrong) <span class="a">│</span>
+<span class="a">└────────────────────────────────────────────────────────────┘</span></div>
+    <div class="diagram ru"><span class="a">┌──────────────────────────────────────────────────────────────┐</span>
+<span class="a">│</span>  СИГНАЛ SENIOR = хотя бы ОДНО из этого в каждом ответе         <span class="a">│</span>
+<span class="a">├──────────────────────────────────────────────────────────────┤</span>
+<span class="a">│</span>  1. <b>Повышение планки для ДРУГИХ</b>  (менторство / стандарты)  <span class="a">│</span>
+<span class="a">│</span>  2. <b>Сквозное ВЛАДЕНИЕ</b>            (миграции / редизайн)     <span class="a">│</span>
+<span class="a">│</span>  3. <b>Влияние БЕЗ власти</b>           (драйв изменений)         <span class="a">│</span>
+<span class="a">│</span>  4. <b>Точность под давлением</b>       (отвечать за ошибки)      <span class="a">│</span>
+<span class="a">└──────────────────────────────────────────────────────────────┘</span></div>
+    <div class="callout good en"><span class="lab">North star</span>
+      Senior DE means making data trustworthy at scale. Frame your whole arc as delivering accuracy and unlocking analytics for the business, not just building pipelines.
+    </div>
+    <div class="callout good ru"><span class="lab">Главная мысль</span>
+      Senior DE означает делать данные надёжными на масштабе. Представляй всю свою карьеру как обеспечение точности и разблокировку аналитики для бизнеса, а не просто построение пайплайнов.
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE 4 STORIES ============ -->
+<section id="stories" class="reveal">
+  <h2 class="sec"><span class="en">The 4 signature stories (memorize the spine, not the words)</span><span class="ru">4 основные истории (запомни канву, а не слова)</span></h2>
+  <p class="muted en">Each one is reusable across many questions. Know the quantified result cold.</p>
+  <p class="muted ru">Каждую можно применить к множеству вопросов. Знай цифры наизусть.</p>
+
+  <details class="collap" open>
+    <summary><span class="story-pill sa">STORY A</span> <span class="en">Entity-resolution defect — failure / accuracy / accountability</span><span class="ru">Дефект резолюции сущностей — провал / точность / ответственность</span></summary>
+    <ul class="en">
+      <li><strong class="k">S</strong> — At Meta, abuse-detection metrics drifted. Root cause: an entity-resolution defect mis-merging/splitting identities across <strong>6.2B records (34% of messaging threads)</strong>, silently corrupting <strong>100+ downstream metrics &amp; ML features</strong>.</li>
+      <li><strong class="k">T</strong> — Own root cause, fix, backfill, and rebuilding trust in the numbers without breaking 100+ consumers.</li>
+      <li><strong class="k">A</strong> — Reproduced on a slice → isolated the join/dedup logic → validated corrected logic vs. ground-truth before touching prod → coordinated backfill → <strong>added automated validation checks</strong> so the same defect class is caught by the pipeline, not by a human noticing drift weeks later.</li>
+      <li><strong class="k">R</strong> — Restored accuracy for 100+ metrics/features; turned a silent-corruption mode into a loud, early one.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">S</strong> — В Meta метрики детектирования абьюза поползли вниз. Корневая причина: дефект резолюции сущностей, ошибочно объединявший/разделявший идентичности на <strong>6.2 млрд записей (34% мессенджерных тредов)</strong>, молча ломая <strong>100+ нижестоящих метрик и ML-фич</strong>.</li>
+      <li><strong class="k">T</strong> — Найти корневую причину, исправить, забэкфиллить, восстановить доверие к числам без поломки 100+ консьюмеров.</li>
+      <li><strong class="k">A</strong> — Воспроизвёл на срезе → изолировал логику join/dedup → проверил исправленную логику на ground-truth до трогания прода → координировал backfill → <strong>добавил автоматические проверки валидации</strong>, чтобы тот же класс дефектов ловился пайплайном, а не человеком, заметившим дрифт через недели.</li>
+      <li><strong class="k">R</strong> — Восстановил точность для 100+ метрик/фич; превратил режим молчаливой порчи в громкий и ранний.</li>
+    </ul>
+    <div class="callout good en"><span class="lab">The line that wins</span> "The bug wasn't the failure. The failure was that <em>nothing in the system caught it.</em> So the real fix was making correctness <em>observable</em>."</div>
+    <div class="callout good ru"><span class="lab">Выигрышная фраза</span> «Баг — не провал. Провал в том, что <em>ничто в системе его не поймало.</em> Поэтому реальный фикс — сделать корректность <em>наблюдаемой</em>.»</div>
+    <p class="muted en">Best for: failure/hard bug, accuracy &amp; accountability, debugging depth, "data is wrong — now what."</p>
+    <p class="muted ru">Подходит для: провал/сложный баг, точность и ответственность, глубина дебага, «данные ошибочны — что дальше».</p>
+  </details>
+
+  <details class="collap">
+    <summary><span class="story-pill sb">STORY B</span> <span class="en">Unified data model / 10 logging systems — ownership &amp; design</span><span class="ru">Единая модель данных / 10 систем логирования — владение и дизайн</span></summary>
+    <ul class="en">
+      <li><strong class="k">S/T</strong> — 10 fragmented logging systems, <strong>~3.6B events/day</strong>, blocking cross-surface integrity analytics at billions-user scale.</li>
+      <li><strong class="k">A</strong> — Architected a unified data model consolidating all 10; eliminated <strong>47% redundant data volume</strong>; unblocked cross-surface analytics.</li>
+      <li><strong class="k">R</strong> — One coherent model, big cost + clarity win, analytics unblocked.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">S/T</strong> — 10 фрагментированных систем логирования, <strong>~3.6 млрд событий/день</strong>, блокировали кросс-платформенную аналитику целостности на масштабе миллиардов пользователей.</li>
+      <li><strong class="k">A</strong> — Спроектировал единую модель данных, консолидировавшую все 10; устранил <strong>47% избыточного объёма данных</strong>; разблокировал кросс-платформенную аналитику.</li>
+      <li><strong class="k">R</strong> — Одна когерентная модель, большой выигрыш в стоимости и ясности, аналитика разблокирована.</li>
+    </ul>
+    <p class="muted en">Best for: end-to-end ownership, design thinking, data modelling, modernization, scalability.</p>
+    <p class="muted ru">Подходит для: сквозное владение, дизайн-мышление, моделирование данных, модернизация, масштабируемость.</p>
+  </details>
+
+  <details class="collap">
+    <summary><span class="story-pill sc">STORY C</span> <span class="en">Triple migration at McMakler — ownership / tech debt / under pressure</span><span class="ru">Тройная миграция в McMakler — владение / технический долг / под давлением</span></summary>
+    <ul class="en">
+      <li><strong class="k">S/T</strong> — Three concurrent platform problems, owned as tech lead.</li>
+      <li><strong class="k">A</strong> — GCP-native → <strong>Snowflake</strong>; proprietary orchestration → <strong>Airflow</strong> (killed 100s of K €/yr licensing); Postgres → <strong>dbt</strong> analytical-layer rebuild. De-risked via <em>parallel run + row-for-row validation + per-domain cutover</em> so reporting never broke. Added a Salesforce sync layer via Airflow.</li>
+      <li><strong class="k">R</strong> — <strong>€1M+ saved</strong>; modern stack; self-service analytics for 200+ users across 8 departments.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">S/T</strong> — Три одновременные проблемы платформы, которые я владел как тех. лид.</li>
+      <li><strong class="k">A</strong> — GCP-native → <strong>Snowflake</strong>; проприетарная оркестрация → <strong>Airflow</strong> (убил сотни тысяч €/год лицензий); Postgres → переписал аналитический слой на <strong>dbt</strong>. Снизил риски через <em>параллельный запуск + поэлементную валидацию + постепенный cutover по доменам</em>, поэтому отчётность никогда не ломалась. Добавил слой синхронизации Salesforce через Airflow.</li>
+      <li><strong class="k">R</strong> — <strong>€1M+ сэкономлено</strong>; современный стек; self-service аналитика для 200+ пользователей из 8 отделов.</li>
+    </ul>
+    <div class="callout good en"><span class="lab">Senior tell</span> Parallel-run + per-domain cutover + row-level validation = how you migrate <em>critical</em> data with no trust outage.</div>
+    <div class="callout good ru"><span class="lab">Маркер Senior</span> Параллельный запуск + постепенный cutover по доменам + поэлементная валидация = как мигрировать <em>критические</em> данные без разрыва доверия.</div>
+    <p class="muted en">Best for: end-to-end ownership, migrations, reducing tech debt, delivering under pressure.</p>
+    <p class="muted ru">Подходит для: сквозное владение, миграции, погашение технического долга, доставка под давлением.</p>
+  </details>
+
+  <details class="collap">
+    <summary><span class="story-pill sd">STORY D</span> <span class="en">Growing 2→7 &amp; dbt code review — mentorship / raising the bar</span><span class="ru">Рост команды 2→7 и ревью dbt-кода — менторство / повышение планки</span></summary>
+    <ul class="en">
+      <li><strong class="k">S/T</strong> — Inherited a 2-person team, no standards, untested SQL feeding 200+ users (McMakler); later led 8 engineers across 8 brand domains, same disease at scale (Career.io).</li>
+      <li><strong class="k">A</strong> — Institutionalized <strong>dbt code review</strong> (checklist: tests present, naming, no SELECT *, incremental logic) + <strong>SQL optimization standards</strong> (partition pruning, materialization, no accidental cross-joins). Didn't just write rules — pair-reviewed early PRs, wrote exemplar models, ran "why this is faster" sessions. Gave each engineer an owned domain, reviewed <em>toward independence</em>.</li>
+      <li><strong class="k">R</strong> — Grew team <strong>2→7</strong>, promoted <strong>3 Junior→Mid/Senior</strong>; defects caught pre-prod; onboarding faster.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">S/T</strong> — Унаследовал команду из 2 человек, без стандартов, непротестированный SQL кормил 200+ пользователей (McMakler); позже вёл 8 инженеров по 8 брендам, та же болезнь на масштабе (Career.io).</li>
+      <li><strong class="k">A</strong> — Институционализировал <strong>ревью dbt-кода</strong> (чеклист: наличие тестов, нейминг, нет SELECT *, инкрементальная логика) + <strong>стандарты оптимизации SQL</strong> (прунинг партиций, материализация, нет случайных cross-join). Не просто писал правила — парно ревьюил первые PR, писал образцовые модели, проводил сессии «почему это быстрее». Дал каждому инженеру домен, который он владеет, ревьюил <em>к самостоятельности</em>.</li>
+      <li><strong class="k">R</strong> — Вырастил команду <strong>2→7</strong>, повысил <strong>3 Junior→Mid/Senior</strong>; дефекты ловились до прода; онбординг ускорился.</li>
+    </ul>
+    <div class="callout good en"><span class="lab">The line that wins</span> "My measure of mentorship is whether the person can pass <em>their own</em> review six months later. Promotions are the lagging indicator."</div>
+    <div class="callout good ru"><span class="lab">Выигрышная фраза</span> «Мой показатель менторства — сможет ли человек через полгода сам пройти <em>своё собственное</em> ревью. Повышения — запаздывающий индикатор.»</div>
+    <p class="muted en">Best for: mentorship, raising standards, conflict/pushback, influence.</p>
+    <p class="muted ru">Подходит для: менторство, повышение стандартов, конфликт/сопротивление, влияние.</p>
+  </details>
+
+  <h3><span class="en">Bench (use if asked for variety)</span><span class="ru">Резервные истории (если просят разнообразия)</span></h3>
+  <table class="en">
+    <tr><th>Story</th><th>Anchor</th><th>Use for</th></tr>
+    <tr><td>IU Group / Syntea</td><td>2-eng lead, Kafka + GPT-4 at university scale (80k+ students), Microsoft Azure OpenAI case study</td><td>leading small team, AI in production, innovation</td></tr>
+    <tr><td>Front Tier</td><td>Default-prediction model, top-10 RU bank, end-to-end Scala/Spark + Flask, 50% loss reduction</td><td>end-to-end ownership, delivering under deadline, hands-on depth</td></tr>
+    <tr><td>Untangler</td><td>Won EMEA DE Hackathon 2026; multi-agent AI methodology adopted into Meta tooling</td><td>continuous improvement, influence/adoption, productionizing AI</td></tr>
+    <tr><td>Career.io shared spine</td><td>Forced convergence on a shared customer/account spine across 8 siloed brands</td><td>influence w/o authority, conflict, collaboration</td></tr>
+  </table>
+  <table class="ru">
+    <tr><th>История</th><th>Якорь</th><th>Для чего</th></tr>
+    <tr><td>IU Group / Syntea</td><td>Лид 2 инженеров, Kafka + GPT-4 на масштабе университета (80k+ студентов), кейс-стади Microsoft Azure OpenAI</td><td>руководство малой командой, AI в проде, инновации</td></tr>
+    <tr><td>Front Tier</td><td>Модель предсказания дефолта, топ-10 банк РФ, сквозной Scala/Spark + Flask, сокращение потерь на 50%</td><td>сквозное владение, доставка в дедлайн, практическая глубина</td></tr>
+    <tr><td>Untangler</td><td>Выиграл DE Hackathon EMEA 2026; мульти-агентная методология принята в инструменты Meta</td><td>непрерывное улучшение, влияние/принятие, продакшенизация AI</td></tr>
+    <tr><td>Career.io shared spine</td><td>Форсировал конвергенцию на общий customer/account spine по 8 разрозненным брендам</td><td>влияние без власти, конфликт, коллаборация</td></tr>
+  </table>
+</section>
+
+<!-- ============ STAR ============ -->
+<section id="star" class="reveal">
+  <h2 class="sec"><span class="en">STAR — how to deliver (timing &amp; structure)</span><span class="ru">STAR — как подавать (тайминг и структура)</span></h2>
+  <div class="card">
+    <div class="diagram en"><b>S</b>ituation  ▓░░░░░░░░░  ~15%   set scene fast, give the stakes/scale
+<b>T</b>ask       ▓░░░░░░░░░  ~10%   what YOU owned (use "I", not "we")
+<b>A</b>ction     ▓▓▓▓▓▓░░░░  ~50%   YOUR decisions + tradeoffs + why
+<b>R</b>esult     ▓▓░░░░░░░░  ~25%   quantified + the lesson / systemic fix</div>
+    <div class="diagram ru"><b>S</b>ituation  ▓░░░░░░░░░  ~15%   быстро задай сцену, дай ставки/масштаб
+<b>T</b>ask       ▓░░░░░░░░░  ~10%   что владел ТЫ (говори "я", не "мы")
+<b>A</b>ction     ▓▓▓▓▓▓░░░░  ~50%   ТВОИ решения + компромиссы + почему
+<b>R</b>esult     ▓▓░░░░░░░░  ~25%   цифры + урок / системный фикс</div>
+    <ul class="en">
+      <li><strong class="k">Lead with scale/stakes</strong> in S so the interviewer knows it's a hard problem (6.2B records, 100+ consumers, €1M+, 8 brands).</li>
+      <li><strong class="k">Say "I", not "we"</strong> in the Action — they're evaluating <em>you</em>. Credit the team in the Result.</li>
+      <li><strong class="k">End on a lesson or systemic fix</strong>, not just an outcome. Seniors generalize from incidents.</li>
+      <li><strong class="k">Keep to ~90 sec.</strong> Stop and let them probe. Long monologues read as junior.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">Начни с масштаба/ставок</strong> в S, чтобы интервьюер понял, что проблема сложная (6.2 млрд записей, 100+ консьюмеров, €1M+, 8 брендов).</li>
+      <li><strong class="k">Говори "я", не "мы"</strong> в Action — оценивают <em>тебя</em>. Заслугу команды отдай в Result.</li>
+      <li><strong class="k">Заканчивай на уроке или системном фиксе</strong>, не просто на результате. Senior-ы обобщают из инцидентов.</li>
+      <li><strong class="k">Укладывайся в ~90 сек.</strong> Останавливайся и дай им добить. Длинные монологи читаются как junior.</li>
+    </ul>
+    <div class="callout probe en"><span class="lab">Interviewer will probe</span> "What was <em>your</em> specific part?" / "What would you do differently?" / "What tradeoff did you make?" — pre-load one crisp answer to each for every story.</div>
+    <div class="callout probe ru"><span class="lab">О чём спросит интервьюер</span> «Что было конкретно <em>твоей</em> частью?» / «Что бы ты сделал иначе?» / «Какой компромисс ты сделал?» — заранее заготовь чёткий ответ на каждое для каждой истории.</div>
+  </div>
+</section>
+
+<!-- ============ VALUES MAP ============ -->
+<section id="values" class="reveal">
+  <h2 class="sec"><span class="en">Tech industry values → your evidence</span><span class="ru">Ценности техкомпаний → твои доказательства</span></h2>
+  <table class="en">
+    <tr><th>Value cue (typical FAANG/tech)</th><th>What it means</th><th>Your proof</th></tr>
+    <tr><td><strong class="k">Accuracy &amp; accountability</strong></td><td>Own it when the data is wrong; make correctness observable</td><td>Story A — entity-res defect; added validation so it can't recur silently</td></tr>
+    <tr><td><strong class="k">Customer / user focus</strong></td><td>The data consumer's decision is only as good as your number</td><td>Career.io board reporting; McMakler 200+ self-service users; Meta 100+ consumers</td></tr>
+    <tr><td><strong class="k">Collaboration</strong></td><td>Across Data/Eng/Product; cross-team without authority</td><td>Career.io shared-spine convergence across 8 brands</td></tr>
+    <tr><td><strong class="k">Continuous improvement</strong></td><td>Improve what nobody asked you to</td><td>Untangler (hackathon → Meta tooling); validation checks post-incident</td></tr>
+    <tr><td><strong class="k">Craftsmanship / quality</strong></td><td>Don't ship a number you can't defend; flag caveats</td><td>Refused the silent-corruption shortcut; parallel-run + validation</td></tr>
+    <tr><td><strong class="k">Hands-on / detail-oriented</strong></td><td>Still go deep as you get senior</td><td>Personally root-caused the 6.2B-record defect; daily code review; writes exemplar models</td></tr>
+    <tr><td><strong class="k">Ownership / bias for action</strong></td><td>Drive end-to-end, don't wait for permission</td><td>Story C — triple migration, Story B — unified model design</td></tr>
+  </table>
+  <table class="ru">
+    <tr><th>Ценность (типичная FAANG/tech)</th><th>Что это значит</th><th>Твоё доказательство</th></tr>
+    <tr><td><strong class="k">Точность и ответственность</strong></td><td>Отвечай, когда данные неправильные; сделай корректность наблюдаемой</td><td>История A — дефект резолюции; добавил валидацию, чтобы не повторилось молча</td></tr>
+    <tr><td><strong class="k">Фокус на клиента/пользователя</strong></td><td>Решение консьюмера данных настолько же хорошо, насколько точны твои цифры</td><td>Career.io отчёты борду; McMakler 200+ self-service пользователей; Meta 100+ консьюмеров</td></tr>
+    <tr><td><strong class="k">Коллаборация</strong></td><td>Поперёк Data/Eng/Product; кросс-командно без власти</td><td>Career.io сходимость на shared spine по 8 брендам</td></tr>
+    <tr><td><strong class="k">Непрерывное улучшение</strong></td><td>Улучшай то, о чём тебя никто не просил</td><td>Untangler (хакатон → инструменты Meta); проверки после инцидента</td></tr>
+    <tr><td><strong class="k">Мастерство / качество</strong></td><td>Не шипь цифру, которую не можешь защитить; флаги с оговорками</td><td>Отказался от шортката молчаливой порчи; параллельный запуск + валидация</td></tr>
+    <tr><td><strong class="k">Практичность / внимание к деталям</strong></td><td>Всё ещё копай глубоко, когда становишься Senior</td><td>Лично выследил корневую причину дефекта на 6.2 млрд записей; ежедневное ревью кода; пишу образцовые модели</td></tr>
+    <tr><td><strong class="k">Владение / склонность к действию</strong></td><td>Веди сквозной процесс, не жди разрешения</td><td>История C — тройная миграция, История B — дизайн единой модели</td></tr>
+  </table>
+</section>
+
+<!-- ============ MENTORSHIP ============ -->
+<section id="mentor" class="reveal">
+  <h2 class="sec"><span class="en">Mentorship &amp; raising standards (the senior differentiator)</span><span class="ru">Менторство и повышение стандартов (отличие Senior-а)</span></h2>
+  <div class="card">
+    <h3><span class="en">How to set standards on a team that has none</span><span class="ru">Как установить стандарты в команде, где их нет</span></h3>
+    <div class="diagram en"><span class="o">1.</span> Diagnose the PAIN      → defects in prod, dup logic, slow onboarding
+<span class="o">2.</span> Write EXEMPLARS       → one model done right people can copy
+<span class="o">3.</span> Lightweight REVIEW    → start small, blocking vs. nit, explain the WHY
+<span class="o">4.</span> Show the VALUE        → "review caught N defects, query got Mx faster"
+<span class="o">5.</span> EXPAND + co-own       → fold in their input → standard becomes "ours"</div>
+    <div class="diagram ru"><span class="o">1.</span> Диагностируй БОЛЬ     → дефекты в проде, дубли логики, медленный онбординг
+<span class="o">2.</span> Напиши ОБРАЗЦЫ        → одна правильная модель, которую можно копировать
+<span class="o">3.</span> Лёгкое РЕВЬЮ          → начни с малого, блокер vs. nit, объясни ПОЧЕМУ
+<span class="o">4.</span> Покажи ЦЕННОСТЬ       → "ревью поймало N дефектов, запрос стал в M раз быстрее"
+<span class="o">5.</span> РАСШИРЯЙ + совладей   → вплетай их инпут → стандарт становится "нашим"</div>
+    <ul class="en">
+      <li><strong class="k">Review is teaching, not gatekeeping.</strong> Explain <em>why</em> a query plan is faster; separate blockers from nits; praise good patterns so the bar is also aspirational.</li>
+      <li><strong class="k">Review toward independence.</strong> Heavy early, deliberately lighter over time; track whether they catch their own issues.</li>
+      <li><strong class="k">Bus-factor of one is a bug.</strong> Runbooks per pipeline (purpose, owner, failure modes, remediation), version-controlled standards, exemplars.</li>
+      <li><strong class="k">Promotion = lagging indicator.</strong> 3 promotions at McMakler are the proof the bar rose for <em>people</em>, not just code.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">Ревью — это обучение, не gatekeeping.</strong> Объясни <em>почему</em> план запроса быстрее; разделяй блокеры и nit-ы; хвали хорошие паттерны, чтобы планка была ещё и вдохновляющей.</li>
+      <li><strong class="k">Ревью к самостоятельности.</strong> Тяжёлое вначале, нарочито легче со временем; отслеживай, ловят ли они свои собственные проблемы.</li>
+      <li><strong class="k">Bus-factor один — это баг.</strong> Runbook на каждый пайплайн (цель, владелец, режимы сбоя, устранение), стандарты в системе версионирования, образцы.</li>
+      <li><strong class="k">Повышение = запаздывающий индикатор.</strong> 3 повышения в McMakler — доказательство, что планка выросла для <em>людей</em>, не просто для кода.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ CONFLICT ============ -->
+<section id="conflict" class="reveal">
+  <h2 class="sec"><span class="en">Conflict, pushback &amp; influence without authority</span><span class="ru">Конфликт, сопротивление и влияние без власти</span></h2>
+  <div class="card">
+    <h3><span class="en">Recipe for "they resisted my standard / I influenced without authority"</span><span class="ru">Рецепт для «они сопротивлялись моему стандарту / я влиял без власти»</span></h3>
+    <ul class="en">
+      <li><strong class="k">Lead with the cost of the status quo</strong>, not authority — defects reaching prod, duplicated logic, un-reconcilable cross-brand numbers.</li>
+      <li><strong class="k">Pilot on one domain</strong>, gather data (defect-catch rate, speed-up).</li>
+      <li><strong class="k">Let proof convert skeptics</strong>; get one influential early adopter.</li>
+      <li><strong class="k">Co-own the rules</strong> — adjust the checklist with their input so it's "ours." Skeptics become reviewers.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">Начинай с цены статус-кво</strong>, не власти — дефекты доходят до прода, дублирование логики, несводимые кросс-брендовые цифры.</li>
+      <li><strong class="k">Пилот на одном домене</strong>, собери данные (процент пойманных дефектов, ускорение).</li>
+      <li><strong class="k">Пусть доказательства конвертируют скептиков</strong>; найди одного влиятельного раннего адоптора.</li>
+      <li><strong class="k">Совладей правилами</strong> — скорректируй чеклист с их инпутом, чтобы он стал «нашим». Скептики становятся ревьюерами.</li>
+    </ul>
+    <div class="callout good en"><span class="lab">Disagree &amp; commit</span> "I argue hard for the right number, then I support the decision and document the tradeoff." Shows ego-strength + collaboration.</div>
+    <div class="callout good ru"><span class="lab">Не согласись и поддержи</span> «Я жёстко спорю за правильную цифру, затем поддерживаю решение и документирую компромисс.» Показывает силу эго + коллаборацию.</div>
+    <div class="callout probe en"><span class="lab">Interviewer will probe</span> "What if they <em>still</em> resisted after the data?" → escalate calmly with the risk framed in <em>their</em> terms (their on-call pain, their broken metric), never as a personal win.</div>
+    <div class="callout probe ru"><span class="lab">О чём спросит интервьюер</span> «Что, если они <em>всё равно</em> сопротивлялись после данных?» → эскалируй спокойно, обрамляя риск в <em>их</em> терминах (их боль on-call, их сломанная метрика), никогда как личную победу.</div>
+  </div>
+</section>
+
+<!-- ============ GOTCHAS ============ -->
+<section id="gotchas" class="reveal">
+  <h2 class="sec"><span class="en">Gotchas &amp; landmines</span><span class="ru">Подводные камни и ловушки</span></h2>
+  <div class="card">
+    <table class="en">
+      <tr><th>Trap</th><th>Do this instead</th></tr>
+      <tr><td>Weakness that's secretly a brag ("I work too hard")</td><td>Real one + mitigation: "Early as a lead I over-did the hard work myself instead of delegating. Growing 2→7 forced me to hand off work I was good at. Now I measure the team's output, not mine."</td></tr>
+      <tr><td>Saying "we" through the whole story</td><td>Use "I" for actions, "we"/credit for results.</td></tr>
+      <tr><td>Picking a fake failure for the failure question</td><td>Use the entity-res defect. Own it cleanly, then the systemic fix.</td></tr>
+      <tr><td>No numbers</td><td>Memorize: 6.2B / 34% / 100+ / 3.6B/day / 47% / €1M+ / 2→7 / 3 promos / 8 brands / 50% loss reduction.</td></tr>
+      <tr><td>Sounding like you'll abandon the keyboard</td><td>"Leadership for me is multiplicative, not a move away from hands-on." (Entity-res defect = proof.)</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Ловушка</th><th>Делай вместо этого</th></tr>
+      <tr><td>Слабость, которая на деле хвастовство («я слишком много работаю»)</td><td>Настоящая + митигация: «Вначале как лид я перебрал на себя тяжёлую работу вместо делегирования. Рост 2→7 заставил меня передать работу, которую я хорошо делал. Теперь я меряю результат команды, а не свой.»</td></tr>
+      <tr><td>Говорить «мы» через всю историю</td><td>Используй «я» для действий, «мы»/заслугу для результатов.</td></tr>
+      <tr><td>Выбирать фейковый провал для вопроса о провале</td><td>Используй дефект резолюции сущностей. Владей чисто, затем системный фикс.</td></tr>
+      <tr><td>Никаких цифр</td><td>Запомни: 6.2 млрд / 34% / 100+ / 3.6 млрд/день / 47% / €1M+ / 2→7 / 3 повышения / 8 брендов / 50% сокращение потерь.</td></tr>
+      <tr><td>Звучать как будто бросишь клавиатуру</td><td>«Лидерство для меня — мультипликативное, а не переход от практики.» (Дефект резолюции — доказательство.)</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ SELF QUIZ ============ -->
+<section id="quiz" class="reveal">
+  <h2 class="sec"><span class="en">Self-quiz — flip to reveal <span class="muted" style="font-size:13px">(tap a card)</span></span><span class="ru">Самопроверка — переверни карточку <span class="muted" style="font-size:13px">(тапни на карточку)</span></span></h2>
+  <div class="flipgrid" id="flipgrid">
+    <!-- cards injected by JS -->
+  </div>
+</section>
+
+<!-- ============ TOP QUESTIONS ============ -->
+<section id="topq" class="reveal">
+  <h2 class="sec"><span class="en">Top likely questions</span><span class="ru">Наиболее вероятные вопросы</span></h2>
+  <div class="card">
+    <ul class="en">
+      <li>⭐ A time you mentored / raised the team's bar? <span class="tag med">Medium</span><span class="tag likely">Likely</span> → Story D</li>
+      <li>⭐ A project that failed / serious bug you owned? <span class="tag hard">Hard</span><span class="tag likely">Likely</span> → Story A</li>
+      <li>⭐ Owning an initiative end-to-end? <span class="tag med">Medium</span><span class="tag likely">Likely</span> → Story C</li>
+      <li>⭐ How do you ensure data quality / accuracy? <span class="tag med">Medium</span><span class="tag likely">Likely</span> → Story A philosophy</li>
+      <li>Handling conflict / pushback on a standard? <span class="tag hard">Hard</span> → Story D / Career.io</li>
+      <li>Influence without formal authority? <span class="tag hard">Hard</span> → shared spine / Untangler</li>
+      <li>Delivering under time pressure? <span class="tag med">Medium</span> → Front Tier / migration cutover</li>
+      <li>Biggest weakness? <span class="tag med">Medium</span> → delegation growth arc</li>
+      <li>How do you stay hands-on as you go senior? <span class="tag med">Medium</span></li>
+    </ul>
+    <ul class="ru">
+      <li>⭐ Пример менторства / повышения планки команды? <span class="tag med">Medium</span><span class="tag likely">Вероятен</span> → История D</li>
+      <li>⭐ Проект, который провалился / серьёзный баг, который ты владел? <span class="tag hard">Hard</span><span class="tag likely">Вероятен</span> → История A</li>
+      <li>⭐ Владение инициативой сквозь процесс? <span class="tag med">Medium</span><span class="tag likely">Вероятен</span> → История C</li>
+      <li>⭐ Как ты обеспечиваешь качество / точность данных? <span class="tag med">Medium</span><span class="tag likely">Вероятен</span> → Философия истории A</li>
+      <li>Обработка конфликта / сопротивления стандарту? <span class="tag hard">Hard</span> → История D / Career.io</li>
+      <li>Влияние без формальной власти? <span class="tag hard">Hard</span> → shared spine / Untangler</li>
+      <li>Доставка под дедлайном? <span class="tag med">Medium</span> → Front Tier / cutover миграции</li>
+      <li>Самая большая слабость? <span class="tag med">Medium</span> → дуга роста делегирования</li>
+      <li>Как ты остаёшься практичным, становясь Senior? <span class="tag med">Medium</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ ASK THEM ============ -->
+<section id="ask" class="reveal">
+  <h2 class="sec"><span class="en">Questions to ask the interviewer (pick 2–3)</span><span class="ru">Вопросы интервьюеру (выбери 2–3)</span></h2>
+  <div class="card">
+    <h3 class="en">On the tech stack &amp; discipline</h3>
+    <h3 class="ru">О техническом стеке и дисциплине</h3>
+    <ul class="en">
+      <li>"What's the orchestration + transformation stack today (Airflow / dbt / in-house), and where are you investing next?"</li>
+      <li>"How are quality controls embedded today — centralized or per-pipeline? Is anomaly detection / LLM-assisted validation in production or aspirational?"</li>
+      <li>"What does the target-state architecture look like — and how much is greenfield vs. refactor?"</li>
+    </ul>
+    <ul class="ru">
+      <li>«Какой сейчас стек оркестрации + трансформации (Airflow / dbt / in-house), и куда вы инвестируете дальше?»</li>
+      <li>«Как сейчас встроены контроли качества — централизованно или на пайплайн? Детектирование аномалий / валидация с LLM в проде или в планах?»</li>
+      <li>«Как выглядит целевая архитектура — и сколько там greenfield vs. рефактор?»</li>
+    </ul>
+    <h3 class="en">On team &amp; role</h3>
+    <h3 class="ru">О команде и роли</h3>
+    <ul class="en">
+      <li>"What does 'raise the bar' look like in practice — am I extending an existing review/standards culture or building one?"</li>
+      <li>"What would 'this hire was a great decision' look like at 6 and 12 months?"</li>
+      <li>"How does the team balance day-to-day delivery with modernization and tech debt reduction?"</li>
+    </ul>
+    <ul class="ru">
+      <li>«Как выглядит «повышение планки» на практике — я расширяю существующую культуру ревью/стандартов или строю её?»</li>
+      <li>«Как выглядит «этот найм был отличным решением» через 6 и 12 месяцев?»</li>
+      <li>«Как команда балансирует ежедневную доставку с модернизацией и погашением технического долга?»</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <p class="en">Built for Amal Imangulov · Data Engineering interview prep. Self-contained cheatsheet · no CDN, no external fonts. Theme + language persist via <span class="kbd">localStorage</span>.</p>
+  <p class="ru">Сделано для Amal Imangulov · Подготовка к Data Engineering интервью. Самодостаточная шпаргалка · без CDN, без внешних шрифтов. Тема + язык сохраняются через <span class="kbd">localStorage</span>.</p>
+  <p class="muted en">Numbers to keep on the tip of your tongue: 6.2B records · 34% threads · 100+ consumers · 3.6B events/day · 47% redundancy cut · €1M+ saved · team 2→7 · 3 promotions · 8 brands · 50% loss reduction.</p>
+  <p class="muted ru">Цифры держи на кончике языка: 6.2 млрд записей · 34% тредов · 100+ консьюмеров · 3.6 млрд событий/день · 47% избыточности вырезано · €1M+ сэкономлено · команда 2→7 · 3 повышения · 8 брендов · 50% сокращение потерь.</p>
+</div>
+
+<script>
+// ---- combined theme + lang toggle (copied from kafka.html exactly) ----
+(function(){
+  var root=document.documentElement,
+      langBtn=document.getElementById('langBtn'),
+      themeBtn=document.getElementById('themeBtn');
+  var savedTheme=localStorage.getItem('de_cheat_theme') || 'dark';
+  var savedLang=localStorage.getItem('de_cheat_lang') || 'en';
+  root.setAttribute('data-theme', savedTheme);
+  root.setAttribute('data-lang', savedLang);
+  function syncButtons(){
+    var t=root.getAttribute('data-theme'), l=root.getAttribute('data-lang');
+    themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light';
+    langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN';
+  }
+  syncButtons();
+  themeBtn.addEventListener('click', function(){
+    var t = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', t);
+    localStorage.setItem('de_cheat_theme', t);
+    syncButtons();
+  });
+  langBtn.addEventListener('click', function(){
+    var l = root.getAttribute('data-lang')==='en' ? 'ru' : 'en';
+    root.setAttribute('data-lang', l);
+    localStorage.setItem('de_cheat_lang', l);
+    syncButtons();
+  });
+})();
+
+// ---- scroll reveal ----
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return;}
+  var io=new IntersectionObserver(function(ents){
+    ents.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});
+  },{threshold:.08});
+  els.forEach(function(e){io.observe(e)});
+})();
+
+// ---- flip cards (bilingual) ----
+(function(){
+  var cards=[
+    {qEn:"Failure / hard-bug story — what's the anchor & the killer line?",
+     qRu:"История провала / сложного бага — якорь и выигрышная фраза?",
+     aEn:["Story A: entity-res defect, 6.2B records, 34% threads, 100+ metrics restored.","Line: 'The failure was that nothing in the system caught it — so the real fix was making correctness observable.'"],
+     aRu:["История A: дефект резолюции, 6.2 млрд записей, 34% тредов, 100+ метрик восстановлено.","Фраза: «Провал в том, что ничто в системе его не поймало — поэтому реальный фикс — сделать корректность наблюдаемой.»"]},
+    {qEn:"Mentorship — what's your measure of success?",
+     qRu:"Менторство — каков твой показатель успеха?",
+     aEn:["Whether the person can pass THEIR OWN review 6 months later.","Promotions (3 Junior→Mid/Sr at McMakler) are the lagging indicator.","Mechanism: dbt review + exemplars + review toward independence."],
+     aRu:["Сможет ли человек через полгода сам пройти СВОЁ СОБСТВЕННОЕ ревью.","Повышения (3 Junior→Mid/Sr в McMakler) — запаздывающий индикатор.","Механизм: dbt ревью + образцы + ревью к самостоятельности."]},
+    {qEn:"End-to-end ownership — best story & de-risk technique?",
+     qRu:"Сквозное владение — лучшая история и техника снижения рисков?",
+     aEn:["Story C: triple migration, €1M+ saved.","De-risk: parallel run + row-for-row validation + per-domain cutover → no trust outage."],
+     aRu:["История C: тройная миграция, €1M+ сэкономлено.","Снижение риска: параллельный запуск + поэлементная валидация + постепенный cutover по доменам → без разрыва доверия."]},
+    {qEn:"Data quality — your one-sentence philosophy?",
+     qRu:"Качество данных — твоя философия одним предложением?",
+     aEn:["'Correctness must be observable: a silently-wrong pipeline is worse than a loudly-broken one.'","Controls: dbt tests, freshness, schema-change detection, range/anomaly, cross-source reconciliation + an owner + a runbook."],
+     aRu:["«Корректность должна быть наблюдаемой: молчаливо неправильный пайплайн хуже громко сломанного.»","Контроли: dbt-тесты, freshness, детектирование изменений схемы, range/anomaly, сверка кросс-источников + владелец + runbook."]},
+    {qEn:"Influence without authority — recipe?",
+     qRu:"Влияние без власти — рецепт?",
+     aEn:["Lead with cost of status quo (not authority) → pilot one domain → show data → one early adopter → co-own the rule.","Examples: Career.io shared spine; Untangler adoption."],
+     aRu:["Начинай с цены статус-кво (не власти) → пилот на одном домене → покажи данные → один ранний адоптор → совладей правилом.","Примеры: Career.io shared spine; принятие Untangler."]},
+    {qEn:"Staying hands-on as you get senior — proof?",
+     qRu:"Остаёшься практичным, становясь Senior — доказательство?",
+     aEn:["'Leadership is multiplicative, not a move from the keyboard.'","Proof: personally root-caused the 6.2B-record defect; daily review; writes exemplar models."],
+     aRu:["«Лидерство — мультипликативное, а не переход от клавиатуры.»","Доказательство: лично выследил корневую причину дефекта на 6.2 млрд записей; ежедневное ревью; пишу образцовые модели."]},
+    {qEn:"Numbers to never fumble?",
+     qRu:"Цифры, которые нельзя забывать?",
+     aEn:["6.2B / 34% / 100+ · 3.6B/day · 47% · €1M+ · 2→7 · 3 promos · 8 brands · 50% loss reduction."],
+     aRu:["6.2 млрд / 34% / 100+ · 3.6 млрд/день · 47% · €1M+ · 2→7 · 3 повышения · 8 брендов · 50% сокращение потерь."]},
+    {qEn:"Conflict — line that shows ego-strength?",
+     qRu:"Конфликт — фраза, показывающая силу эго?",
+     aEn:["'I argue hard for the right number, then I support the decision and document the tradeoff.'","Skeptics → reviewers once the data converts them."],
+     aRu:["«Я жёстко спорю за правильную цифру, затем поддерживаю решение и документирую компромисс.»","Скептики → ревьюеры, когда данные их конвертируют."]},
+    {qEn:"Biggest weakness — the safe-but-real answer?",
+     qRu:"Самая большая слабость — безопасный, но реальный ответ?",
+     aEn:["Over-did hard work myself early as a lead instead of delegating.","Mitigation: growing 2→7 forced handoff; now I measure team output, not mine."],
+     aRu:["Вначале как лид я перебрал на себя тяжёлую работу вместо делегирования.","Митигация: рост 2→7 заставил передать; теперь меряю результат команды, а не свой."]}
+  ];
+  var grid=document.getElementById('flipgrid');
+  var lang = document.documentElement.getAttribute('data-lang');
+  cards.forEach(function(c){
+    var d=document.createElement('div');d.className='flip';
+    var inner=document.createElement('div');inner.className='flip-inner';
+    var f=document.createElement('div');f.className='flip-face flip-front';
+    f.innerHTML='<div class="flip-q en">'+c.qEn+'</div><div class="flip-q ru">'+c.qRu+'</div><div class="flip-hint en">tap to reveal ▸</div><div class="flip-hint ru">тапни, чтобы увидеть ▸</div>';
+    var b=document.createElement('div');b.className='flip-face flip-back';
+    var ulEn='<ul class="en">'+c.aEn.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>';
+    var ulRu='<ul class="ru">'+c.aRu.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>';
+    b.innerHTML=ulEn+ulRu;
+    inner.appendChild(f);inner.appendChild(b);d.appendChild(inner);
+    d.addEventListener('click',function(){d.classList.toggle('flipped')});
+    grid.appendChild(d);
+  });
+})();
+
+// ---- active nav highlight ----
+(function(){
+  var links=[].slice.call(document.querySelectorAll('nav a.navlink'));
+  var secs=links.map(function(l){return document.querySelector(l.getAttribute('href'))}).filter(Boolean);
+  window.addEventListener('scroll',function(){
+    var y=window.scrollY+80,cur=null;
+    secs.forEach(function(s){if(s.offsetTop<=y)cur=s.id;});
+    links.forEach(function(l){l.style.color = l.getAttribute('href')==='#'+cur ? 'var(--text)':'';});
+  });
+})();
+</script>
+</body>
+</html>

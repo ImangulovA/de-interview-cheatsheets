@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Pipeline Design & Orchestration — Data Engineering Interview Cheatsheet</title>
+<style>
+:root{
+  --bg:#0a0e1a; --card:#151d30; --card2:#0f1626; --text:#e6ecf5; --muted:#90a0bd;
+  --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7;
+  --border:#22304d; --code-bg:#0c1322; --kw:#a855f7; --str:#02e2ac; --com:#5d6b85; --num:#f59e0b; --fn:#1877F2;
+  --shadow:rgba(0,0,0,.45);
+}
+[data-theme="light"]{
+  --bg:#f4f7fc; --card:#ffffff; --card2:#eef3fb; --text:#15233d; --muted:#54637f;
+  --accent:#1259c3; --green:#0a9e7c; --orange:#b5740a; --purple:#7c3aed;
+  --border:#d4deee; --code-bg:#0c1322; --kw:#a855f7; --str:#02e2ac; --com:#7b88a0; --num:#f59e0b; --fn:#5aa2ff;
+  --shadow:rgba(40,60,100,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+code,pre,.mono{font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+
+/* ---- i18n language toggle ---- */
+[data-lang="en"] .ru { display: none !important; }
+[data-lang="ru"] .en { display: none !important; }
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+[data-theme="light"] nav{background:rgba(244,247,252,.92)}
+nav .brand{font-weight:700;font-size:14px;color:var(--text);margin-right:6px;white-space:nowrap}
+nav .links{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+nav a.nl{color:var(--muted);font-size:12px;padding:4px 8px;border-radius:6px;white-space:nowrap}
+nav a.nl:hover{color:var(--text);background:var(--card)}
+.toggles{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
+.toggle-btn{background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:8px;
+  padding:5px 11px;cursor:pointer;font-size:13px;font-weight:600}
+.toggle-btn:hover{border-color:var(--accent)}
+
+header.hero{padding:34px 20px 20px;max-width:1080px;margin:0 auto}
+header.hero h1{font-size:26px;margin:0 0 6px;line-height:1.25}
+header.hero .sub{color:var(--muted);font-size:14px}
+.tagline{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+.pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--muted)}
+.pill.a{color:var(--accent);border-color:var(--accent)}
+.pill.g{color:var(--green);border-color:var(--green)}
+.pill.o{color:var(--orange);border-color:var(--orange)}
+.pill.p{color:var(--purple);border-color:var(--purple)}
+
+main{max-width:1080px;margin:0 auto;padding:0 16px 80px}
+section{margin:26px 0}
+.section-h{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;margin:0 0 12px}
+.section-h h2{font-size:19px;margin:0}
+.section-h .chev{color:var(--muted);font-size:13px;transition:transform .2s}
+.section-h.collapsed .chev{transform:rotate(-90deg)}
+.section-body{transition:opacity .2s}
+.section-h.collapsed + .section-body{display:none}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:12px 0;
+  box-shadow:0 1px 3px var(--shadow)}
+.card h3{margin:0 0 8px;font-size:16px}
+.card h4{margin:14px 0 6px;font-size:13px;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+
+ul{margin:6px 0;padding-left:20px}
+li{margin:3px 0}
+.muted{color:var(--muted)}
+.kbd{font-family:monospace;background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--green)}
+
+/* callouts */
+.callout{border-left:3px solid var(--orange);background:var(--card2);padding:9px 12px;border-radius:0 8px 8px 0;margin:10px 0;font-size:13.5px}
+.callout.probe{border-color:var(--purple)}
+.callout.hook{border-color:var(--green)}
+.callout.gotcha{border-color:var(--orange)}
+.callout b{color:var(--text)}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:5px;margin-right:6px;text-transform:uppercase}
+.tag.probe{background:rgba(168,85,247,.16);color:var(--purple)}
+.tag.hook{background:rgba(2,226,172,.14);color:var(--green)}
+.tag.gotcha{background:rgba(245,158,11,.16);color:var(--orange)}
+
+/* tables */
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;display:block;overflow-x:auto}
+th,td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--card2);color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+
+/* code */
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:13px 14px;overflow-x:auto;
+  font-size:12.5px;line-height:1.5;color:#cdd6e8;margin:10px 0}
+pre .kw{color:var(--kw)} pre .str{color:var(--str)} pre .com{color:var(--com)} pre .num{color:var(--num)} pre .fn{color:var(--fn)}
+.ascii{white-space:pre;font-size:12px;line-height:1.35;color:var(--text)}
+
+/* flip cards */
+.flipwrap{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:720px){.flipwrap{grid-template-columns:1fr}}
+.flip{perspective:1200px;min-height:140px;cursor:pointer}
+.flip-inner{position:relative;width:100%;height:100%;min-height:140px;transition:transform .5s;transform-style:preserve-3d}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--border);border-radius:12px;
+  padding:14px;display:flex;flex-direction:column;justify-content:center;background:var(--card)}
+.flip-front{background:linear-gradient(160deg,var(--card),var(--card2))}
+.flip-back{transform:rotateY(180deg);background:var(--card2);overflow-y:auto}
+.flip-q{font-weight:600;font-size:14px}
+.flip-hint{margin-top:auto;color:var(--muted);font-size:11px}
+.flip-back .flip-a{font-size:12.8px}
+.flip-back ul{padding-left:18px}
+
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s}
+.reveal.in{opacity:1;transform:none}
+
+footer{max-width:1080px;margin:0 auto;padding:20px 16px 60px;color:var(--muted);font-size:12px;border-top:1px solid var(--border)}
+.legend{font-size:12px;color:var(--muted);margin:6px 0 0}
+.diag-cap{font-size:11px;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand"><span class="en">Pipeline Design & Orchestration</span><span class="ru">Дизайн пайплайнов и оркестрация</span></span>
+  <span class="links">
+    <a class="nl" href="#fundamentals"><span class="en">Fundamentals</span><span class="ru">Основы</span></a>
+    <a class="nl" href="#e2e"><span class="en">E2E Pipeline</span><span class="ru">E2E пайплайн</span></a>
+    <a class="nl" href="#idem"><span class="en">Idempotency</span><span class="ru">Идемпотентность</span></a>
+    <a class="nl" href="#airflow">Airflow</a>
+    <a class="nl" href="#alts"><span class="en">Alternatives</span><span class="ru">Альтернативы</span></a>
+    <a class="nl" href="#sched"><span class="en">Scheduling</span><span class="ru">Шедулинг</span></a>
+    <a class="nl" href="#dbt"><span class="en">Partitioning & dbt</span><span class="ru">Партиции и dbt</span></a>
+    <a class="nl" href="#vendor"><span class="en">Vendor & DQ</span><span class="ru">Источники и DQ</span></a>
+    <a class="nl" href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+  </span>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Data Pipeline Design & Workflow Orchestration — <span style="color:var(--accent)">DE Interview Prep</span></span><span class="ru">Дизайн пайплайнов и оркестрация — <span style="color:var(--accent)">Подготовка к DE-интервью</span></span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</span>
+  </div>
+  <div class="tagline">
+    <span class="pill a"><span class="en">batch vs streaming</span><span class="ru">батч vs стриминг</span></span>
+    <span class="pill g"><span class="en">idempotency & backfills</span><span class="ru">идемпотентность и backfills</span></span>
+    <span class="pill p"><span class="en">Airflow deep-dive</span><span class="ru">Airflow детально</span></span>
+    <span class="pill o"><span class="en">time-sensitive releases</span><span class="ru">релизы с жёсткими SLA</span></span>
+    <span class="pill"><span class="en">revisions & point-in-time</span><span class="ru">ревизии и point-in-time</span></span>
+    <span class="pill"><span class="en">dbt incremental + snapshots</span><span class="ru">dbt инкрементальные + снапшоты</span></span>
+  </div>
+  <p class="legend">
+    <span class="en">Click any section header to collapse. <span class="kbd">🌐 RU</span> / <span class="kbd">🌙 Dark</span> toggles (saved). Flip cards at the bottom for self-quiz. Hooks tie answers to McMakler / Meta / IU / Front Tier.</span>
+    <span class="ru">Кликай на заголовок секции, чтобы свернуть. <span class="kbd">🌐 RU</span> / <span class="kbd">🌙 Dark</span> переключают (сохраняется). Карточки внизу — самопроверка. Якоря привязывают ответы к McMakler / Meta / IU / Front Tier.</span>
+  </p>
+</header>
+
+<main>
+
+<!-- FUNDAMENTALS -->
+<section id="fundamentals">
+  <div class="section-h" onclick="toggleSec(this)"><span class="chev">▾</span><h2><span class="en">1 · Fundamentals & Vocabulary</span><span class="ru">1 · Основы и терминология</span></h2></div>
+  <div class="section-body">
+    <div class="grid2">
+      <div class="card reveal">
+        <h3><span class="en">Core definitions</span><span class="ru">Ключевые определения</span></h3>
+        <ul class="en">
+          <li><b>Idempotency</b> — re-running a task with the same input yields the same end state; no dupes, no drift.</li>
+          <li><b>Backfill</b> — re-run historical partitions to (re)populate or correct past data.</li>
+          <li><b>Reprocessing</b> — recompute affected data after a bug fix or a data revision.</li>
+          <li><b>Late-arriving data</b> — a record for an old <span class="mono">event_time</span> that lands now.</li>
+          <li><b>Revision / vintage</b> — a new value for an already-published observation (CPI/GDP get revised for months).</li>
+          <li><b>Point-in-time / as-of</b> — what was known at a past moment, before later revisions (no look-ahead bias).</li>
+          <li><b>Watermark</b> — boundary marking how complete a stream is up to a given event time.</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Идемпотентность (Idempotency)</b> — повторный запуск задачи с теми же входными данными даёт то же конечное состояние; никаких дублей, никакого дрифта.</li>
+          <li><b>Backfill</b> — повторный запуск исторических партиций для (пере)наполнения или исправления прошлых данных.</li>
+          <li><b>Reprocessing</b> — перевычисление затронутых данных после багфикса или ревизии данных.</li>
+          <li><b>Late-arriving data</b> — запись для старого <span class="mono">event_time</span>, которая прилетает сейчас.</li>
+          <li><b>Revision / vintage</b> — новое значение для уже опубликованного наблюдения (CPI/GDP пересматриваются месяцами).</li>
+          <li><b>Point-in-time / as-of</b> — что было известно в прошлый момент, до последующих ревизий (никакого взгляда в будущее).</li>
+          <li><b>Watermark</b> — граница, отмечающая, насколько полон поток до заданного event time.</li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3><span class="en">Batch vs Streaming</span><span class="ru">Батч vs стриминг</span></h3>
+        <table class="en">
+          <tr><th></th><th>Batch</th><th>Streaming</th></tr>
+          <tr><td>Data</td><td>bounded, periodic</td><td>unbounded, continuous</td></tr>
+          <tr><td>Latency</td><td>minutes–hours</td><td>sub-second–seconds</td></tr>
+          <tr><td>Replay</td><td>easy (re-run partition)</td><td>harder (offsets, watermarks)</td></tr>
+          <tr><td>Fit</td><td>most macro releases</td><td>ticks, clickstream, LLM events</td></tr>
+        </table>
+        <table class="ru">
+          <tr><th></th><th>Батч</th><th>Стриминг</th></tr>
+          <tr><td>Данные</td><td>ограниченные, периодичные</td><td>бесконечные, непрерывные</td></tr>
+          <tr><td>Задержка</td><td>минуты–часы</td><td>доли секунды–секунды</td></tr>
+          <tr><td>Повтор</td><td>легко (перезапуск партиции)</td><td>сложнее (оффсеты, watermarks)</td></tr>
+          <tr><td>Подходит для</td><td>большинства макрорелизов</td><td>тики, кликстрим, события LLM</td></tr>
+        </table>
+        <div class="callout hook en"><span class="tag hook">hook</span>Batch backbone at <b>McMakler</b> (Airflow); streaming at <b>IU/Syntea</b> (Kafka, 80k+ students). Choose per-feed by latency & arrival pattern, not religion.</div>
+        <div class="callout hook ru"><span class="tag hook">якорь</span>Основа на батче в <b>McMakler</b> (Airflow); стриминг в <b>IU/Syntea</b> (Kafka, 80k+ студентов). Выбирай по фиду на основе задержки и паттерна прибытия данных, а не по религии.</div>
+      </div>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">The layered pattern everything reduces to</span><span class="ru">Слоёный паттерн, к которому всё сводится</span></h3>
+      <div class="ascii en"> RAW (bronze)        STAGING (silver)        MARTS (gold)         SERVE
+ immutable land  ->  typed + normalized  ->  conformed model  ->  query layer / BI
+ partitioned by      quarantine bad rows     long format,         point-in-time / as-of views
+ load_date           one row/record          revisions kept</div>
+      <div class="ascii ru"> RAW (bronze)        STAGING (silver)        MARTS (gold)         SERVE
+ неизменная посадка  typed + normalized  ->  conформленная модель  query layer / BI
+ партиции по         карантин плохих строк  long format,         point-in-time / as-of виды
+ load_date           одна строка/запись      ревизии сохранены</div>
+      <p class="diag-cap en">Raw is never mutated — it is your replay source. Vendor quirks die in staging. One canonical model in marts.</p>
+      <p class="diag-cap ru">Raw никогда не мутируется — это источник для повтора. Причуды вендоров умирают в staging. Одна каноничная модель в marts.</p>
+    </div>
+  </div>
+</section>
+
+<!-- E2E -->
+<section id="e2e">
+  <div class="section-h" onclick="toggleSec(this)"><span class="chev">▾</span><h2><span class="en">2 · Whiteboard: End-to-End Vendor Macro Feed → Validated Dataset</span><span class="ru">2 · Whiteboard: E2E фид от вендора → валидированный датасет</span></h2></div>
+  <div class="section-body">
+    <div class="card reveal">
+      <div class="callout probe en"><span class="tag probe">interviewer will probe</span>This is the #1 design prompt. Prepare it cold. They will push on the <b>validation gate</b> and on <b>revisions</b>.</div>
+      <div class="callout probe ru"><span class="tag probe">спросит интервьюер</span>Это промпт дизайна №1. Готовь с холодного старта. Будут давить на <b>validation gate</b> и на <b>revisions</b>.</div>
+      <h4><span class="en">Say it as a DAG in this order</span><span class="ru">Рассказывай как DAG в таком порядке</span></h4>
+      <div class="ascii en">  [release calendar]              (CPI prints 13:30 UK on known date)
+         |
+         v
+   (1) TRIGGER ----> event/push (SFTP, webhook, Kafka) + deferrable sensor safety-net
+         |
+   (2) LAND  ------> object store, immutable, partition vendor/dataset/load_date + hash
+         |
+   (3) PARSE -----> typed staging; normalize dates/decimals/units; quarantine bad rows
+         |
+   (4) VALIDATE GATE  ==X==> bad data NEVER published  (schema, counts, freshness,
+         |                    nulls/range, PK uniqueness, anomaly)   [fail closed]
+         v
+   (5) MODEL -----> canonical: (series_id, observation_date, value, revision_id, load_ts)
+         |          derived (MoM/YoY/rolling) = downstream models, not in-place
+         v
+   (6) SERVE -----> warehouse + query layer; as-of views
+       cross-cut: orchestration (Airflow) · idempotency (partition overwrite) ·
+                  observability (freshness/completeness SLA) · lineage · alert+runbook</div>
+      <div class="ascii ru">  [календарь релизов]              (CPI выходит 13:30 UK в известную дату)
+         |
+         v
+   (1) TRIGGER ----> event/push (SFTP, webhook, Kafka) + deferrable sensor как сеть безопасности
+         |
+   (2) LAND  ------> object store, неизменный, партиция vendor/dataset/load_date + хеш
+         |
+   (3) PARSE -----> типизированный staging; нормализация дат/decimal/units; карантин плохих строк
+         |
+   (4) VALIDATE GATE  ==X==> плохие данные НИКОГДА не публикуются  (схема, counts, freshness,
+         |                    null/диапазон, PK uniqueness, аномалия)   [fail closed]
+         v
+   (5) MODEL -----> каноничный: (series_id, observation_date, value, revision_id, load_ts)
+         |          производные (MoM/YoY/rolling) = downstream модели, не in-place
+         v
+   (6) SERVE -----> warehouse + query layer; as-of виды
+       cross-cut: оркестрация (Airflow) · идемпотентность (partition overwrite) ·
+                  наблюдаемость (freshness/completeness SLA) · lineage · alert+runbook</div>
+      <div class="callout hook en"><span class="tag hook">hook</span>"Same shape as the <b>Meta 10-logging-system consolidation</b>: profile heterogeneous sources, land immutably, conform to one model, treat downstream as first-class with validation before publish. There I cut 47% redundant volume at ~3.6B events/day."</div>
+      <div class="callout hook ru"><span class="tag hook">якорь</span>«Та же форма, что и <b>Meta консолидация 10 систем логирования</b>: профилировать гетерогенные источники, посадить неизменно, привести к одной модели, обращаться с downstream как с first-class с валидацией перед публикацией. Там я срезал 47% избыточного объёма на ~3,6B событий/день.»</div>
+    </div>
+    <div class="grid2">
+      <div class="card reveal">
+        <h4><span class="en">Validation gate — the heart of the answer</span><span class="ru">Validation gate — сердце ответа</span></h4>
+        <ul class="en">
+          <li><b>Schema/contract:</b> columns, types, enums; detect drift</li>
+          <li><b>Completeness:</b> row count vs expected; all series/dates present (gap detection)</li>
+          <li><b>Freshness:</b> landed within SLA of the release time</li>
+          <li><b>Validity:</b> non-null required fields; value in plausible range; unit sanity</li>
+          <li><b>Uniqueness:</b> <span class="mono">(series_id, observation_date, revision)</span> unique</li>
+          <li><b>Anomaly:</b> N-sigma / sudden jump (catches a misplaced decimal)</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Схема/контракт:</b> колонки, типы, enums; детект дрифта</li>
+          <li><b>Полнота:</b> число строк vs ожидаемое; все серии/даты присутствуют (детект пропусков)</li>
+          <li><b>Свежесть:</b> приземлилось в пределах SLA от времени релиза</li>
+          <li><b>Валидность:</b> обязательные поля не null; значение в правдоподобном диапазоне; вменяемость unit</li>
+          <li><b>Уникальность:</b> <span class="mono">(series_id, observation_date, revision)</span> уникальны</li>
+          <li><b>Аномалия:</b> N-sigma / резкий скачок (ловит decimal, сдвинутую запятую)</li>
+        </ul>
+        <p class="muted en">Behavior: quarantine bad rows; fail closed on systemic problems; alert with runbook; remediation is first-class (re-pull, re-run partition).</p>
+        <p class="muted ru">Поведение: плохие строки в карантин; fail closed при системных проблемах; алерт с runbook; восстановление — first-class (перезапрос, перезапуск партиции).</p>
+      </div>
+      <div class="card reveal">
+        <h4><span class="en">Serving correctly</span><span class="ru">Правильная подача</span></h4>
+        <ul class="en">
+          <li>Keep <b>all vintages</b>; "current" value = latest revision per <span class="mono">(series_id, observation_date)</span> as a view.</li>
+          <li>As-of view = revision known on or before date X -> no look-ahead bias.</li>
+          <li>Query layer reads the conformed marts, not staging.</li>
+        </ul>
+        <ul class="ru">
+          <li>Хранить <b>все vintage</b>; «текущее» значение = последняя ревизия на <span class="mono">(series_id, observation_date)</span> как view.</li>
+          <li>As-of view = ревизия, известная на дату X или раньше -> нет взгляда в будущее.</li>
+          <li>Query layer читает конформленные marts, а не staging.</li>
+        </ul>
+        <div class="callout gotcha en"><span class="tag gotcha">gotcha</span>Never overwrite a published value. A revision is an <b>append of a new vintage</b>, not an UPDATE.</div>
+        <div class="callout gotcha ru"><span class="tag gotcha">gotcha</span>Никогда не перезаписывай опубликованное значение. Ревизия — это <b>append нового vintage</b>, а не UPDATE.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IDEMPOTENCY -->
+<section id="idem">
+  <div class="section-h" onclick="toggleSec(this)"><span class="chev">▾</span><h2><span class="en">3 · Idempotency · Backfills · Late Data · Reprocessing</span><span class="ru">3 · Идемпотентность · Backfills · Поздние данные · Reprocessing</span></h2></div>
+  <div class="section-body">
+    <div class="grid2">
+      <div class="card reveal">
+        <h3><span class="en">Idempotency: how</span><span class="ru">Идемпотентность: как</span></h3>
+        <ul class="en">
+          <li><b>Partition overwrite / delete+insert</b> keyed by deterministic partition (<span class="mono">load_date</span> / <span class="mono">observation_date</span>): re-run replaces, never appends.</li>
+          <li><b>MERGE / upsert</b> on a stable natural key, not blind INSERT.</li>
+          <li>Pass the <b>logical date</b> in (<span class="mono">{{ ds }}</span> / <span class="mono">logical_date</span>); no <span class="mono">now()</span>/random in business logic.</li>
+          <li>Streaming: exactly-once sink or dedup on content hash.</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Partition overwrite / delete+insert</b> по детерминистичной партиции (<span class="mono">load_date</span> / <span class="mono">observation_date</span>): повтор заменяет, а не добавляет.</li>
+          <li><b>MERGE / upsert</b> по стабильному натуральному ключу, а не слепой INSERT.</li>
+          <li>Передавать <b>logical date</b> (<span class="mono">{{ ds }}</span> / <span class="mono">logical_date</span>); никаких <span class="mono">now()</span>/random в бизнес-логике.</li>
+          <li>Стриминг: exactly-once sink или dedup по content hash.</li>
+        </ul>
+        <div class="callout en"><b>Why backfills need it:</b> a backfill re-runs N partitions in any order, possibly in parallel. Non-idempotent tasks double-count. Idempotency = safe re-run of any date range.</div>
+        <div class="callout ru"><b>Зачем backfills это нужно:</b> backfill перезапускает N партиций в любом порядке, возможно параллельно. Не-идемпотентные задачи считают дважды. Идемпотентность = безопасный повтор любого диапазона дат.</div>
+      </div>
+      <div class="card reveal">
+        <h3><span class="en">Late & revised data</span><span class="ru">Поздние и пересмотренные данные</span></h3>
+        <ul class="en">
+          <li>Separate <b>event_time</b> from <b>processing_time</b>.</li>
+          <li>Partition by <b>observation_date</b> so a late record lands in the correct historical partition.</li>
+          <li>A late value = a new <b>revision</b> keyed to that date; re-run that one partition idempotently.</li>
+          <li>Recompute <b>derived</b> series (MoM/YoY/rolling) for affected windows — one revision shifts several points.</li>
+          <li>Streaming: <b>watermark + grace window</b>, then finalize.</li>
+        </ul>
+        <ul class="ru">
+          <li>Разделять <b>event_time</b> и <b>processing_time</b>.</li>
+          <li>Партиция по <b>observation_date</b>, чтобы поздняя запись попала в правильную историческую партицию.</li>
+          <li>Позднее значение = новая <b>ревизия</b> с ключом на эту дату; перезапуск этой одной партиции идемпотентно.</li>
+          <li>Перевычислить <b>производные</b> ряды (MoM/YoY/rolling) для затронутых окон — одна ревизия сдвигает несколько точек.</li>
+          <li>Стриминг: <b>watermark + grace window</b>, затем финализация.</li>
+        </ul>
+        <div class="callout hook en"><span class="tag hook">hook</span>"Fixing the <b>Meta entity-resolution defect across 6.2B records</b>, idempotent partition-level reprocessing is what made the correction safe at scale and restored 100+ downstream metrics."</div>
+        <div class="callout hook ru"><span class="tag hook">якорь</span>«Исправляя <b>Meta баг entity-resolution на 6,2B записей</b>, идемпотентный reprocessing на уровне партиций — это то, что сделало исправление безопасным на масштабе и восстановило 100+ downstream метрик.»</div>
+      </div>
+    </div>
+    <div class="card reveal">
+      <div class="ascii en">  WRONG (append)                         RIGHT (idempotent overwrite)
+  run1: INSERT day=10  -> rows           run1: OVERWRITE day=10 -> state S
+  run2: INSERT day=10  -> DUP rows  X    run2: OVERWRITE day=10 -> state S  (same)
+                                         backfill day=1..30 in any order -> converges</div>
+      <div class="ascii ru">  НЕПРАВИЛЬНО (append)                   ПРАВИЛЬНО (idempotent overwrite)
+  run1: INSERT day=10  -> строки         run1: OVERWRITE day=10 -> состояние S
+  run2: INSERT day=10  -> ДУБЛИ  X       run2: OVERWRITE day=10 -> состояние S  (то же)
+                                         backfill day=1..30 в любом порядке -> сходится</div>
+    </div>
+  </div>
+</section>
+
+<!-- AIRFLOW -->
+<section id="airflow">
+  <div class="section-h" onclick="toggleSec(this)"><span class="chev">▾</span><h2><span class="en">4 · Airflow Deep-Dive (candidate strength)</span><span class="ru">4 · Airflow детально (сильная сторона кандидата)</span></h2></div>
+  <div class="section-body">
+    <div class="grid2">
+      <div class="card reveal">
+        <h3><span class="en">DAGs & dependencies</span><span class="ru">DAG-и и зависимости</span></h3>
+        <ul class="en">
+          <li>DAG = directed acyclic graph of <b>tasks</b>; edges (<span class="mono">&gt;&gt;</span>) set ordering; scheduler runs a task when upstreams satisfy its <span class="mono">trigger_rule</span>.</li>
+          <li>Keep tasks small, single-purpose, idempotent.</li>
+          <li>Group with <b>TaskGroups</b>; share logic via custom operators/hooks; avoid heavy top-level code (runs on every parse).</li>
+          <li>Cross-DAG: prefer <b>Datasets</b> (data-aware scheduling) or <span class="mono">ExternalTaskSensor</span> over timing assumptions.</li>
+        </ul>
+        <ul class="ru">
+          <li>DAG = направленный ациклический граф <b>задач</b>; рёбра (<span class="mono">&gt;&gt;</span>) задают порядок; шедулер запускает задачу, когда upstream удовлетворяют её <span class="mono">trigger_rule</span>.</li>
+          <li>Держать задачи маленькими, single-purpose, идемпотентными.</li>
+          <li>Группировать через <b>TaskGroups</b>; делить логику через custom операторы/хуки; избегать тяжёлого top-level кода (выполняется на каждом parse).</li>
+          <li>Cross-DAG: предпочитать <b>Datasets</b> (data-aware шедулинг) или <span class="mono">ExternalTaskSensor</span> поверх timing допущений.</li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3><span class="en">Sensors</span><span class="ru">Сенсоры</span></h3>
+        <ul class="en">
+          <li>Wait for a condition (file landed, partition ready, external task done).</li>
+          <li><b>poke</b> holds a worker slot the whole wait -> can starve the pool.</li>
+          <li><b>reschedule</b> releases the slot between checks -> use for any wait of minutes+.</li>
+          <li><b>Deferrable operators / triggerer</b> = async wait, zero worker slot. Preferred for "wait for the CPI file".</li>
+          <li>Always set a <span class="mono">timeout</span>.</li>
+        </ul>
+        <ul class="ru">
+          <li>Ожидать условие (файл приземлился, партиция готова, внешняя задача завершена).</li>
+          <li><b>poke</b> держит worker slot всё время ожидания -> может заморить pool голодом.</li>
+          <li><b>reschedule</b> освобождает slot между проверками -> использовать для ожидания минут+.</li>
+          <li><b>Deferrable операторы / triggerer</b> = async ожидание, нулевой worker slot. Предпочтительно для «ждать файл CPI».</li>
+          <li>Всегда ставить <span class="mono">timeout</span>.</li>
+        </ul>
+        <div class="callout gotcha en"><span class="tag gotcha">gotcha</span>A fleet of <span class="mono">poke</span> sensors is the classic way to deadlock a Celery pool.</div>
+        <div class="callout gotcha ru"><span class="tag gotcha">gotcha</span>Флот <span class="mono">poke</span> сенсоров — классический способ заблокировать Celery pool.</div>
+      </div>
+      <div class="card reveal">
+        <h3><span class="en">Retries · SLAs · Alerting</span><span class="ru">Retries · SLA · Алертинг</span></h3>
+        <ul class="en">
+          <li><b>Retries:</b> <span class="mono">retries</span>, <span class="mono">retry_delay</span>, <span class="mono">retry_exponential_backoff</span>. Retry transient (network/API blip); never mask deterministic logic bugs.</li>
+          <li><b>SLA:</b> fires <span class="mono">sla_miss_callback</span> if not done within duration after logical time ("land by 13:45"). Known quirks -> many teams build custom freshness checks.</li>
+          <li><b>Alerting:</b> <span class="mono">on_failure_callback</span> -> Slack/PagerDuty + runbook; dedupe + severity-tier to beat alert fatigue.</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Retries:</b> <span class="mono">retries</span>, <span class="mono">retry_delay</span>, <span class="mono">retry_exponential_backoff</span>. Повторять transient (сетевой/API сбой); никогда не маскировать детерминистичные логические баги.</li>
+          <li><b>SLA:</b> запускает <span class="mono">sla_miss_callback</span>, если не завершилось в течение duration после logical time («посадка к 13:45»). Известные quirks -> многие команды строят custom freshness проверки.</li>
+          <li><b>Алертинг:</b> <span class="mono">on_failure_callback</span> -> Slack/PagerDuty + runbook; dedup + severity-tier, чтобы победить alert fatigue.</li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3><span class="en">Dynamic DAGs & task mapping</span><span class="ru">Динамические DAG-и и task mapping</span></h3>
+        <ul class="en">
+          <li><b>Dynamic DAGs:</b> generate DAGs/tasks from a config registry (one per vendor feed). Watch parse cost.</li>
+          <li><b>Dynamic task mapping</b> (<span class="mono">.expand()</span>, 2.3+): fan out over a runtime list (one task per file/partition).</li>
+          <li>Right for many <i>homogeneous</i> units; wrong when count explodes or each needs bespoke logic.</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Динамические DAG-и:</b> генерировать DAG-и/задачи из config registry (один на вендорский фид). Следи за стоимостью parse.</li>
+          <li><b>Dynamic task mapping</b> (<span class="mono">.expand()</span>, 2.3+): развернуть по runtime списку (одна задача на файл/партицию).</li>
+          <li>Подходит для многих <i>гомогенных</i> единиц; не подходит, когда счёт взрывается или каждой нужна кастомная логика.</li>
+        </ul>
+        <div class="callout hook en"><span class="tag hook">hook</span>"Onboard many vendor feeds via a config-registry-generated DAG + dynamic mapping over the day's files: adding a feed is a config change, not new code."</div>
+        <div class="callout hook ru"><span class="tag hook">якорь</span>«Онбордить много вендорских фидов через DAG, сгенерированный из config-registry + динамический mapping по файлам дня: добавление фида — это изменение конфига, а не новый код.»</div>
+      </div>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">Executors & scaling workers</span><span class="ru">Executors и масштабирование воркеров</span></h3>
+      <table class="en">
+        <tr><th>Executor</th><th>Model</th><th>Use when</th><th>Watch out</th></tr>
+        <tr><td>Sequential</td><td>one task (SQLite)</td><td>local debug</td><td>never prod</td></tr>
+        <tr><td>Local</td><td>subprocesses, 1 host</td><td>small single-node</td><td>host is ceiling</td></tr>
+        <tr><td>Celery</td><td>distributed workers + broker</td><td>classic horizontal scale</td><td>broker + fleet ops</td></tr>
+        <tr><td>Kubernetes</td><td>1 pod / task</td><td>bursty, isolation</td><td>pod startup latency</td></tr>
+        <tr><td>CeleryKubernetes</td><td>both</td><td>mixed workloads</td><td>complexity</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Executor</th><th>Модель</th><th>Использовать когда</th><th>Следить за</th></tr>
+        <tr><td>Sequential</td><td>одна задача (SQLite)</td><td>локальный debug</td><td>никогда в prod</td></tr>
+        <tr><td>Local</td><td>subprocesses, 1 хост</td><td>маленький single-node</td><td>хост — потолок</td></tr>
+        <tr><td>Celery</td><td>распределённые воркеры + брокер</td><td>классический horizontal масштаб</td><td>брокер + fleet ops</td></tr>
+        <tr><td>Kubernetes</td><td>1 pod / задача</td><td>bursty, изоляция</td><td>задержка старта pod</td></tr>
+        <tr><td>CeleryKubernetes</td><td>оба</td><td>смешанные нагрузки</td><td>сложность</td></tr>
+      </table>
+      <p class="en"><b>Scaling levers:</b> <span class="mono">parallelism</span>, <span class="mono">max_active_tasks_per_dag</span>, <span class="mono">max_active_runs_per_dag</span>, worker count / <span class="mono">worker_concurrency</span>, <b>pools</b> (protect a vendor rate limit), <span class="mono">priority_weight</span>. Keep tasks light; push heavy compute to warehouse/Spark, not the worker.</p>
+      <p class="ru"><b>Рычаги масштабирования:</b> <span class="mono">parallelism</span>, <span class="mono">max_active_tasks_per_dag</span>, <span class="mono">max_active_runs_per_dag</span>, число воркеров / <span class="mono">worker_concurrency</span>, <b>pools</b> (защищать rate limit вендора), <span class="mono">priority_weight</span>. Держать задачи лёгкими; тяжёлые вычисления пушить в warehouse/Spark, а не в воркер.</p>
+      <pre><span class="com"># config-registry-driven ingestion + dynamic mapping</span>
+<span class="kw">with</span> DAG(<span class="str">"vendor_feed"</span>, schedule=<span class="str">"@daily"</span>, catchup=<span class="kw">False</span>) <span class="kw">as</span> dag:
+    files = <span class="fn">list_drop</span>(vendor=<span class="str">"econ_cpi"</span>)            <span class="com"># runtime list</span>
+    parsed = <span class="fn">parse_one</span>.<span class="fn">expand</span>(path=files)         <span class="com"># dynamic task mapping</span>
+    gate = <span class="fn">DataQualityCheck</span>(pool=<span class="str">"vendor_api"</span>)    <span class="com"># pool protects rate limit</span>
+    parsed >> gate >> <span class="fn">publish</span>()                    <span class="com"># fail closed before publish</span></pre>
+      <div class="callout hook en"><span class="tag hook">hook</span>"At <b>McMakler</b> I migrated a proprietary orchestrator to <b>Airflow</b>: killed hundreds of K EUR/yr licensing, DAGs in version control, big hiring pool. Honest trade-off: you then operate the scheduler + metadata DB + workers, and Airflow is poor for sub-minute streaming."</div>
+      <div class="callout hook ru"><span class="tag hook">якорь</span>«В <b>McMakler</b> я мигрировал проприетарный оркестратор на <b>Airflow</b>: убил сотни тысяч EUR/год лицензий, DAG-и в version control, большой пул найма. Честный trade-off: потом ты эксплуатируешь шедулер + metadata DB + воркеров, и Airflow слаб для sub-minute стриминга.»</div>
+    </div>
+  </div>
+</section>
+
+<!-- ALTERNATIVES -->
+<section id="alts">
+  <div class="section-h" onclick="toggleSec(this)"><span class="chev">▾</span><h2><span class="en">5 · Orchestration Alternatives & Trade-offs</span><span class="ru">5 · Альтернативы оркестрации и trade-offs</span></h2></div>
+  <div class="section-body">
+    <div class="card reveal">
+      <table class="en">
+        <tr><th>Tool</th><th>Core model</th><th>Strengths</th><th>Weaknesses / fit</th></tr>
+        <tr><td><b>Airflow</b></td><td>task DAGs, schedule-centric</td><td>mature, huge ecosystem, ubiquitous, strong batch scheduling</td><td>task- not asset-centric (historically); streaming/low-latency awkward; ops weight</td></tr>
+        <tr><td><b>Dagster</b></td><td>software-defined <b>assets</b>, data-aware</td><td>assets+lineage first-class, strong typing, great local dev, asset checks (DQ built in)</td><td>smaller ecosystem; newer ops patterns</td></tr>
+        <tr><td><b>Prefect</b></td><td>dynamic Python flows, code-first</td><td>very Pythonic, dynamic at runtime, light to start, hybrid execution</td><td>less of a batch "platform"; structure can hide in code</td></tr>
+        <tr><td><b>Temporal</b></td><td><b>durable execution</b>, workflows-as-code</td><td>durable state, retries/timeouts as primitives, long-running stateful + service orchestration</td><td>not a data scheduler; you build data semantics yourself</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Инструмент</th><th>Основная модель</th><th>Сильные стороны</th><th>Слабые стороны / подходит для</th></tr>
+        <tr><td><b>Airflow</b></td><td>task DAG-и, schedule-centric</td><td>зрелый, огромная экосистема, вездесущий, сильный batch шедулинг</td><td>task-, а не asset-centric (исторически); стриминг/low-latency неудобно; операционный вес</td></tr>
+        <tr><td><b>Dagster</b></td><td>software-defined <b>assets</b>, data-aware</td><td>assets+lineage first-class, сильная типизация, отличный local dev, asset checks (DQ встроен)</td><td>меньшая экосистема; новые ops паттерны</td></tr>
+        <tr><td><b>Prefect</b></td><td>динамические Python flows, code-first</td><td>очень Pythonic, динамика runtime, лёгкий старт, hybrid исполнение</td><td>менее batch «платформа»; структура может спрятаться в коде</td></tr>
+        <tr><td><b>Temporal</b></td><td><b>durable execution</b>, workflows-as-code</td><td>durable state, retries/timeouts как примитивы, долгоживущие stateful + оркестрация сервисов</td><td>не дата-шедулер; data семантика строится вручную</td></tr>
+      </table>
+      <div class="callout en"><b>My pick:</b> For hundreds of scheduled, validated batch feeds -> <b>Airflow</b> as backbone, or <b>Dagster</b> if I want assets + lineage + DQ native (attractive for lineage/metadata emphasis). <b>Temporal</b> only for long-running, stateful, human-in-the-loop workflows (e.g. a multi-step onboarding). <b>Kafka is transport, not the orchestrator.</b></div>
+      <div class="callout ru"><b>Мой выбор:</b> Для сотен запланированных, валидированных батч-фидов -> <b>Airflow</b> как основа, или <b>Dagster</b>, если хочу assets + lineage + DQ native (привлекательно при упоре на lineage/metadata). <b>Temporal</b> только для долгих, stateful, human-in-the-loop воркфлоу (например multi-step онбординг). <b>Kafka — это транспорт, а не оркестратор.</b></div>
+      <div class="callout probe en"><span class="tag probe">interviewer will probe</span>"When is Dagster's asset model better?" -> when lineage/DQ are central: the asset (dataset) is the primitive, so dependencies, freshness policies, and asset checks are data-aware by default; the lineage graph <i>is</i> the orchestration graph. Airflow 2.4+ Datasets narrow the gap.</div>
+      <div class="callout probe ru"><span class="tag probe">спросит интервьюер</span>«Когда модель assets Dagster лучше?» -> когда lineage/DQ центральны: asset (датасет) — примитив, поэтому зависимости, freshness политики и asset checks data-aware по умолчанию; граф lineage <i>и есть</i> граф оркестрации. Airflow 2.4+ Datasets сужают разрыв.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SCHEDULING -->
+<section id="sched">
+  <div class="section-h" onclick="toggleSec(this)"><span class="chev">▾</span><h2><span class="en">6 · Scheduling Time-Sensitive Releases</span><span class="ru">6 · Шедулинг релизов с жёсткими SLA</span></h2></div>
+  <div class="section-body">
+    <div class="card reveal">
+      <div class="callout probe en"><span class="tag probe">interviewer will probe</span>"CPI must land minutes after the government print. How do you guarantee that?"</div>
+      <div class="callout probe ru"><span class="tag probe">спросит интервьюер</span>«CPI должен приземлиться через минуты после публикации. Как гарантировать?»</div>
+      <ul class="en">
+        <li><b>Release calendar as data</b> (date + exact time, e.g. 13:30 UK) drives scheduling. Never hardcode crons.</li>
+        <li><b>Event/push trigger first</b>; <b>deferrable sensor</b> as safety net from the known release time. No coarse cron.</li>
+        <li><b>Tight SLA + escalation</b> measured from release time; miss -> page with runbook (re-pull, check vendor status).</li>
+        <li><b>Pre-warm</b> the DAG/workers; <b>reserve a pool</b> so a noisy neighbor can't starve the critical feed.</li>
+        <li><b>Fast validation path:</b> must-have checks (schema, single-row sanity, range) on the critical path; defer heavy checks.</li>
+        <li><b>Fail visible, not silent:</b> for a client on the Terminal, <b>late-but-correct beats fast-but-wrong.</b></li>
+      </ul>
+      <ul class="ru">
+        <li><b>Календарь релизов как данные</b> (дата + точное время, напр. 13:30 UK) управляет шедулингом. Никогда не хардкодить cron-ы.</li>
+        <li><b>Event/push триггер первым</b>; <b>deferrable sensor</b> как сеть безопасности от известного времени релиза. Никаких грубых cron-ов.</li>
+        <li><b>Жёсткий SLA + эскалация</b> измеряются от времени релиза; промах -> пейджер с runbook (перезапрос, проверить статус вендора).</li>
+        <li><b>Pre-warm</b> DAG/воркеров; <b>зарезервировать pool</b>, чтобы шумный сосед не заморил голодом критический фид.</li>
+        <li><b>Быстрый путь валидации:</b> must-have проверки (схема, sanity одной строки, диапазон) на критическом пути; отложить тяжёлые проверки.</li>
+        <li><b>Fail visible, not silent:</b> для клиента на терминале <b>поздно-но-правильно бьёт быстро-но-неправильно.</b></li>
+      </ul>
+      <div class="callout hook en"><span class="tag hook">hook</span>"Mirrors the <b>McMakler Salesforce sync via Airflow</b> where freshness was business-critical: event trigger + deferrable sensor + dedicated pool + SLA-with-escalation."</div>
+      <div class="callout hook ru"><span class="tag hook">якорь</span>«Зеркалит <b>McMakler Salesforce sync через Airflow</b>, где свежесть была бизнес-критична: event триггер + deferrable sensor + выделенный pool + SLA-с-эскалацией.»</div>
+    </div>
+  </div>
+</section>
+
+<!-- DBT -->
+<section id="dbt">
+  <div class="section-h" onclick="toggleSec(this)"><span class="chev">▾</span><h2><span class="en">7 · Partitioning · Incremental Loads · dbt</span><span class="ru">7 · Партиции · Инкрементальные загрузки · dbt</span></h2></div>
+  <div class="section-body">
+    <div class="grid2">
+      <div class="card reveal">
+        <h3><span class="en">Partitioning for time series</span><span class="ru">Партиции для временных рядов</span></h3>
+        <ul class="en">
+          <li>Partition by the dim you filter/reprocess on: usually <b>observation_date</b> (raw often by <b>load_date</b>).</li>
+          <li>Enables cheap incremental + idempotent partition overwrite + scan pruning for as-of queries.</li>
+          <li>Avoid tiny partitions (small-files) and skewed giants.</li>
+          <li>Keep revisions inside the observation_date partition -> a late revision rewrites exactly one partition.</li>
+          <li>Cluster/sort within partition by <b>series_id</b>.</li>
+        </ul>
+        <ul class="ru">
+          <li>Партиция по измерению, по которому фильтруешь/reprocess: обычно <b>observation_date</b> (raw часто по <b>load_date</b>).</li>
+          <li>Разрешает дешёвый инкрементальный + идемпотентный partition overwrite + scan pruning для as-of запросов.</li>
+          <li>Избегать крошечных партиций (small-files) и перекошенных гигантов.</li>
+          <li>Хранить ревизии внутри партиции observation_date -> поздняя ревизия перезаписывает ровно одну партицию.</li>
+          <li>Cluster/sort внутри партиции по <b>series_id</b>.</li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3><span class="en">Incremental vs full load</span><span class="ru">Инкрементальная vs полная загрузка</span></h3>
+        <ul class="en">
+          <li><b>Full:</b> reprocess everything each run. Fine for small/fragile data; catches drift.</li>
+          <li><b>Incremental:</b> only new/changed rows -> cheaper at scale; needs correct change key + lookback.</li>
+          <li>Keep a periodic full-refresh to reconcile incremental drift.</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Полная:</b> reprocess всё каждый запуск. Подходит для маленьких/хрупких данных; ловит drift.</li>
+          <li><b>Инкрементальная:</b> только новые/изменённые строки -> дешевле на масштабе; нужен правильный change key + lookback.</li>
+          <li>Держать периодический full-refresh, чтобы reconcile инкрементальный drift.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card reveal">
+        <h3><span class="en">dbt incremental models</span><span class="ru">dbt инкрементальные модели</span></h3>
+        <ul class="en">
+          <li>Transform only new/changed rows via <span class="mono">is_incremental()</span> + a filter.</li>
+          <li><b>Strategies:</b> append · merge (upsert on <span class="mono">unique_key</span>) · delete+insert · insert_overwrite (partition replace).</li>
+        </ul>
+        <ul class="ru">
+          <li>Трансформировать только новые/изменённые строки через <span class="mono">is_incremental()</span> + фильтр.</li>
+          <li><b>Стратегии:</b> append · merge (upsert по <span class="mono">unique_key</span>) · delete+insert · insert_overwrite (partition replace).</li>
+        </ul>
+        <pre><span class="kw">select</span> series_id, observation_date, value, revision_id, load_ts
+<span class="kw">from</span> {{ <span class="fn">source</span>(<span class="str">'vendor'</span>,<span class="str">'cpi'</span>) }}
+{% <span class="kw">if</span> is_incremental() %}
+  <span class="com">-- lookback window catches late revisions to old dates</span>
+  <span class="kw">where</span> load_ts &gt; (<span class="kw">select</span> max(load_ts) <span class="kw">from</span> {{ this }}) - <span class="kw">interval</span> <span class="num">3</span> <span class="kw">day</span>
+{% endif %}</pre>
+        <div class="callout gotcha en"><span class="tag gotcha">gotcha</span>Too-tight an incremental filter <b>misses late-arriving rows</b>. Always add a lookback window. Wrong <span class="mono">unique_key</span> -> dupes.</div>
+        <div class="callout gotcha ru"><span class="tag gotcha">gotcha</span>Слишком жёсткий инкрементальный фильтр <b>пропускает поздно прибывающие строки</b>. Всегда добавлять lookback window. Неправильный <span class="mono">unique_key</span> -> дубли.</div>
+      </div>
+      <div class="card reveal">
+        <h3><span class="en">dbt snapshots (SCD-2)</span><span class="ru">dbt snapshots (SCD-2)</span></h3>
+        <ul class="en">
+          <li>Capture how a <b>mutable source row</b> changes over time: <span class="mono">dbt_valid_from</span> / <span class="mono">dbt_valid_to</span>.</li>
+          <li>Gives history / as-of for changing records.</li>
+          <li><b>Fit:</b> slowly-changing reference data (series definitions, vendor mappings); capturing vintages when a source overwrites in place.</li>
+          <li>Incrementals = efficient fact appends; snapshots = history of change. Different jobs.</li>
+        </ul>
+        <ul class="ru">
+          <li>Захватывает, как <b>мутабельная строка источника</b> меняется со временем: <span class="mono">dbt_valid_from</span> / <span class="mono">dbt_valid_to</span>.</li>
+          <li>Даёт историю / as-of для меняющихся записей.</li>
+          <li><b>Подходит для:</b> медленно меняющиеся справочные данные (определения серий, маппинги вендоров); захват vintages, когда источник перезаписывает in place.</li>
+          <li>Инкрементальные = эффективные fact appends; snapshots = история изменений. Разные задачи.</li>
+        </ul>
+        <div class="callout hook en"><span class="tag hook">hook</span>"At <b>Career.io</b> I institutionalised dbt code-review + testing standards so quality was a property of the workflow, not a bolt-on."</div>
+        <div class="callout hook ru"><span class="tag hook">якорь</span>«В <b>Career.io</b> я институционализировал dbt code-review + стандарты тестирования, чтобы качество было свойством воркфлоу, а не bolt-on.»</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VENDOR + DQ -->
+<section id="vendor">
+  <div class="section-h" onclick="toggleSec(this)"><span class="chev">▾</span><h2><span class="en">8 · Vendor Feeds · Schema Evolution · Monitoring · Correctness</span><span class="ru">8 · Фиды вендоров · Эволюция схем · Мониторинг · Корректность</span></h2></div>
+  <div class="section-body">
+    <div class="grid2">
+      <div class="card reveal">
+        <h3><span class="en">Heterogeneous vendor cadences</span><span class="ru">Гетерогенные каденции вендоров</span></h3>
+        <ul class="en">
+          <li><b>Feed registry as config:</b> cadence, format, contract, SLA, transport, PK per vendor -> generates the DAG.</li>
+          <li><b>Normalize early:</b> land raw immutably, conform every vendor to the one canonical model.</li>
+          <li><b>Conflicting values:</b> explicit precedence/tie-break rule + provenance, so you can explain which source won.</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Feed registry как конфиг:</b> каденция, формат, контракт, SLA, транспорт, PK на вендора -> генерирует DAG.</li>
+          <li><b>Нормализовать рано:</b> посадить raw неизменно, привести каждого вендора к одной канонической модели.</li>
+          <li><b>Конфликтующие значения:</b> явное правило приоритета/tie-break + provenance, чтобы можно было объяснить, какой источник выиграл.</li>
+        </ul>
+        <div class="callout hook en"><span class="tag hook">hook</span>"Conforming heterogeneous sources to one model = the <b>Meta 10-system consolidation</b>: mapped overlapping fields to a single schema, cut 47% redundant volume."</div>
+        <div class="callout hook ru"><span class="tag hook">якорь</span>«Приведение гетерогенных источников к одной модели = <b>Meta консолидация 10 систем</b>: смаппил перекрывающиеся поля в единую схему, срезал 47% избыточного объёма.»</div>
+      </div>
+      <div class="card reveal">
+        <h3><span class="en">Schema drift (vendor changes format)</span><span class="ru">Drift схемы (вендор меняет формат)</span></h3>
+        <ul class="en">
+          <li><b>Contract check at the gate:</b> compare incoming schema to expected; drift -> fail/quarantine, don't publish.</li>
+          <li><b>Tolerate additive</b> (new column) by config; <b>block breaking</b> (rename/remove/retype) until reviewed.</li>
+          <li>Alert + runbook; version the contract in source control; record schema changes in metadata.</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Проверка контракта на воротах:</b> сравнить входящую схему с ожидаемой; drift -> fail/карантин, не публиковать.</li>
+          <li><b>Терпеть additive</b> (новая колонка) по конфигу; <b>блокировать breaking</b> (rename/remove/retype) до ревью.</li>
+          <li>Алерт + runbook; версионировать контракт в source control; записывать изменения схемы в метаданные.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card reveal">
+        <h3><span class="en">Monitoring hundreds of feeds</span><span class="ru">Мониторинг сотен фидов</span></h3>
+        <ul class="en">
+          <li><b>Golden data signals:</b> freshness · completeness · volume · validity · schema.</li>
+          <li>Per-feed SLA dashboard + lineage for blast-radius.</li>
+          <li><b>Beat alert fatigue:</b> alert on breaches not on every run; dedupe, group, severity-tier, route by owner, auto-resolve on next pass.</li>
+          <li>Remediation built in: alerts link a runbook; re-pull / re-run partition is one command.</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Золотые сигналы данных:</b> свежесть · полнота · объём · валидность · схема.</li>
+          <li>SLA дашборд на фид + lineage для blast-radius.</li>
+          <li><b>Победить alert fatigue:</b> алертить на нарушения, а не на каждый запуск; dedup, группировать, severity-tier, роутить по владельцу, auto-resolve на следующем проходе.</li>
+          <li>Remediation встроена: алерты ссылаются на runbook; re-pull / перезапуск партиции — одна команда.</li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3><span class="en">Lineage & the wrong-number incident</span><span class="ru">Lineage и инцидент с неправильным числом</span></h3>
+        <ul class="en">
+          <li>Lineage at model layer (dbt graph) + pipeline (asset graph / OpenLineage) + load metadata (load_ts, file hash, revision).</li>
+          <li><b>Client sees wrong CPI:</b> reproduce as-of -> trace back marts -> staging -> raw vintage -> vendor; classify (vendor value / parse-unit bug / join fanout / revision handling); contain (idempotent partition reprocess); prevent (add check + regression test + tighten gate).</li>
+        </ul>
+        <ul class="ru">
+          <li>Lineage на уровне модели (dbt граф) + пайплайна (asset граф / OpenLineage) + метаданные загрузки (load_ts, хеш файла, ревизия).</li>
+          <li><b>Клиент видит неправильный CPI:</b> воспроизвести as-of -> трассировать назад marts -> staging -> raw vintage -> вендор; классифицировать (значение вендора / баг parse-unit / join fanout / обработка ревизии); изолировать (идемпотентный partition reprocess); предотвратить (добавить проверку + регрессионный тест + затянуть gate).</li>
+        </ul>
+        <div class="callout hook en"><span class="tag hook">hook</span>"Same muscle as the <b>Meta entity-resolution fix</b>: validate against what consumers see (100+ metrics), not just the source, then make the fix safe to reprocess."</div>
+        <div class="callout hook ru"><span class="tag hook">якорь</span>«Тот же навык, что и <b>Meta фикс entity-resolution</b>: валидировать против того, что видят консьюмеры (100+ метрик), а не только источник, затем сделать фикс безопасным для reprocess.»</div>
+      </div>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">Point-in-time correctness (the domain differentiator)</span><span class="ru">Point-in-time корректность (различие домена)</span></h3>
+      <ul class="en">
+        <li>Reconstruct what was known at a past moment, before later revisions.</li>
+        <li>Prevents look-ahead bias in backtests / forecast evaluation / client analysis.</li>
+        <li>Implementation: retain all vintages keyed by <span class="mono">(series_id, observation_date, publish_ts)</span>; never overwrite; expose as-of views.</li>
+      </ul>
+      <ul class="ru">
+        <li>Восстановить, что было известно в прошлый момент, до последующих ревизий.</li>
+        <li>Предотвращает look-ahead bias в backtests / оценке прогнозов / клиентском анализе.</li>
+        <li>Реализация: хранить все vintage с ключом <span class="mono">(series_id, observation_date, publish_ts)</span>; никогда не перезаписывать; выставлять as-of виды.</li>
+      </ul>
+      <div class="callout hook en"><span class="tag hook">hook</span>"At <b>Front Tier</b> on bank/financial data I learned point-in-time discipline: a model trained on revised-after-the-fact numbers is silently cheating. Same applies to macro vintages."</div>
+      <div class="callout hook ru"><span class="tag hook">якорь</span>«В <b>Front Tier</b> на банковских/финансовых данных я выучил point-in-time дисциплину: модель, обученная на пересмотренных-после-факта числах, тихо читерит. То же применимо к макро vintages.»</div>
+      <div class="callout en"><b>Safe AI in the pipeline:</b> anomaly detection on incoming values; schema inference for messy feeds; LLM-assisted enrichment/validation-rule suggestion. Always human-in-the-loop and guardrailed: <b>AI flags, deterministic gates decide.</b> (My <b>Untangler</b> multi-agent project won Meta's EMEA DE Hackathon and was adopted internally.)</div>
+      <div class="callout ru"><b>Безопасный AI в пайплайне:</b> детект аномалий на входящих значениях; вывод схемы для грязных фидов; LLM-ассистированное обогащение/предложение правил валидации. Всегда human-in-the-loop и с ограждениями: <b>AI флагает, детерминистичные gates решают.</b> (Мой проект <b>Untangler</b> с multi-agent выиграл Meta EMEA DE Hackathon и был принят внутренне.)</div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="section-h" onclick="toggleSec(this)"><span class="chev">▾</span><h2><span class="en">9 · Self-Quiz — Flip to Reveal</span><span class="ru">9 · Самопроверка — переверни карту</span></h2></div>
+  <div class="section-body">
+    <p class="muted en">Click a card to flip. Answer out loud first.</p>
+    <p class="muted ru">Кликни на карту, чтобы перевернуть. Сначала ответь вслух.</p>
+    <div class="flipwrap">
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q en">What makes a task idempotent, and why is it the precondition for backfills?</div><div class="flip-q ru">Что делает задачу идемпотентной, и почему это условие для backfills?</div><div class="flip-hint en">tap to reveal</div><div class="flip-hint ru">кликни, чтобы увидеть</div></div>
+          <div class="flip-face flip-back"><div class="flip-a en">Same input -> same end state, no dupes/drift. Achieve via partition overwrite / MERGE on a stable key + passing the logical date in. Backfills re-run N partitions in any order/parallel; without idempotency you double-count.</div><div class="flip-a ru">Тот же вход -> то же конечное состояние, никаких дублей/drift. Достигается partition overwrite / MERGE по стабильному ключу + передачей logical date. Backfills перезапускают N партиций в любом порядке/параллельно; без идемпотентности удваивается счёт.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q en">poke vs reschedule vs deferrable sensors?</div><div class="flip-q ru">poke vs reschedule vs deferrable sensors?</div><div class="flip-hint en">tap to reveal</div><div class="flip-hint ru">кликни, чтобы увидеть</div></div>
+          <div class="flip-face flip-back"><div class="flip-a en">poke holds a worker slot the whole wait (can starve the pool). reschedule frees the slot between checks (use for minutes+). Deferrable = async via triggerer, zero slot -> best for "wait for the CPI file". Always set a timeout.</div><div class="flip-a ru">poke держит worker slot всё ожидание (может заморить pool голодом). reschedule освобождает slot между проверками (для ожидания минут+). Deferrable = async через triggerer, нулевой slot -> лучше всего для «ждать файл CPI». Всегда ставить timeout.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q en">How do you model revisions so as-of queries work?</div><div class="flip-q ru">Как моделировать ревизии, чтобы as-of запросы работали?</div><div class="flip-hint en">tap to reveal</div><div class="flip-hint ru">кликни, чтобы увидеть</div></div>
+          <div class="flip-face flip-back"><div class="flip-a en">Grain = (series_id, observation_date, revision/vintage, publish_ts). Append new vintages, never overwrite. Current = latest revision per (series,date). As-of = latest revision with publish_ts <= X. Avoids look-ahead bias.</div><div class="flip-a ru">Grain = (series_id, observation_date, revision/vintage, publish_ts). Append новые vintages, никогда не перезаписывать. Текущее = последняя ревизия на (series,date). As-of = последняя ревизия с publish_ts <= X. Избегает look-ahead bias.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q en">Biggest failure mode of dbt incremental models?</div><div class="flip-q ru">Главный режим отказа dbt инкрементальных моделей?</div><div class="flip-hint en">tap to reveal</div><div class="flip-hint ru">кликни, чтобы увидеть</div></div>
+          <div class="flip-face flip-back"><div class="flip-a en">Too-tight incremental filter misses late-arriving rows -> add a lookback window. Also: wrong unique_key -> dupes; logic drift vs full-refresh -> periodically full-refresh to reconcile.</div><div class="flip-a ru">Слишком жёсткий инкрементальный фильтр пропускает поздно прибывающие строки -> добавить lookback window. Также: неправильный unique_key -> дубли; drift логики vs full-refresh -> периодически full-refresh для reconcile.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q en">Snapshot vs incremental model — when each?</div><div class="flip-q ru">Snapshot vs incremental модель — когда каждая?</div><div class="flip-hint en">tap to reveal</div><div class="flip-hint ru">кликни, чтобы увидеть</div></div>
+          <div class="flip-face flip-back"><div class="flip-a en">Snapshot = SCD-2 history of a mutable record (valid_from/valid_to) -> reference/metadata, vintages. Incremental = efficient append/merge of new facts. Different jobs.</div><div class="flip-a ru">Snapshot = SCD-2 история мутабельной записи (valid_from/valid_to) -> справочники/метаданные, vintages. Incremental = эффективный append/merge новых фактов. Разные задачи.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q en">How do you guarantee CPI lands minutes after the print?</div><div class="flip-q ru">Как гарантировать, что CPI приземлится через минуты после публикации?</div><div class="flip-hint en">tap to reveal</div><div class="flip-hint ru">кликни, чтобы увидеть</div></div>
+          <div class="flip-face flip-back"><div class="flip-a en">Release calendar as data; event/push trigger + deferrable sensor safety-net; tight SLA + escalation from release time; pre-warm + dedicated pool; fast critical-path validation; fail visible. Late-but-correct beats fast-but-wrong.</div><div class="flip-a ru">Календарь релизов как данные; event/push триггер + deferrable sensor как сеть; жёсткий SLA + эскалация от времени релиза; pre-warm + выделенный pool; быстрая critical-path валидация; fail visible. Поздно-но-правильно бьёт быстро-но-неправильно.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q en">When pick Temporal over Airflow/Dagster?</div><div class="flip-q ru">Когда выбирать Temporal вместо Airflow/Dagster?</div><div class="flip-hint en">tap to reveal</div><div class="flip-hint ru">кликни, чтобы увидеть</div></div>
+          <div class="flip-face flip-back"><div class="flip-a en">Temporal = durable execution for long-running, stateful, fault-tolerant workflows-as-code (e.g. multi-step human-in-the-loop onboarding). Not a data scheduler. For hundreds of scheduled validated batch feeds use Airflow (or Dagster for asset+lineage+DQ native).</div><div class="flip-a ru">Temporal = durable execution для долгих, stateful, fault-tolerant workflows-as-code (напр. multi-step human-in-the-loop онбординг). Не дата-шедулер. Для сотен запланированных валидированных батч-фидов использовать Airflow (или Dagster для asset+lineage+DQ native).</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q en">Client sees a wrong number. First moves?</div><div class="flip-q ru">Клиент видит неправильное число. Первые шаги?</div><div class="flip-hint en">tap to reveal</div><div class="flip-hint ru">кликни, чтобы увидеть</div></div>
+          <div class="flip-face flip-back"><div class="flip-a en">Reproduce as-of -> trace lineage back marts->staging->raw vintage->vendor -> classify (vendor / parse-unit / join fanout / revision) -> contain (idempotent partition reprocess) -> prevent (add check + regression test + tighten gate).</div><div class="flip-a ru">Воспроизвести as-of -> трассировать lineage назад marts->staging->raw vintage->vendor -> классифицировать (vendor / parse-unit / join fanout / revision) -> изолировать (idempotent partition reprocess) -> предотвратить (добавить проверку + регрессионный тест + затянуть gate).</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q en">Which Airflow executor for bursty, isolated workloads & how to protect a vendor rate limit?</div><div class="flip-q ru">Какой Airflow executor для bursty, изолированных нагрузок и как защитить rate limit вендора?</div><div class="flip-hint en">tap to reveal</div><div class="flip-hint ru">кликни, чтобы увидеть</div></div>
+          <div class="flip-face flip-back"><div class="flip-a en">Kubernetes executor (1 pod/task, isolation, bursty) — accept pod startup latency. Protect a rate limit with a Pool sized to the limit; tune parallelism / max_active_tasks; push heavy compute off the worker.</div><div class="flip-a ru">Kubernetes executor (1 pod/задача, изоляция, bursty) — принять задержку старта pod. Защитить rate limit через Pool размером в лимит; тюнить parallelism / max_active_tasks; пушить тяжёлые вычисления с воркера.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q en">Modernize a fragile legacy pipeline without breaking consumers?</div><div class="flip-q ru">Модернизировать хрупкий legacy пайплайн, не сломав консьюмеров?</div><div class="flip-hint en">tap to reveal</div><div class="flip-hint ru">кликни, чтобы увидеть</div></div>
+          <div class="flip-face flip-back"><div class="flip-a en">Map consumers first -> strangler-fig new path alongside old -> parallel run -> reconcile (counts/key-diffs/tolerances) -> cut over consumer-by-consumer with fallback -> decommission. Embed tests/version control so debt doesn't return. (= McMakler triple migration.)</div><div class="flip-a ru">Смаппить консьюмеров первыми -> strangler-fig новый путь рядом со старым -> параллельный запуск -> reconcile (counts/key-diffs/tolerances) -> переключать консьюмера за консьюмером с fallback -> вывести из эксплуатации. Встроить тесты/version control, чтобы долг не вернулся. (= McMakler тройная миграция.)</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span class="en">Built for Amal Imangulov — Data Engineering interview prep. Self-contained cheatsheet. Hooks reference McMakler (Airflow/Snowflake/dbt migration), Meta (3.6B events/day, 6.2B-record fix), IU/Syntea (Kafka), Front Tier (point-in-time financial).</span>
+  <span class="ru">Создано для Amal Imangulov — подготовка к Data Engineering интервью. Самодостаточная шпаргалка. Якоря ссылаются на McMakler (Airflow/Snowflake/dbt миграция), Meta (3,6B событий/день, фикс 6,2B записей), IU/Syntea (Kafka), Front Tier (point-in-time финансовые).</span>
+</footer>
+
+<script>
+// ---- Combined theme + lang localStorage state (SHARED keys) ----
+(function(){
+  const THEME_KEY = 'de_cheat_theme';
+  const LANG_KEY = 'de_cheat_lang';
+  const html = document.documentElement;
+  const langBtn = document.getElementById('langBtn');
+  const themeBtn = document.getElementById('themeBtn');
+
+  // restore from localStorage (default: dark theme, en language)
+  let theme = 'dark';
+  let lang = 'en';
+  try {
+    theme = localStorage.getItem(THEME_KEY) || 'dark';
+    lang = localStorage.getItem(LANG_KEY) || 'en';
+  } catch (e) {}
+  html.setAttribute('data-theme', theme);
+  html.setAttribute('data-lang', lang);
+
+  function updateLabels() {
+    const currentLang = html.getAttribute('data-lang');
+    const currentTheme = html.getAttribute('data-theme');
+    // lang button shows the language you switch TO
+    langBtn.textContent = currentLang === 'en' ? '🌐 RU' : '🌐 EN';
+    // theme button shows the theme you switch TO
+    themeBtn.textContent = currentTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+  }
+  updateLabels();
+
+  langBtn.addEventListener('click', function() {
+    const current = html.getAttribute('data-lang');
+    const next = current === 'en' ? 'ru' : 'en';
+    html.setAttribute('data-lang', next);
+    try { localStorage.setItem(LANG_KEY, next); } catch (e) {}
+    updateLabels();
+  });
+
+  themeBtn.addEventListener('click', function() {
+    const current = html.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    updateLabels();
+  });
+})();
+
+function toggleSec(h){h.classList.toggle('collapsed');}
+
+// scroll reveal
+const obs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});
+},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

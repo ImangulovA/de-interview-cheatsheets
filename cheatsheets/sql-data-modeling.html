@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL &amp; Data Modeling — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #151d30;
+    --card2: #1b2640;
+    --text: #e6ecf5;
+    --muted: #93a1c0;
+    --border: #25304d;
+    --accent: #1877F2;
+    --green: #02e2ac;
+    --orange: #f59e0b;
+    --purple: #a855f7;
+    --code-bg: #0d1424;
+    --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  [data-theme="light"] {
+    --bg: #f4f7fc;
+    --card: #ffffff;
+    --card2: #eef2fa;
+    --text: #1a2235;
+    --muted: #56627e;
+    --border: #d8e0ee;
+    --accent: #1877F2;
+    --green: #009e7a;
+    --orange: #c97a06;
+    --purple: #8a3fd1;
+    --code-bg: #f0f3fa;
+    --shadow: 0 4px 18px rgba(80,100,140,0.15);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  code, pre, .mono { font-family: ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Code", Consolas, monospace; }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* Nav */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,26,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 4px;
+    padding: 8px 14px; overflow-x: auto; white-space: nowrap;
+  }
+  [data-theme="light"] nav { background: rgba(244,247,252,0.92); }
+  nav .brand { font-weight: 700; color: var(--accent); margin-right: 10px; font-size: 14px; flex-shrink:0; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 12.5px;
+    padding: 5px 9px; border-radius: 6px; flex-shrink: 0; transition: .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  header.hero {
+    max-width: 1100px; margin: 0 auto; padding: 34px 20px 10px;
+  }
+  header.hero h1 { font-size: 27px; margin: 0 0 6px; line-height:1.2; }
+  header.hero .sub { color: var(--muted); font-size: 14.5px; }
+  .pillrow { margin-top: 14px; display:flex; flex-wrap:wrap; gap:7px; }
+  .pill {
+    font-size: 11.5px; padding: 3px 10px; border-radius: 20px;
+    background: var(--card2); border: 1px solid var(--border); color: var(--muted);
+  }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 10px 20px 80px; }
+  section { margin-top: 30px; }
+  h2 {
+    font-size: 20px; margin: 0 0 14px; padding-bottom: 7px;
+    border-bottom: 2px solid var(--border); display:flex; align-items:center; gap:9px;
+  }
+  h2 .dot { width:10px; height:10px; border-radius:3px; background:var(--accent); flex-shrink:0; }
+  h3 { font-size: 15.5px; margin: 18px 0 8px; color: var(--text); }
+  p { margin: 8px 0; }
+  .muted { color: var(--muted); }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px; margin: 12px 0; box-shadow: var(--shadow);
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px){ .grid2 { grid-template-columns: 1fr; } }
+
+  /* Reveal */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* Collapsible */
+  details.collapse {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; margin: 10px 0; overflow: hidden;
+  }
+  details.collapse > summary {
+    cursor: pointer; padding: 12px 16px; font-weight: 600; list-style: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  details.collapse > summary::-webkit-details-marker { display: none; }
+  details.collapse > summary::before {
+    content: "▸"; color: var(--accent); transition: transform .2s; font-size: 12px;
+  }
+  details.collapse[open] > summary::before { transform: rotate(90deg); }
+  details.collapse > div.body { padding: 0 16px 14px; }
+
+  /* Code */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 9px; padding: 13px 15px; overflow-x: auto;
+    font-size: 13px; line-height: 1.5; margin: 10px 0;
+  }
+  code.inline {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 5px; padding: 1px 6px; font-size: 12.8px; color: var(--green);
+  }
+  .kw { color: var(--accent); font-weight: 600; }
+  .fn { color: var(--purple); }
+  .str { color: var(--green); }
+  .num { color: var(--orange); }
+  .com { color: var(--muted); font-style: italic; }
+  .tbl { color: var(--orange); }
+
+  /* Tables */
+  table.cmp { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  table.cmp th, table.cmp td {
+    border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top;
+  }
+  table.cmp th { background: var(--card2); color: var(--text); }
+  table.cmp tr:nth-child(even) td, table.cmp tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+
+  /* Callouts */
+  .callout {
+    border-left: 4px solid var(--accent); background: var(--card2);
+    border-radius: 0 9px 9px 0; padding: 11px 14px; margin: 12px 0; font-size: 13.5px;
+  }
+  .callout.probe { border-color: var(--purple); }
+  .callout.gotcha { border-color: var(--orange); }
+  .callout.tip { border-color: var(--green); }
+  .callout .tag {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+    display:inline-block; margin-bottom: 3px;
+  }
+  .callout.probe .tag { color: var(--purple); }
+  .callout.gotcha .tag { color: var(--orange); }
+  .callout.tip .tag { color: var(--green); }
+  .callout .tag.b { color: var(--accent); }
+
+  /* Flip cards */
+  .flip {
+    perspective: 1600px; margin: 12px 0; min-height: 70px;
+  }
+  .flip-inner {
+    position: relative; transition: transform .55s; transform-style: preserve-3d;
+  }
+  .flip.flipped .flip-inner { transform: rotateX(180deg); }
+  .flip-face {
+    backface-visibility: hidden; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--card); box-shadow: var(--shadow);
+  }
+  .flip-front { padding: 16px 18px; cursor: pointer; }
+  .flip-front:hover { border-color: var(--accent); }
+  .flip-back {
+    position: absolute; top:0; left:0; width:100%; height:100%;
+    transform: rotateX(180deg); overflow:auto; padding: 0;
+  }
+  .flip.flipped { height: auto; }
+  .flip.flipped .flip-inner { position: static; }
+  .flip-back-inner { padding: 14px 16px; }
+  .prob-q { font-weight: 600; }
+  .prob-n { color: var(--accent); font-weight: 700; margin-right:6px; }
+  .reveal-hint { color: var(--muted); font-size: 12px; margin-top: 7px; }
+  .back-btn {
+    cursor:pointer; font-size:12px; color:var(--accent); background:none;
+    border:1px solid var(--border); border-radius:6px; padding:3px 9px; margin-bottom:8px;
+  }
+  .badge {
+    font-size:10.5px; padding:2px 8px; border-radius:6px; font-weight:600;
+    background: var(--card2); border:1px solid var(--border); color:var(--muted);
+  }
+  ul.tight { margin: 6px 0; padding-left: 20px; }
+  ul.tight li { margin: 3px 0; }
+  .kfacts li { margin: 5px 0; }
+  hr.soft { border:none; border-top:1px solid var(--border); margin:18px 0; }
+  .footnote { color: var(--muted); font-size: 12px; text-align:center; margin-top:30px; }
+  a.link { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">SQL ▸ Prep</span>
+  <a href="#windows"><span class="en">Windows</span><span class="ru">Windows</span></a>
+  <a href="#ctes"><span class="en">CTEs</span><span class="ru">CTE</span></a>
+  <a href="#joins"><span class="en">Joins</span><span class="ru">Джойны</span></a>
+  <a href="#patterns"><span class="en">Patterns</span><span class="ru">Паттерны</span></a>
+  <a href="#nulls"><span class="en">NULL/Dates</span><span class="ru">NULL/Даты</span></a>
+  <a href="#opt"><span class="en">Optimization</span><span class="ru">Оптимизация</span></a>
+  <a href="#model"><span class="en">Modeling</span><span class="ru">Моделирование</span></a>
+  <a href="#scd"><span class="en">SCD</span><span class="ru">SCD</span></a>
+  <a href="#pipe"><span class="en">Pipelines</span><span class="ru">Пайплайны</span></a>
+  <a href="#dq"><span class="en">Data Quality</span><span class="ru">Data Quality</span></a>
+  <a href="#practice"><span class="en">Practice</span><span class="ru">Практика</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">SQL &amp; Data Modeling — <span class="kw">DE Interview Prep</span></span><span class="ru">SQL и моделирование данных — <span class="kw">Подготовка к DE-интервью</span></span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</span>
+  </div>
+  <div class="pillrow">
+    <span class="pill"><span class="en">Window functions</span><span class="ru">Оконные функции</span></span>
+    <span class="pill"><span class="en">Recursive CTEs</span><span class="ru">Рекурсивные CTE</span></span>
+    <span class="pill"><span class="en">Gaps &amp; islands</span><span class="ru">Gaps &amp; islands</span></span>
+    <span class="pill"><span class="en">Sessionization</span><span class="ru">Сессии</span></span>
+    <span class="pill"><span class="en">EXPLAIN plans</span><span class="ru">EXPLAIN-планы</span></span>
+    <span class="pill"><span class="en">Star/Snowflake</span><span class="ru">Звезда/Снежинка</span></span>
+    <span class="pill"><span class="en">SCD 0–3</span><span class="ru">SCD 0–3</span></span>
+    <span class="pill"><span class="en">Idempotent MERGE</span><span class="ru">Идемпотентный MERGE</span></span>
+    <span class="pill"><span class="en">8 flip-to-reveal problems</span><span class="ru">8 задач с переворотом</span></span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ WINDOW FUNCTIONS ============ -->
+<section id="windows" class="reveal">
+  <h2><span class="dot"></span><span class="en">Advanced SQL: Window Functions</span><span class="ru">Продвинутый SQL: оконные функции</span></h2>
+
+  <div class="card">
+    <p class="en">Anatomy: <code class="inline">func() OVER (PARTITION BY ... ORDER BY ... frame)</code>. The <b>frame</b> only applies when an <code class="inline">ORDER BY</code> is present and controls which rows feed the aggregate.</p>
+    <p class="ru">Анатомия: <code class="inline">func() OVER (PARTITION BY ... ORDER BY ... frame)</code>. <b>Frame</b> применяется только при наличии <code class="inline">ORDER BY</code> и контролирует, какие строки попадают в агрегат.</p>
+<pre><span class="fn">SUM</span>(amount) <span class="kw">OVER</span> (
+  <span class="kw">PARTITION BY</span> user_id
+  <span class="kw">ORDER BY</span> event_date
+  <span class="kw">ROWS BETWEEN</span> <span class="num">6</span> <span class="kw">PRECEDING AND CURRENT ROW</span>   <span class="com">-- 7-day running window</span>
+)</pre>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3><span class="en">Ranking family</span><span class="ru">Семейство ранжирования</span></h3>
+      <table class="cmp en">
+        <tr><th>Func</th><th>On ties (1,1,?)</th></tr>
+        <tr><td><code class="inline">ROW_NUMBER()</code></td><td>1,2,3 — always unique</td></tr>
+        <tr><td><code class="inline">RANK()</code></td><td>1,1,3 — gaps after ties</td></tr>
+        <tr><td><code class="inline">DENSE_RANK()</code></td><td>1,1,2 — no gaps</td></tr>
+        <tr><td><code class="inline">NTILE(n)</code></td><td>splits into n buckets</td></tr>
+      </table>
+      <table class="cmp ru">
+        <tr><th>Функция</th><th>При дублях (1,1,?)</th></tr>
+        <tr><td><code class="inline">ROW_NUMBER()</code></td><td>1,2,3 — всегда уникальны</td></tr>
+        <tr><td><code class="inline">RANK()</code></td><td>1,1,3 — пропуски после дублей</td></tr>
+        <tr><td><code class="inline">DENSE_RANK()</code></td><td>1,1,2 — без пропусков</td></tr>
+        <tr><td><code class="inline">NTILE(n)</code></td><td>разбивает на n корзин</td></tr>
+      </table>
+      <div class="callout tip en"><span class="tag">When</span> Dedup / top-N → <code class="inline">ROW_NUMBER</code>. "Nth highest distinct value" → <code class="inline">DENSE_RANK</code>. Leaderboards w/ standard ranking → <code class="inline">RANK</code>.</div>
+      <div class="callout tip ru"><span class="tag">Когда</span> Дедуп / top-N → <code class="inline">ROW_NUMBER</code>. «N-е наибольшее уникальное значение» → <code class="inline">DENSE_RANK</code>. Рейтинги со стандартным ранжированием → <code class="inline">RANK</code>.</div>
+    </div>
+    <div class="card">
+      <h3><span class="en">Offset &amp; positional</span><span class="ru">Смещение и позиционные</span></h3>
+      <ul class="tight en">
+        <li><code class="inline">LAG(col, n, default)</code> — prior row value (deltas, churn flags)</li>
+        <li><code class="inline">LEAD(col, n, default)</code> — next row value (gap to next event)</li>
+        <li><code class="inline">FIRST_VALUE / LAST_VALUE</code> — careful: <code class="inline">LAST_VALUE</code> needs a full frame</li>
+        <li><code class="inline">NTH_VALUE(col, k)</code></li>
+      </ul>
+      <ul class="tight ru">
+        <li><code class="inline">LAG(col, n, default)</code> — значение предыдущей строки (дельты, флаги оттока)</li>
+        <li><code class="inline">LEAD(col, n, default)</code> — значение следующей строки (промежуток до следующего события)</li>
+        <li><code class="inline">FIRST_VALUE / LAST_VALUE</code> — внимание: <code class="inline">LAST_VALUE</code> требует полный фрейм</li>
+        <li><code class="inline">NTH_VALUE(col, k)</code></li>
+      </ul>
+<pre><span class="com">-- day-over-day delta</span>
+amount - <span class="fn">LAG</span>(amount) <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> id <span class="kw">ORDER BY</span> d)</pre>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="en">ROWS vs RANGE — the classic gotcha</span><span class="ru">ROWS vs RANGE — классический подвох</span></h3>
+    <table class="cmp en">
+      <tr><th></th><th>ROWS</th><th>RANGE</th></tr>
+      <tr><td>Counts by</td><td>physical row positions</td><td>logical ORDER BY values (peers)</td></tr>
+      <tr><td>Ties</td><td>each row separate</td><td>tied rows treated as one group</td></tr>
+      <tr><td>Use for</td><td>"last 6 rows", precise N-row windows</td><td>"all rows with same date", value ranges</td></tr>
+    </table>
+    <table class="cmp ru">
+      <tr><th></th><th>ROWS</th><th>RANGE</th></tr>
+      <tr><td>Считает по</td><td>физическим позициям строк</td><td>логическим значениям ORDER BY (пиры)</td></tr>
+      <tr><td>Дубли</td><td>каждая строка отдельно</td><td>одинаковые строки как одна группа</td></tr>
+      <tr><td>Использовать для</td><td>«последние 6 строк», точные N-строчные окна</td><td>«все строки с той же датой», диапазоны значений</td></tr>
+    </table>
+    <div class="callout gotcha en"><span class="tag">Gotcha</span> Default frame when you write <code class="inline">ORDER BY</code> but no explicit frame is <code class="inline">RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>. With duplicate ORDER BY keys this sums all peers → running total looks "jumpy". Use <code class="inline">ROWS</code> for a true row-by-row running total.</div>
+    <div class="callout gotcha ru"><span class="tag">Подвох</span> Фрейм по умолчанию при наличии <code class="inline">ORDER BY</code> без явного фрейма — это <code class="inline">RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>. С дублями ключей ORDER BY это суммирует всех пиров → running total выглядит «скачущим». Используй <code class="inline">ROWS</code> для построчного running total.</div>
+  </div>
+
+  <div class="callout probe en"><span class="tag">Interviewer will probe</span> "Why does your running total include rows you didn't expect?" → explain default RANGE frame &amp; switch to ROWS. "Why is <code class="inline">LAST_VALUE</code> returning the current row?" → default frame ends at CURRENT ROW; add <code class="inline">ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>.</div>
+  <div class="callout probe ru"><span class="tag">О чём спросит интервьюер</span> «Почему твой running total включает строки, которых ты не ожидал?» → объясни дефолтный RANGE-фрейм и переключи на ROWS. «Почему <code class="inline">LAST_VALUE</code> возвращает текущую строку?» → дефолтный фрейм заканчивается на CURRENT ROW; добавь <code class="inline">ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>.</div>
+
+  <div class="callout tip en"><span class="tag">Tip</span> Window functions run <b>after</b> WHERE/GROUP BY/HAVING but <b>before</b> the final SELECT alias resolution. You cannot filter on a window result in WHERE — wrap it in a CTE/subquery and filter outside (this is the #1 reason people reach for a CTE).</div>
+  <div class="callout tip ru"><span class="tag">Совет</span> Оконные функции выполняются <b>после</b> WHERE/GROUP BY/HAVING, но <b>до</b> финального разрешения алиасов SELECT. Нельзя фильтровать результат оконной функции в WHERE — оборачивай в CTE/подзапрос и фильтруй снаружи (это причина №1, по которой люди идут за CTE).</div>
+</section>
+
+<!-- ============ CTEs ============ -->
+<section id="ctes" class="reveal">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">CTEs &amp; Recursive CTEs</span><span class="ru">CTE и рекурсивные CTE</span></h2>
+
+  <div class="grid2">
+    <div class="card">
+      <h3><span class="en">Plain CTEs</span><span class="ru">Обычные CTE</span></h3>
+      <p class="en">Readable, composable, chainable. Reference earlier CTEs in later ones.</p>
+      <p class="ru">Читаемы, композируемы, цепочечны. Ссылаешься на ранние CTE в поздних.</p>
+      <div class="callout gotcha en"><span class="tag">Gotcha</span> A CTE is <b>not</b> guaranteed to be materialized. Some engines inline it (re-execute per reference). If reused many times &amp; expensive, prefer a temp table or <code class="inline">MATERIALIZED</code> hint (Postgres) / stage table (Spark). Don't assume "CTE = cached".</div>
+      <div class="callout gotcha ru"><span class="tag">Подвох</span> CTE <b>не</b> гарантированно материализуется. Некоторые движки инлайнят его (переисполняют на каждую ссылку). Если переиспользуется многократно и дорого, лучше временная таблица или хинт <code class="inline">MATERIALIZED</code> (Postgres) / stage-таблица (Spark). Не предполагай «CTE = кеш».</div>
+    </div>
+    <div class="card">
+      <h3><span class="en">Recursive CTE shape</span><span class="ru">Структура рекурсивного CTE</span></h3>
+<pre><span class="kw">WITH RECURSIVE</span> org <span class="kw">AS</span> (
+  <span class="com">-- anchor</span>
+  <span class="kw">SELECT</span> id, manager_id, <span class="num">1</span> <span class="kw">AS</span> lvl
+  <span class="kw">FROM</span> <span class="tbl">employees</span> <span class="kw">WHERE</span> manager_id <span class="kw">IS NULL</span>
+  <span class="kw">UNION ALL</span>
+  <span class="com">-- recursive</span>
+  <span class="kw">SELECT</span> e.id, e.manager_id, org.lvl + <span class="num">1</span>
+  <span class="kw">FROM</span> <span class="tbl">employees</span> e
+  <span class="kw">JOIN</span> org <span class="kw">ON</span> e.manager_id = org.id
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> org;</pre>
+    </div>
+  </div>
+  <div class="callout probe en"><span class="tag">Interviewer will probe</span> "How do you stop infinite recursion?" → ensure the recursive arm strictly progresses toward the anchor; add a depth guard (<code class="inline">lvl &lt; 50</code>) or cycle detection. Use cases: org hierarchies, BOM explosion, graph reachability, date spines.</div>
+  <div class="callout probe ru"><span class="tag">О чём спросит интервьюер</span> «Как остановить бесконечную рекурсию?» → убедись, что рекурсивное плечо строго движется к якорю; добавь ограничение глубины (<code class="inline">lvl &lt; 50</code>) или детект циклов. Кейсы: оргструктуры, взрывы BOM, достижимость в графах, шпалы дат.</div>
+</section>
+
+<!-- ============ JOINS ============ -->
+<section id="joins" class="reveal">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">Joins (incl. Anti / Semi)</span><span class="ru">Джойны (включая Anti / Semi)</span></h2>
+
+  <div class="card">
+    <table class="cmp en">
+      <tr><th>Join</th><th>Returns</th><th>Idiom</th></tr>
+      <tr><td>INNER</td><td>matches only</td><td>standard</td></tr>
+      <tr><td>LEFT / RIGHT</td><td>all left/right + matches</td><td>enrichment, keep base rows</td></tr>
+      <tr><td>FULL OUTER</td><td>everything, NULLs where no match</td><td>reconciliation / table diff</td></tr>
+      <tr><td>CROSS</td><td>cartesian product</td><td>date spine × dims (beware blow-up)</td></tr>
+      <tr><td><b>SEMI</b> (EXISTS / IN)</td><td>left rows that <i>have</i> a match, no dup, no right cols</td><td>"users who did X"</td></tr>
+      <tr><td><b>ANTI</b> (NOT EXISTS)</td><td>left rows with <i>no</i> match</td><td>"users who never did X", missing dim keys</td></tr>
+    </table>
+    <table class="cmp ru">
+      <tr><th>Джойн</th><th>Возвращает</th><th>Идиома</th></tr>
+      <tr><td>INNER</td><td>только совпадения</td><td>стандарт</td></tr>
+      <tr><td>LEFT / RIGHT</td><td>все левые/правые + совпадения</td><td>обогащение, сохранять базовые строки</td></tr>
+      <tr><td>FULL OUTER</td><td>всё, NULL где нет совпадения</td><td>сверка / diff таблиц</td></tr>
+      <tr><td>CROSS</td><td>декартово произведение</td><td>шпала дат × измерения (осторожно с раздуванием)</td></tr>
+      <tr><td><b>SEMI</b> (EXISTS / IN)</td><td>левые строки, у которых <i>есть</i> совпадение, без дублей, без правых колонок</td><td>«пользователи, сделавшие X»</td></tr>
+      <tr><td><b>ANTI</b> (NOT EXISTS)</td><td>левые строки <i>без</i> совпадения</td><td>«пользователи, никогда не делавшие X», отсутствующие ключи измерений</td></tr>
+    </table>
+<pre><span class="com">-- ANTI join: prefer NOT EXISTS over NOT IN</span>
+<span class="kw">SELECT</span> u.* <span class="kw">FROM</span> <span class="tbl">users</span> u
+<span class="kw">WHERE NOT EXISTS</span> (
+  <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="tbl">orders</span> o <span class="kw">WHERE</span> o.user_id = u.id
+);</pre>
+    <div class="callout gotcha en"><span class="tag">Gotcha</span> <code class="inline">NOT IN (subquery)</code> returns <b>zero rows</b> if the subquery yields a single NULL (3-valued logic). Always use <code class="inline">NOT EXISTS</code> for anti-joins, or filter NULLs out of the IN list.</div>
+    <div class="callout gotcha ru"><span class="tag">Подвох</span> <code class="inline">NOT IN (subquery)</code> возвращает <b>ноль строк</b>, если подзапрос даёт хотя бы один NULL (трёхзначная логика). Всегда используй <code class="inline">NOT EXISTS</code> для анти-джойнов или фильтруй NULL из IN-списка.</div>
+  </div>
+
+  <div class="callout probe en"><span class="tag">Interviewer will probe</span> Row-count surprises after a join. Diagnose: <b>fan-out</b> (1-to-many on the "lookup" side multiplies base rows). Fix by deduping the lookup to its grain first, or aggregate after. Always state the grain of each side before joining.</div>
+  <div class="callout probe ru"><span class="tag">О чём спросит интервьюер</span> Сюрпризы в числе строк после джойна. Диагностика: <b>fan-out</b> (1-ко-многим на стороне «справочника» множит базовые строки). Лечение: дедуплицировать справочник до его грануляции сначала либо агрегировать после. Всегда проговаривай грануляцию каждой стороны перед джойном.</div>
+
+  <div class="callout gotcha en"><span class="tag">Gotcha</span> Filtering the right table in the <code class="inline">WHERE</code> clause of a LEFT JOIN silently turns it into an INNER JOIN (NULLs fail the predicate). Put right-table filters in the <code class="inline">ON</code> clause to preserve outer semantics.</div>
+  <div class="callout gotcha ru"><span class="tag">Подвох</span> Фильтрация правой таблицы в <code class="inline">WHERE</code> при LEFT JOIN тихо превращает его в INNER JOIN (NULL не проходят предикат). Помещай фильтры правой таблицы в <code class="inline">ON</code>, чтобы сохранить outer-семантику.</div>
+</section>
+
+<!-- ============ CORE PATTERNS ============ -->
+<section id="patterns" class="reveal">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">Core Query Patterns</span><span class="ru">Основные паттерны запросов</span></h2>
+
+  <details class="collapse" open>
+    <summary><span class="en">Deduplication — keep latest per key</span><span class="ru">Дедупликация — оставить последнюю запись на ключ</span></summary>
+    <div class="body">
+<pre><span class="kw">WITH</span> ranked <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> *,
+    <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+      <span class="kw">PARTITION BY</span> user_id
+      <span class="kw">ORDER BY</span> updated_at <span class="kw">DESC</span>, event_id <span class="kw">DESC</span>  <span class="com">-- tiebreaker!</span>
+    ) <span class="kw">AS</span> rn
+  <span class="kw">FROM</span> <span class="tbl">events</span>
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> ranked <span class="kw">WHERE</span> rn = <span class="num">1</span>;</pre>
+      <div class="callout tip en"><span class="tag">Tip</span> Always add a deterministic tiebreaker; otherwise "latest" is non-deterministic on ties. <code class="inline">QUALIFY</code> (Snowflake/BigQuery) lets you skip the CTE: <code class="inline">QUALIFY ROW_NUMBER() OVER(...) = 1</code>.</div>
+      <div class="callout tip ru"><span class="tag">Совет</span> Всегда добавляй детерминированный тайбрейкер; иначе «последний» недетерминирован при дублях. <code class="inline">QUALIFY</code> (Snowflake/BigQuery) позволяет пропустить CTE: <code class="inline">QUALIFY ROW_NUMBER() OVER(...) = 1</code>.</div>
+    </div>
+  </details>
+
+  <details class="collapse">
+    <summary><span class="en">Gaps &amp; Islands — consecutive runs</span><span class="ru">Gaps &amp; Islands — последовательные пробеги</span></summary>
+    <div class="body">
+      <p class="en">The trick: a constant difference between <code class="inline">ROW_NUMBER()</code> and the sequence value identifies an "island" of consecutive items.</p>
+      <p class="ru">Трюк: постоянная разница между <code class="inline">ROW_NUMBER()</code> и значением последовательности идентифицирует «остров» последовательных элементов.</p>
+<pre><span class="com">-- consecutive login days per user</span>
+<span class="kw">WITH</span> grp <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> user_id, login_date,
+    <span class="fn">DATE_SUB</span>(login_date,
+      <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> user_id <span class="kw">ORDER BY</span> login_date)) <span class="kw">AS</span> island
+  <span class="kw">FROM</span> (<span class="kw">SELECT DISTINCT</span> user_id, login_date <span class="kw">FROM</span> <span class="tbl">logins</span>)
+)
+<span class="kw">SELECT</span> user_id, <span class="fn">MIN</span>(login_date) start_d, <span class="fn">MAX</span>(login_date) end_d,
+       <span class="fn">COUNT</span>(*) streak_len
+<span class="kw">FROM</span> grp <span class="kw">GROUP BY</span> user_id, island;</pre>
+      <div class="callout probe en"><span class="tag">Probe</span> "Why DISTINCT first?" duplicates break the row_number↔date alignment. "Why does the offset trick work?" consecutive dates increment by 1 and so does row_number, so their difference is constant within a run.</div>
+      <div class="callout probe ru"><span class="tag">Вопрос</span> «Зачем сначала DISTINCT?» дубли ломают выравнивание row_number↔дата. «Почему работает трюк со смещением?» последовательные даты инкрементируются на 1, как и row_number, поэтому их разница постоянна внутри пробега.</div>
+    </div>
+  </details>
+
+  <details class="collapse">
+    <summary><span class="en">Sessionization — split events into sessions</span><span class="ru">Сессии — разбить события на сессии</span></summary>
+    <div class="body">
+      <p class="en">Start a new session when the gap from the previous event exceeds a threshold (e.g. 30 min). Cumulative sum of "is-new-session" flags gives the session id.</p>
+      <p class="ru">Начинать новую сессию, когда промежуток от предыдущего события превышает порог (например, 30 мин). Кумулятивная сумма флагов «новая-сессия» даёт id сессии.</p>
+<pre><span class="kw">WITH</span> flagged <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> user_id, ts,
+    <span class="kw">CASE WHEN</span> <span class="fn">DATEDIFF</span>(<span class="str">'minute'</span>,
+      <span class="fn">LAG</span>(ts) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> user_id <span class="kw">ORDER BY</span> ts), ts) &gt; <span class="num">30</span>
+      <span class="kw">OR</span> <span class="fn">LAG</span>(ts) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> user_id <span class="kw">ORDER BY</span> ts) <span class="kw">IS NULL</span>
+    <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span> <span class="kw">AS</span> is_new
+  <span class="kw">FROM</span> <span class="tbl">events</span>
+)
+<span class="kw">SELECT</span> *,
+  <span class="fn">SUM</span>(is_new) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> user_id <span class="kw">ORDER BY</span> ts
+                  <span class="kw">ROWS UNBOUNDED PRECEDING</span>) <span class="kw">AS</span> session_id
+<span class="kw">FROM</span> flagged;</pre>
+    </div>
+  </details>
+
+  <details class="collapse">
+    <summary><span class="en">Top-N per group</span><span class="ru">Top-N на группу</span></summary>
+    <div class="body">
+<pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> *, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(
+    <span class="kw">PARTITION BY</span> category <span class="kw">ORDER BY</span> sales <span class="kw">DESC</span>) rn
+  <span class="kw">FROM</span> <span class="tbl">products</span>
+) <span class="kw">WHERE</span> rn &lt;= <span class="num">3</span>;</pre>
+      <div class="callout tip en"><span class="tag">Tip</span> Top-N with ties included → use <code class="inline">RANK()</code>/<code class="inline">DENSE_RANK()</code> instead of ROW_NUMBER.</div>
+      <div class="callout tip ru"><span class="tag">Совет</span> Top-N с дублями → используй <code class="inline">RANK()</code>/<code class="inline">DENSE_RANK()</code> вместо ROW_NUMBER.</div>
+    </div>
+  </details>
+
+  <details class="collapse">
+    <summary><span class="en">Pivot / Unpivot</span><span class="ru">Pivot / Unpivot</span></summary>
+    <div class="body">
+<pre><span class="com">-- pivot: long -&gt; wide (portable conditional-agg)</span>
+<span class="kw">SELECT</span> user_id,
+  <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> action=<span class="str">'click'</span> <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) clicks,
+  <span class="fn">SUM</span>(<span class="kw">CASE WHEN</span> action=<span class="str">'view'</span>  <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span>) views
+<span class="kw">FROM</span> <span class="tbl">events</span> <span class="kw">GROUP BY</span> user_id;
+
+<span class="com">-- unpivot: wide -&gt; long via UNION ALL / cross join + array</span>
+<span class="kw">SELECT</span> user_id, <span class="str">'clicks'</span> metric, clicks val <span class="kw">FROM</span> <span class="tbl">t</span>
+<span class="kw">UNION ALL</span> <span class="kw">SELECT</span> user_id, <span class="str">'views'</span>, views <span class="kw">FROM</span> <span class="tbl">t</span>;</pre>
+      <div class="callout tip en"><span class="tag">Tip</span> Conditional aggregation is the most portable pivot (works in every engine). <code class="inline">PIVOT</code>/<code class="inline">UNPIVOT</code> syntax exists in Snowflake/BigQuery but is dialect-specific.</div>
+      <div class="callout tip ru"><span class="tag">Совет</span> Условная агрегация — самый портируемый pivot (работает в каждом движке). Синтаксис <code class="inline">PIVOT</code>/<code class="inline">UNPIVOT</code> есть в Snowflake/BigQuery, но специфичен для диалекта.</div>
+    </div>
+  </details>
+
+  <details class="collapse">
+    <summary><span class="en">Date / time bucketing &amp; date spines</span><span class="ru">Бакетирование дат/времени и шпалы дат</span></summary>
+    <div class="body">
+<pre><span class="fn">DATE_TRUNC</span>(<span class="str">'week'</span>, ts)              <span class="com">-- bucket to week start</span>
+<span class="fn">DATE_TRUNC</span>(<span class="str">'month'</span>, ts)
+<span class="fn">FLOOR</span>(<span class="fn">EXTRACT</span>(epoch <span class="kw">FROM</span> ts)/<span class="num">3600</span>)  <span class="com">-- hourly bucket</span></pre>
+      <div class="callout gotcha en"><span class="tag">Gotcha</span> If a day/week has zero events it disappears from a GROUP BY. Build a <b>date spine</b> (recursive CTE or a calendar dim) and LEFT JOIN facts onto it so empty buckets show as 0, not missing.</div>
+      <div class="callout gotcha ru"><span class="tag">Подвох</span> Если день/неделя без событий, он исчезает из GROUP BY. Построй <b>шпалу дат</b> (рекурсивный CTE или календарное измерение) и LEFT JOIN факты к ней, чтобы пустые бакеты показывались как 0, а не пропадали.</div>
+    </div>
+  </details>
+</section>
+
+<!-- ============ NULL & DATE ============ -->
+<section id="nulls" class="reveal">
+  <h2><span class="dot"></span><span class="en">NULL Handling &amp; Three-Valued Logic</span><span class="ru">Обработка NULL и трёхзначная логика</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <ul class="tight kfacts en">
+        <li><code class="inline">NULL = NULL</code> → <b>UNKNOWN</b>, not TRUE. Use <code class="inline">IS NULL</code> / <code class="inline">IS DISTINCT FROM</code>.</li>
+        <li>Aggregates (SUM, AVG, COUNT(col)) <b>ignore</b> NULLs; <code class="inline">COUNT(*)</code> counts all rows.</li>
+        <li><code class="inline">AVG(x)</code> ≠ <code class="inline">SUM(x)/COUNT(*)</code> when NULLs exist.</li>
+        <li><code class="inline">COALESCE(a,b,c)</code> first non-null; <code class="inline">NULLIF(a,b)</code> → NULL if equal (guard div-by-zero).</li>
+        <li>NULLs sort last (default) in many engines; control with <code class="inline">NULLS FIRST/LAST</code>.</li>
+      </ul>
+      <ul class="tight kfacts ru">
+        <li><code class="inline">NULL = NULL</code> → <b>UNKNOWN</b>, не TRUE. Используй <code class="inline">IS NULL</code> / <code class="inline">IS DISTINCT FROM</code>.</li>
+        <li>Агрегаты (SUM, AVG, COUNT(col)) <b>игнорируют</b> NULL; <code class="inline">COUNT(*)</code> считает все строки.</li>
+        <li><code class="inline">AVG(x)</code> ≠ <code class="inline">SUM(x)/COUNT(*)</code> при наличии NULL.</li>
+        <li><code class="inline">COALESCE(a,b,c)</code> первый не-null; <code class="inline">NULLIF(a,b)</code> → NULL если равны (защита от деления на ноль).</li>
+        <li>NULL сортируются последними (по умолчанию) во многих движках; управлять через <code class="inline">NULLS FIRST/LAST</code>.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="callout gotcha en"><span class="tag">Gotcha</span> <code class="inline">x &lt;&gt; 5</code> excludes rows where <code class="inline">x IS NULL</code>. To include them: <code class="inline">x &lt;&gt; 5 OR x IS NULL</code> or <code class="inline">x IS DISTINCT FROM 5</code>.</div>
+      <div class="callout gotcha ru"><span class="tag">Подвох</span> <code class="inline">x &lt;&gt; 5</code> исключает строки, где <code class="inline">x IS NULL</code>. Чтобы включить их: <code class="inline">x &lt;&gt; 5 OR x IS NULL</code> или <code class="inline">x IS DISTINCT FROM 5</code>.</div>
+      <div class="callout gotcha en"><span class="tag">Gotcha</span> <code class="inline">COUNT(DISTINCT col)</code> excludes NULL — a NULL is never "distinct value". Decide explicitly whether NULL should count.</div>
+      <div class="callout gotcha ru"><span class="tag">Подвох</span> <code class="inline">COUNT(DISTINCT col)</code> исключает NULL — NULL никогда не «уникальное значение». Решай явно, должен ли NULL учитываться.</div>
+      <div class="callout tip en"><span class="tag">Safe ratio</span> <code class="inline">numerator * 1.0 / NULLIF(denominator, 0)</code></div>
+      <div class="callout tip ru"><span class="tag">Безопасное деление</span> <code class="inline">numerator * 1.0 / NULLIF(denominator, 0)</code></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OPTIMIZATION ============ -->
+<section id="opt" class="reveal">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">Query Optimization &amp; EXPLAIN Plans</span><span class="ru">Оптимизация запросов и EXPLAIN-планы</span></h2>
+
+  <div class="card">
+    <h3><span class="en">Reading an EXPLAIN plan (Spark / Presto mindset)</span><span class="ru">Чтение EXPLAIN-плана (подход Spark / Presto)</span></h3>
+    <ul class="tight kfacts en">
+      <li><b>Read bottom-up:</b> leaves are scans, root is the final output. Watch row-count estimates vs actuals — bad estimates → bad join strategy.</li>
+      <li><b>Scan node:</b> confirm <span class="badge">Partition filters</span> and <span class="badge">PushedFilters</span> appear → predicate pushdown &amp; partition pruning are working. If WHERE columns are missing there, you scan the whole table.</li>
+      <li><b>Join node:</b> identify the strategy (broadcast vs shuffle/sort-merge) and which side is the build side.</li>
+      <li><b>Exchange / Shuffle:</b> expensive data movement across the network. Minimise these.</li>
+    </ul>
+    <ul class="tight kfacts ru">
+      <li><b>Читай снизу вверх:</b> листья — сканирования, корень — финальный вывод. Следи за оценкой числа строк vs факт — плохие оценки → плохая стратегия джойнов.</li>
+      <li><b>Узел сканирования:</b> убедись, что <span class="badge">Partition filters</span> и <span class="badge">PushedFilters</span> присутствуют → предикатный pushdown и партиционный pruning работают. Если колонки WHERE отсутствуют, сканируется вся таблица.</li>
+      <li><b>Узел джойна:</b> определи стратегию (broadcast vs shuffle/sort-merge) и какая сторона build-сторона.</li>
+      <li><b>Exchange / Shuffle:</b> дорогое перемещение данных по сети. Минимизируй.</li>
+    </ul>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3><span class="en">Join strategies</span><span class="ru">Стратегии джойнов</span></h3>
+      <table class="cmp en">
+        <tr><th>Strategy</th><th>When</th><th>Cost</th></tr>
+        <tr><td>Broadcast (map-side)</td><td>one side small (&lt; threshold ~10MB Spark)</td><td>cheap, no shuffle; small side copied to all nodes</td></tr>
+        <tr><td>Shuffle / Sort-Merge</td><td>both sides large</td><td>shuffle both by key, sort, merge</td></tr>
+        <tr><td>Shuffle Hash</td><td>one side fits in memory per partition</td><td>builds hash table, no full sort</td></tr>
+      </table>
+      <table class="cmp ru">
+        <tr><th>Стратегия</th><th>Когда</th><th>Цена</th></tr>
+        <tr><td>Broadcast (map-side)</td><td>одна сторона мала (&lt; ~10MB порог в Spark)</td><td>дёшево, нет shuffle; малая сторона копируется на все ноды</td></tr>
+        <tr><td>Shuffle / Sort-Merge</td><td>обе стороны большие</td><td>shuffle обеих по ключу, сортировка, слияние</td></tr>
+        <tr><td>Shuffle Hash</td><td>одна сторона помещается в память на партицию</td><td>строит хеш-таблицу, без полной сортировки</td></tr>
+      </table>
+      <div class="callout tip en"><span class="tag">Tip</span> Force/hint a broadcast for a small dim to kill a shuffle: <code class="inline">/*+ BROADCAST(dim) */</code> (Spark/Presto). Verifies the optimizer's size estimate is right.</div>
+      <div class="callout tip ru"><span class="tag">Совет</span> Принудительный/хинт broadcast для малого измерения убивает shuffle: <code class="inline">/*+ BROADCAST(dim) */</code> (Spark/Presto). Проверяет, что оценка размера оптимизатора верна.</div>
+    </div>
+    <div class="card">
+      <h3><span class="en">Data skew</span><span class="ru">Data skew (перекос)</span></h3>
+      <p class="en">One key (NULL, "guest", a whale user) gets a giant partition → one straggler task dominates runtime.</p>
+      <p class="ru">Один ключ (NULL, "guest", кит-пользователь) получает гигантскую партицию → одна отстающая задача доминирует во времени выполнения.</p>
+      <ul class="tight en">
+        <li>Detect: a few tasks take 100× longer; histogram of key counts.</li>
+        <li>Fix: <b>salting</b> (append random suffix to hot key, join on salted key, then un-salt).</li>
+        <li>Fix: filter/handle NULL keys separately before the join.</li>
+        <li>Spark 3+: <span class="badge">AQE</span> skew-join handling auto-splits skewed partitions.</li>
+      </ul>
+      <ul class="tight ru">
+        <li>Детект: несколько задач в 100× дольше; гистограмма счётов ключей.</li>
+        <li>Лечение: <b>salting</b> (добавить случайный суффикс к горячему ключу, джойнить на salted-ключе, затем убрать соль).</li>
+        <li>Лечение: фильтровать/обрабатывать NULL-ключи отдельно до джойна.</li>
+        <li>Spark 3+: <span class="badge">AQE</span> авто-расщепляет перекошенные партиции.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="en">General optimization checklist</span><span class="ru">Общий чеклист оптимизации</span></h3>
+    <ul class="tight en">
+      <li><b>Prune early:</b> filter + project before joins/aggregations (predicate &amp; projection pushdown). Select only needed columns; columnar formats (Parquet/ORC) reward this.</li>
+      <li><b>Partition pruning:</b> filter on the partition column with a literal/constant, not a function wrapping it (<code class="inline">WHERE ds = '2026-06-14'</code>, not <code class="inline">WHERE CAST(ds AS date) = ...</code>).</li>
+      <li><b>Avoid SELECT *</b> over wide columnar tables. Avoid <code class="inline">COUNT(DISTINCT)</code> on huge cardinality — use approx (<code class="inline">APPROX_COUNT_DISTINCT</code>) if exactness isn't required.</li>
+      <li><b>Pre-aggregate</b> before joining to reduce row volume into the join.</li>
+      <li><b>Window vs self-join:</b> a window function usually beats a correlated self-join for running calcs.</li>
+    </ul>
+    <ul class="tight ru">
+      <li><b>Обрезай рано:</b> фильтр + проекция до джойнов/агрегаций (предикатный и проекционный pushdown). Выбирай только нужные колонки; колоночные форматы (Parquet/ORC) это вознаграждают.</li>
+      <li><b>Партиционный pruning:</b> фильтруй по колонке партиции с литералом/константой, а не оборачивай функцией (<code class="inline">WHERE ds = '2026-06-14'</code>, не <code class="inline">WHERE CAST(ds AS date) = ...</code>).</li>
+      <li><b>Избегай SELECT *</b> по широким колоночным таблицам. Избегай <code class="inline">COUNT(DISTINCT)</code> на огромной кардинальности — используй approx (<code class="inline">APPROX_COUNT_DISTINCT</code>), если точность не нужна.</li>
+      <li><b>Предварительная агрегация</b> до джойна, чтобы уменьшить объём строк в джойне.</li>
+      <li><b>Оконная функция vs self-join:</b> оконная функция обычно бьёт коррелированный self-join для running-вычислений.</li>
+    </ul>
+  </div>
+
+  <div class="callout probe en"><span class="tag">Interviewer will probe</span> "This query is slow, what do you do?" → Walk the funnel out loud: (1) read EXPLAIN, (2) confirm partition pruning &amp; pushdown, (3) check join strategy &amp; build side, (4) look for skew/shuffles, (5) reduce data scanned (columns + partitions), (6) pre-aggregate. State assumptions about table sizes.</div>
+  <div class="callout probe ru"><span class="tag">О чём спросит интервьюер</span> «Этот запрос медленный, что делаешь?» → Пройдись по воронке вслух: (1) читай EXPLAIN, (2) подтверди партиционный pruning и pushdown, (3) проверь стратегию джойна и build-сторону, (4) ищи skew/shuffle, (5) уменьши объём сканированных данных (колонки + партиции), (6) предварительная агрегация. Проговори предположения о размерах таблиц.</div>
+</section>
+
+<!-- ============ DIMENSIONAL MODELING ============ -->
+<section id="model" class="reveal">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">Dimensional Modeling</span><span class="ru">Размерностное моделирование</span></h2>
+
+  <div class="grid2">
+    <div class="card">
+      <h3><span class="en">Fact vs Dimension</span><span class="ru">Факт vs Измерение</span></h3>
+      <ul class="tight kfacts en">
+        <li><b>Fact:</b> measurements/events at a grain; numeric, additive measures; foreign keys to dims. Tall &amp; narrow, grows fast.</li>
+        <li><b>Dimension:</b> descriptive context (who/what/where/when). Wide &amp; short, slowly changing.</li>
+        <li>Fact types: <b>transaction</b>, <b>periodic snapshot</b>, <b>accumulating snapshot</b>.</li>
+        <li>Measure additivity: <b>fully additive</b> (revenue), <b>semi-additive</b> (balances — not over time), <b>non-additive</b> (ratios, %).</li>
+      </ul>
+      <ul class="tight kfacts ru">
+        <li><b>Факт:</b> измерения/события на зерне (grain); числовые, аддитивные меры; внешние ключи к измерениям. Высокие и узкие, быстро растут.</li>
+        <li><b>Измерение:</b> описательный контекст (кто/что/где/когда). Широкие и короткие, медленно меняются.</li>
+        <li>Типы фактов: <b>транзакция</b>, <b>периодический снимок</b>, <b>накапливающий снимок</b>.</li>
+        <li>Аддитивность мер: <b>полная аддитивность</b> (выручка), <b>полу-аддитивность</b> (балансы — не по времени), <b>не-аддитивность</b> (соотношения, %).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="en">Grain — declare it first</span><span class="ru">Зерно (grain) — объяви его первым</span></h3>
+      <p class="en">The grain is "what one fact row means" (e.g. <i>one row per order line per day</i>). Decide grain <b>before</b> picking dims/measures. Mixing grains is the #1 modeling bug → double counting.</p>
+      <p class="ru">Зерно — это «что означает одна строка факта» (например, <i>одна строка на строку заказа на день</i>). Решай зерно <b>до</b> выбора измерений/мер. Смешивание зёрен — ошибка моделирования №1 → двойной подсчёт.</p>
+      <div class="callout tip en"><span class="tag">Tip</span> Lowest practical grain = most flexible (you can always roll up, never down). Pre-aggregated facts answer one question fast but lose detail.</div>
+      <div class="callout tip ru"><span class="tag">Совет</span> Самое низкое практичное зерно = самая гибкая (всегда можешь свернуть вверх, никогда вниз). Предварительно агрегированные факты отвечают на один вопрос быстро, но теряют детали.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="en">Star vs Snowflake</span><span class="ru">Звезда vs Снежинка</span></h3>
+    <table class="cmp en">
+      <tr><th></th><th>Star</th><th>Snowflake</th></tr>
+      <tr><td>Dims</td><td>denormalized, flat</td><td>normalized into sub-dims</td></tr>
+      <tr><td>Joins for a query</td><td>fewer (fact → dim)</td><td>more (fact → dim → sub-dim)</td></tr>
+      <tr><td>Query speed</td><td>faster, simpler</td><td>slower, more joins</td></tr>
+      <tr><td>Storage / redundancy</td><td>more redundancy</td><td>less, tidier</td></tr>
+      <tr><td>BI-friendliness</td><td>high (industry default)</td><td>lower</td></tr>
+    </table>
+    <table class="cmp ru">
+      <tr><th></th><th>Звезда</th><th>Снежинка</th></tr>
+      <tr><td>Измерения</td><td>денормализованы, плоские</td><td>нормализованы в под-измерения</td></tr>
+      <tr><td>Джойнов на запрос</td><td>меньше (факт → измерение)</td><td>больше (факт → измерение → под-измерение)</td></tr>
+      <tr><td>Скорость запроса</td><td>быстрее, проще</td><td>медленнее, больше джойнов</td></tr>
+      <tr><td>Хранение / избыточность</td><td>больше избыточности</td><td>меньше, аккуратнее</td></tr>
+      <tr><td>BI-дружелюбность</td><td>высокая (индустриальный дефолт)</td><td>ниже</td></tr>
+    </table>
+    <div class="callout tip en"><span class="tag">Default</span> Star schema is the go-to for analytics/BI. Snowflake only when a dim is huge &amp; volatile and normalization meaningfully saves storage/maintenance.</div>
+    <div class="callout tip ru"><span class="tag">Дефолт</span> Схема-звезда — стандарт для analytics/BI. Снежинка только когда измерение огромно и волатильно, и нормализация значимо экономит хранение/поддержку.</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3><span class="en">Surrogate keys</span><span class="ru">Суррогатные ключи</span></h3>
+      <ul class="tight en">
+        <li>Synthetic, system-generated PK for each dim row (integer/hash). Independent of source "natural"/business keys.</li>
+        <li>Required for <b>SCD2</b>: same business key has multiple dim rows over time, each with its own surrogate key.</li>
+        <li>Insulates the warehouse from source key changes &amp; enables fast integer joins.</li>
+      </ul>
+      <ul class="tight ru">
+        <li>Синтетический, системно-генерируемый PK для каждой строки измерения (integer/hash). Независим от исходных «натуральных»/бизнес-ключей.</li>
+        <li>Требуется для <b>SCD2</b>: тот же бизнес-ключ имеет несколько строк измерения со временем, каждая со своим суррогатным ключом.</li>
+        <li>Изолирует хранилище от изменений исходных ключей и включает быстрые integer-джойны.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="en">Conformed dimensions</span><span class="ru">Конформные измерения</span></h3>
+      <p class="en">A dimension shared &amp; consistent across multiple fact tables / data marts (same keys, same meaning) — e.g. one <code class="inline">dim_date</code>, one <code class="inline">dim_user</code> used everywhere. Enables cross-process drill-across and consistent metrics. The backbone of an enterprise bus matrix.</p>
+      <p class="ru">Измерение, разделённое и согласованное между несколькими таблицами фактов / data mart'ами (одни и те же ключи, одинаковый смысл) — например, один <code class="inline">dim_date</code>, один <code class="inline">dim_user</code>, используемые везде. Позволяет кросс-процессное drill-across и согласованные метрики. Костяк enterprise bus-матрицы.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="en">Normalization vs Denormalization</span><span class="ru">Нормализация vs Денормализация</span></h3>
+    <table class="cmp en">
+      <tr><th></th><th>Normalized (3NF)</th><th>Denormalized</th></tr>
+      <tr><td>Goal</td><td>no redundancy, write integrity</td><td>read speed, fewer joins</td></tr>
+      <tr><td>Best for</td><td>OLTP / source systems</td><td>OLAP / analytics, wide tables</td></tr>
+      <tr><td>Writes</td><td>cheap, single place</td><td>update anomalies, must propagate</td></tr>
+      <tr><td>Reads</td><td>many joins</td><td>fast, self-contained rows</td></tr>
+    </table>
+    <table class="cmp ru">
+      <tr><th></th><th>Нормализованные (3NF)</th><th>Денормализованные</th></tr>
+      <tr><td>Цель</td><td>нет избыточности, целостность записи</td><td>скорость чтения, меньше джойнов</td></tr>
+      <tr><td>Лучше для</td><td>OLTP / исходные системы</td><td>OLAP / аналитика, широкие таблицы</td></tr>
+      <tr><td>Записи</td><td>дёшево, одно место</td><td>аномалии обновления, надо распространять</td></tr>
+      <tr><td>Чтения</td><td>много джойнов</td><td>быстро, самодостаточные строки</td></tr>
+    </table>
+    <div class="callout probe en"><span class="tag">Probe</span> "Would you normalize a warehouse?" → Analytics favours denormalized star schemas for read performance; OLTP favours 3NF for write integrity. Name the tradeoff (storage/maintenance vs query simplicity/speed) rather than picking dogmatically.</div>
+    <div class="callout probe ru"><span class="tag">Вопрос</span> «Нормализовал бы хранилище?» → Аналитика предпочитает денормализованные схемы-звёзды ради производительности чтения; OLTP предпочитает 3NF ради целостности записи. Назови компромисс (хранение/поддержка vs простота/скорость запросов), а не выбирай догматично.</div>
+  </div>
+</section>
+
+<!-- ============ SCD ============ -->
+<section id="scd" class="reveal">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">Slowly Changing Dimensions (SCD)</span><span class="ru">Медленно меняющиеся измерения (SCD)</span></h2>
+  <div class="card">
+    <table class="cmp en">
+      <tr><th>Type</th><th>Behaviour</th><th>History</th><th>Use</th></tr>
+      <tr><td><b>0</b></td><td>never changes (fixed at insert)</td><td>n/a</td><td>birth date, original signup source</td></tr>
+      <tr><td><b>1</b></td><td>overwrite in place</td><td>none — loses old value</td><td>corrections, no history needed</td></tr>
+      <tr><td><b>2</b></td><td>new row per change (versioning)</td><td>full</td><td>most common; point-in-time truth</td></tr>
+      <tr><td><b>3</b></td><td>add column (prev_value)</td><td>limited (1 prior)</td><td>track "previous" only</td></tr>
+    </table>
+    <table class="cmp ru">
+      <tr><th>Тип</th><th>Поведение</th><th>История</th><th>Применение</th></tr>
+      <tr><td><b>0</b></td><td>никогда не меняется (фиксируется при вставке)</td><td>н/п</td><td>дата рождения, исходный источник регистрации</td></tr>
+      <tr><td><b>1</b></td><td>перезапись на месте</td><td>нет — теряет старое значение</td><td>исправления, история не нужна</td></tr>
+      <tr><td><b>2</b></td><td>новая строка на каждое изменение (версионирование)</td><td>полная</td><td>самый частый; истина на момент времени</td></tr>
+      <tr><td><b>3</b></td><td>добавить колонку (prev_value)</td><td>ограниченная (1 предыдущее)</td><td>отслеживать только «предыдущее»</td></tr>
+    </table>
+    <h3><span class="en">SCD2 columns</span><span class="ru">Колонки SCD2</span></h3>
+<pre><span class="tbl">dim_user</span>(
+  user_sk      <span class="com">-- surrogate key (PK)</span>,
+  user_id      <span class="com">-- business/natural key</span>,
+  attributes...,
+  valid_from   <span class="com">-- effective start</span>,
+  valid_to     <span class="com">-- effective end (NULL or 9999-12-31 = current)</span>,
+  is_current   <span class="com">-- boolean flag</span>
+)</pre>
+    <div class="callout probe en"><span class="tag">Probe</span> "How do you join a fact to an SCD2 dim?" → join on business key <b>AND</b> <code class="inline">fact.event_ts BETWEEN valid_from AND valid_to</code> to get the version that was active at event time (point-in-time correctness). Joining on <code class="inline">is_current</code> only gives today's attributes — wrong for historical facts.</div>
+    <div class="callout probe ru"><span class="tag">Вопрос</span> «Как джойнить факт к SCD2-измерению?» → джойнить по бизнес-ключу <b>И</b> <code class="inline">fact.event_ts BETWEEN valid_from AND valid_to</code>, чтобы получить версию, активную на момент события (точечно-временная корректность). Джойн на <code class="inline">is_current</code> даёт только сегодняшние атрибуты — неверно для исторических фактов.</div>
+    <div class="callout gotcha en"><span class="tag">Gotcha</span> Watch for overlapping/gapped validity ranges from bad merges. Use a half-open interval <code class="inline">[valid_from, valid_to)</code> to avoid a fact matching two versions on the boundary.</div>
+    <div class="callout gotcha ru"><span class="tag">Подвох</span> Следи за перекрывающимися/пропущенными диапазонами validity от плохих мерджей. Используй полуоткрытый интервал <code class="inline">[valid_from, valid_to)</code>, чтобы факт не попадал на две версии на границе.</div>
+  </div>
+</section>
+
+<!-- ============ IDEMPOTENT PIPELINES ============ -->
+<section id="pipe" class="reveal">
+  <h2><span class="dot"></span><span class="en">Idempotent Pipeline Patterns</span><span class="ru">Паттерны идемпотентных пайплайнов</span></h2>
+  <div class="card">
+    <p class="en"><b>Idempotent</b> = re-running a job for the same inputs produces the same output, no duplicates, no drift. Essential for backfills &amp; retries.</p>
+    <p class="ru"><b>Идемпотентный</b> = перезапуск джобы на тех же входах даёт тот же выход, без дублей, без дрифта. Критично для backfill'ов и ретраев.</p>
+    <div class="grid2" style="margin-top:6px">
+      <div>
+        <h3><span class="en">Partition overwrite (insert-overwrite)</span><span class="ru">Перезапись партиции (insert-overwrite)</span></h3>
+        <p class="en">Recompute a whole partition (e.g. one <code class="inline">ds</code>) and atomically replace it. Naturally idempotent for daily batch.</p>
+        <p class="ru">Пересчитать всю партицию (например, один <code class="inline">ds</code>) и атомарно заменить её. Естественно идемпотентно для дневного батча.</p>
+<pre><span class="kw">INSERT OVERWRITE TABLE</span> <span class="tbl">fct_x</span> <span class="kw">PARTITION</span>(ds=<span class="str">'2026-06-14'</span>)
+<span class="kw">SELECT</span> ... ;  <span class="com">-- rerun safe: replaces the partition</span></pre>
+        <div class="callout tip en"><span class="tag">Tip</span> Beware dynamic partition overwrite semantics (Spark <code class="inline">spark.sql.sources.partitionOverwriteMode=dynamic</code>) — replaces only written partitions, not the whole table.</div>
+        <div class="callout tip ru"><span class="tag">Совет</span> Осторожно с семантикой динамической перезаписи партиций (Spark <code class="inline">spark.sql.sources.partitionOverwriteMode=dynamic</code>) — заменяет только записанные партиции, не всю таблицу.</div>
+      </div>
+      <div>
+        <h3><span class="en">MERGE / upsert</span><span class="ru">MERGE / upsert</span></h3>
+<pre><span class="kw">MERGE INTO</span> <span class="tbl">target</span> t
+<span class="kw">USING</span> <span class="tbl">staged</span> s <span class="kw">ON</span> t.id = s.id
+<span class="kw">WHEN MATCHED THEN UPDATE SET</span> ...
+<span class="kw">WHEN NOT MATCHED THEN INSERT</span> ...;</pre>
+        <div class="callout gotcha en"><span class="tag">Gotcha</span> MERGE errors (or non-determines) if the source has &gt;1 row per match key. Dedup the source to the merge grain first (ROW_NUMBER = 1).</div>
+        <div class="callout gotcha ru"><span class="tag">Подвох</span> MERGE выдаёт ошибку (или недетерминирован), если источник имеет &gt;1 строки на ключ совпадения. Дедуп источника до грануляции мерджа сначала (ROW_NUMBER = 1).</div>
+      </div>
+    </div>
+    <div class="callout probe en"><span class="tag">Interviewer will probe</span> "How do you make a backfill safe to rerun?" → deterministic transforms (no <code class="inline">now()</code>/random in logic), partition-scoped overwrite or MERGE on a stable key, no append-without-dedup. Watermarks for incremental + late data handling.</div>
+    <div class="callout probe ru"><span class="tag">О чём спросит интервьюер</span> «Как сделать backfill безопасным к перезапуску?» → детерминированные трансформации (никакого <code class="inline">now()</code>/random в логике), партиционно-ограниченная перезапись или MERGE на стабильном ключе, никакого append-без-дедупа. Watermark'и для инкрементальных + обработки late data.</div>
+  </div>
+</section>
+
+<!-- ============ DATA QUALITY ============ -->
+<section id="dq" class="reveal">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">Data Quality Checks</span><span class="ru">Проверки качества данных</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <h3><span class="en">Categories</span><span class="ru">Категории</span></h3>
+      <ul class="tight kfacts en">
+        <li><b>Completeness:</b> row counts vs expected; non-null on required cols; partition landed daily (≥99%).</li>
+        <li><b>Uniqueness:</b> PK/grain has no duplicates.</li>
+        <li><b>Validity:</b> values in allowed range/enum; FK references resolve (no orphans).</li>
+        <li><b>Consistency:</b> totals reconcile vs source/loaders; sum of parts = whole.</li>
+        <li><b>Timeliness/Freshness:</b> max(event_ts) within SLA.</li>
+        <li><b>Accuracy/Anomaly:</b> volume within expected band vs trailing avg.</li>
+      </ul>
+      <ul class="tight kfacts ru">
+        <li><b>Полнота:</b> число строк vs ожидаемое; non-null на обязательных колонках; партиция приземлилась ежедневно (≥99%).</li>
+        <li><b>Уникальность:</b> PK/grain без дублей.</li>
+        <li><b>Валидность:</b> значения в допустимом диапазоне/enum; FK-ссылки разрешаются (нет сирот).</li>
+        <li><b>Согласованность:</b> тоталы сходятся с источником/лоадерами; сумма частей = целому.</li>
+        <li><b>Своевременность/Свежесть:</b> max(event_ts) в рамках SLA.</li>
+        <li><b>Точность/Аномалии:</b> объём в ожидаемом диапазоне vs скользящего среднего.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="en">Concrete checks</span><span class="ru">Конкретные проверки</span></h3>
+<pre><span class="com">-- PK uniqueness (should return 0 rows)</span>
+<span class="kw">SELECT</span> id, <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> <span class="tbl">t</span>
+<span class="kw">GROUP BY</span> id <span class="kw">HAVING</span> <span class="fn">COUNT</span>(*) &gt; <span class="num">1</span>;
+
+<span class="com">-- orphan FK</span>
+<span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> <span class="tbl">fct</span> f
+<span class="kw">LEFT JOIN</span> <span class="tbl">dim</span> d <span class="kw">ON</span> f.dim_id=d.id
+<span class="kw">WHERE</span> d.id <span class="kw">IS NULL</span>;
+
+<span class="com">-- volume anomaly vs 7d avg</span>
+<span class="kw">SELECT</span> ds, cnt,
+  cnt / <span class="fn">AVG</span>(cnt) <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> ds
+    <span class="kw">ROWS BETWEEN</span> <span class="num">7</span> <span class="kw">PRECEDING AND</span> <span class="num">1</span> <span class="kw">PRECEDING</span>) ratio
+<span class="kw">FROM</span> daily_counts;</pre>
+    </div>
+  </div>
+  <div class="callout tip en"><span class="tag">Tip</span> Frame DQ as <b>blocking</b> (fail the pipeline: PK dup, completeness) vs <b>alerting</b> (warn: volume drift). Tools: dbt tests, Great Expectations, custom assertion SQL gated before publish.</div>
+  <div class="callout tip ru"><span class="tag">Совет</span> Формируй DQ как <b>блокирующие</b> (фейлят пайплайн: дубли PK, полнота) vs <b>алертящие</b> (предупреждают: дрифт объёма). Инструменты: dbt tests, Great Expectations, кастомный assertion SQL перед публикацией.</div>
+</section>
+
+<!-- ============ PRACTICE PROBLEMS ============ -->
+<section id="practice" class="reveal">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">Practice Problems — flip to reveal</span><span class="ru">Практические задачи — переверни, чтобы увидеть</span></h2>
+  <p class="muted en">Click a card to flip and reveal the solution. Try to write it out loud / on paper first, the way you would in the screen.</p>
+  <p class="muted ru">Кликни на карточку, чтобы перевернуть и увидеть решение. Попробуй сначала написать вслух / на бумаге, как на экране интервью.</p>
+
+  <!-- P1 -->
+  <div class="flip" data-flip>
+    <div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="prob-q"><span class="prob-n">1</span><span class="en">Nth highest salary (3rd highest distinct), no LIMIT trick.</span><span class="ru">N-я наибольшая зарплата (3-я наибольшая уникальная), без трюка с LIMIT.</span></div>
+        <div class="reveal-hint"><span class="en">▸ click to reveal solution</span><span class="ru">▸ кликни, чтобы увидеть решение</span></div>
+      </div>
+      <div class="flip-face flip-back"><div class="flip-back-inner">
+        <button class="back-btn" data-back><span class="en">← back</span><span class="ru">← назад</span></button>
+<pre><span class="kw">WITH</span> ranked <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> salary,
+    <span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span> (<span class="kw">ORDER BY</span> salary <span class="kw">DESC</span>) <span class="kw">AS</span> rk
+  <span class="kw">FROM</span> <span class="tbl">employees</span>
+)
+<span class="kw">SELECT DISTINCT</span> salary
+<span class="kw">FROM</span> ranked <span class="kw">WHERE</span> rk = <span class="num">3</span>;</pre>
+        <div class="callout probe en"><span class="tag">Probe</span> Use <b>DENSE_RANK</b> (distinct salaries, no gaps). If duplicates of the same salary should count as separate ranks they wouldn't here — clarify "distinct" with the interviewer. Edge: fewer than 3 distinct salaries → returns empty (state it).</div>
+        <div class="callout probe ru"><span class="tag">Вопрос</span> Используй <b>DENSE_RANK</b> (уникальные зарплаты, без пропусков). Если дубли одной зарплаты должны считаться отдельными рангами, здесь этого нет — уточни «уникальные» с интервьюером. Край: меньше 3 уникальных зарплат → вернёт пусто (скажи это).</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- P2 -->
+  <div class="flip" data-flip>
+    <div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="prob-q"><span class="prob-n">2</span><span class="en">Dedup: keep the latest record per <code class="inline">user_id</code> from an events table.</span><span class="ru">Дедуп: оставить последнюю запись на <code class="inline">user_id</code> из таблицы событий.</span></div>
+        <div class="reveal-hint"><span class="en">▸ click to reveal solution</span><span class="ru">▸ кликни, чтобы увидеть решение</span></div>
+      </div>
+      <div class="flip-face flip-back"><div class="flip-back-inner">
+        <button class="back-btn" data-back><span class="en">← back</span><span class="ru">← назад</span></button>
+<pre><span class="kw">SELECT</span> user_id, payload, updated_at
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> *,
+    <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+      <span class="kw">PARTITION BY</span> user_id
+      <span class="kw">ORDER BY</span> updated_at <span class="kw">DESC</span>, event_id <span class="kw">DESC</span>
+    ) <span class="kw">AS</span> rn
+  <span class="kw">FROM</span> <span class="tbl">events</span>
+) <span class="kw">WHERE</span> rn = <span class="num">1</span>;</pre>
+        <div class="callout gotcha en"><span class="tag">Gotcha</span> Add a deterministic tiebreaker (<code class="inline">event_id DESC</code>) so ties pick a stable row. Snowflake/BigQuery: <code class="inline">QUALIFY ROW_NUMBER() OVER(...)=1</code> drops the subquery.</div>
+        <div class="callout gotcha ru"><span class="tag">Подвох</span> Добавь детерминированный тайбрейкер (<code class="inline">event_id DESC</code>), чтобы дубли выбирали стабильную строку. Snowflake/BigQuery: <code class="inline">QUALIFY ROW_NUMBER() OVER(...)=1</code> убирает подзапрос.</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- P3 -->
+  <div class="flip" data-flip>
+    <div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="prob-q"><span class="prob-n">3</span><span class="en">Gaps &amp; islands: longest streak of consecutive login days per user.</span><span class="ru">Gaps &amp; islands: самая длинная серия последовательных дней логинов на пользователя.</span></div>
+        <div class="reveal-hint"><span class="en">▸ click to reveal solution</span><span class="ru">▸ кликни, чтобы увидеть решение</span></div>
+      </div>
+      <div class="flip-face flip-back"><div class="flip-back-inner">
+        <button class="back-btn" data-back><span class="en">← back</span><span class="ru">← назад</span></button>
+<pre><span class="kw">WITH</span> d <span class="kw">AS</span> (
+  <span class="kw">SELECT DISTINCT</span> user_id, login_date <span class="kw">FROM</span> <span class="tbl">logins</span>
+),
+grp <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> user_id, login_date,
+    <span class="fn">DATE_SUB</span>(login_date,
+      <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(
+        <span class="kw">PARTITION BY</span> user_id <span class="kw">ORDER BY</span> login_date)) <span class="kw">AS</span> island
+  <span class="kw">FROM</span> d
+)
+<span class="kw">SELECT</span> user_id, <span class="fn">MAX</span>(streak) <span class="kw">AS</span> longest_streak
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> user_id, island, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> streak
+  <span class="kw">FROM</span> grp <span class="kw">GROUP BY</span> user_id, island
+)
+<span class="kw">GROUP BY</span> user_id;</pre>
+        <div class="callout probe en"><span class="tag">Probe</span> The <code class="inline">date - row_number</code> value is constant within a consecutive run, so it groups the run. DISTINCT first kills duplicate-day noise.</div>
+        <div class="callout probe ru"><span class="tag">Вопрос</span> Значение <code class="inline">date - row_number</code> постоянно внутри последовательного пробега, поэтому оно группирует пробег. DISTINCT сначала убивает шум дублей дней.</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- P4 -->
+  <div class="flip" data-flip>
+    <div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="prob-q"><span class="prob-n">4</span><span class="en">Running 7-day active users (rolling distinct count by day).</span><span class="ru">Скользящие 7-дневные активные пользователи (rolling distinct count по дням).</span></div>
+        <div class="reveal-hint"><span class="en">▸ click to reveal solution</span><span class="ru">▸ кликни, чтобы увидеть решение</span></div>
+      </div>
+      <div class="flip-face flip-back"><div class="flip-back-inner">
+        <button class="back-btn" data-back><span class="en">← back</span><span class="ru">← назад</span></button>
+<pre><span class="com">-- distinct doesn't compose in a window; self-join on a 7d span</span>
+<span class="kw">SELECT</span> a.ds,
+  <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> b.user_id) <span class="kw">AS</span> wau
+<span class="kw">FROM</span> (<span class="kw">SELECT DISTINCT</span> ds <span class="kw">FROM</span> <span class="tbl">activity</span>) a
+<span class="kw">JOIN</span> <span class="tbl">activity</span> b
+  <span class="kw">ON</span> b.ds <span class="kw">BETWEEN</span> <span class="fn">DATE_SUB</span>(a.ds, <span class="num">6</span>) <span class="kw">AND</span> a.ds
+<span class="kw">GROUP BY</span> a.ds
+<span class="kw">ORDER BY</span> a.ds;</pre>
+        <div class="callout gotcha en"><span class="tag">Gotcha</span> <code class="inline">COUNT(DISTINCT ...)</code> is <b>not</b> allowed as a windowed aggregate in most engines, so a rolling-window OVER won't work for distinct users. Self-join (or array_agg + size of distinct) is the standard approach. If a simple rolling SUM of an already-distinct daily count is acceptable, a window works.</div>
+        <div class="callout gotcha ru"><span class="tag">Подвох</span> <code class="inline">COUNT(DISTINCT ...)</code> <b>не</b> разрешён как оконный агрегат в большинстве движков, поэтому rolling-window OVER не сработает для уникальных пользователей. Self-join (или array_agg + размер уникальных) — стандартный подход. Если допустима простая rolling SUM уже уникального дневного счёта, окно работает.</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- P5 -->
+  <div class="flip" data-flip>
+    <div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="prob-q"><span class="prob-n">5</span><span class="en">Top-3 selling products per category (ties allowed).</span><span class="ru">Топ-3 продающихся продукта на категорию (дубли разрешены).</span></div>
+        <div class="reveal-hint"><span class="en">▸ click to reveal solution</span><span class="ru">▸ кликни, чтобы увидеть решение</span></div>
+      </div>
+      <div class="flip-face flip-back"><div class="flip-back-inner">
+        <button class="back-btn" data-back><span class="en">← back</span><span class="ru">← назад</span></button>
+<pre><span class="kw">SELECT</span> category, product, total_sales
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> category, product,
+    <span class="fn">SUM</span>(amount) <span class="kw">AS</span> total_sales,
+    <span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span>(
+      <span class="kw">PARTITION BY</span> category
+      <span class="kw">ORDER BY</span> <span class="fn">SUM</span>(amount) <span class="kw">DESC</span>) <span class="kw">AS</span> rk
+  <span class="kw">FROM</span> <span class="tbl">sales</span>
+  <span class="kw">GROUP BY</span> category, product
+)
+<span class="kw">WHERE</span> rk &lt;= <span class="num">3</span>;</pre>
+        <div class="callout probe en"><span class="tag">Probe</span> You can use a window function over an aggregate in the same SELECT (<code class="inline">DENSE_RANK() OVER(ORDER BY SUM(amount))</code>) because windows run after GROUP BY. Ties-included → DENSE_RANK; exactly 3 rows → ROW_NUMBER.</div>
+        <div class="callout probe ru"><span class="tag">Вопрос</span> Можно использовать оконную функцию поверх агрегата в том же SELECT (<code class="inline">DENSE_RANK() OVER(ORDER BY SUM(amount))</code>), потому что окна выполняются после GROUP BY. С дублями → DENSE_RANK; ровно 3 строки → ROW_NUMBER.</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- P6 -->
+  <div class="flip" data-flip>
+    <div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="prob-q"><span class="prob-n">6</span><span class="en">Sessionize events with a 30-minute inactivity gap; count sessions per user.</span><span class="ru">Сессизировать события с 30-минутным промежутком неактивности; посчитать сессии на пользователя.</span></div>
+        <div class="reveal-hint"><span class="en">▸ click to reveal solution</span><span class="ru">▸ кликни, чтобы увидеть решение</span></div>
+      </div>
+      <div class="flip-face flip-back"><div class="flip-back-inner">
+        <button class="back-btn" data-back><span class="en">← back</span><span class="ru">← назад</span></button>
+<pre><span class="kw">WITH</span> flagged <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> user_id, ts,
+    <span class="kw">CASE WHEN</span>
+      <span class="fn">LAG</span>(ts) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> user_id <span class="kw">ORDER BY</span> ts) <span class="kw">IS NULL</span>
+      <span class="kw">OR</span> <span class="fn">DATEDIFF</span>(<span class="str">'minute'</span>,
+           <span class="fn">LAG</span>(ts) <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> user_id <span class="kw">ORDER BY</span> ts),
+           ts) &gt; <span class="num">30</span>
+    <span class="kw">THEN</span> <span class="num">1</span> <span class="kw">ELSE</span> <span class="num">0</span> <span class="kw">END</span> <span class="kw">AS</span> is_new
+  <span class="kw">FROM</span> <span class="tbl">events</span>
+),
+sessions <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> user_id, ts,
+    <span class="fn">SUM</span>(is_new) <span class="kw">OVER</span>(
+      <span class="kw">PARTITION BY</span> user_id <span class="kw">ORDER BY</span> ts
+      <span class="kw">ROWS UNBOUNDED PRECEDING</span>) <span class="kw">AS</span> session_id
+  <span class="kw">FROM</span> flagged
+)
+<span class="kw">SELECT</span> user_id, <span class="fn">COUNT</span>(<span class="kw">DISTINCT</span> session_id) <span class="kw">AS</span> n_sessions
+<span class="kw">FROM</span> sessions <span class="kw">GROUP BY</span> user_id;</pre>
+        <div class="callout gotcha en"><span class="tag">Gotcha</span> Use <code class="inline">ROWS UNBOUNDED PRECEDING</code> on the cumulative SUM so each user's session ids start at 1 and increment monotonically. The first event per user has NULL LAG → forced to a new session.</div>
+        <div class="callout gotcha ru"><span class="tag">Подвох</span> Используй <code class="inline">ROWS UNBOUNDED PRECEDING</code> на кумулятивном SUM, чтобы session id каждого пользователя начинались с 1 и инкрементировались монотонно. Первое событие на пользователя имеет NULL LAG → принудительно новая сессия.</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- P7 -->
+  <div class="flip" data-flip>
+    <div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="prob-q"><span class="prob-n">7</span><span class="en">Year-over-year revenue growth % per month.</span><span class="ru">Год-к-году рост выручки % на месяц.</span></div>
+        <div class="reveal-hint"><span class="en">▸ click to reveal solution</span><span class="ru">▸ кликни, чтобы увидеть решение</span></div>
+      </div>
+      <div class="flip-face flip-back"><div class="flip-back-inner">
+        <button class="back-btn" data-back><span class="en">← back</span><span class="ru">← назад</span></button>
+<pre><span class="kw">WITH</span> monthly <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> <span class="fn">DATE_TRUNC</span>(<span class="str">'month'</span>, order_date) <span class="kw">AS</span> mth,
+         <span class="fn">SUM</span>(amount) <span class="kw">AS</span> rev
+  <span class="kw">FROM</span> <span class="tbl">orders</span> <span class="kw">GROUP BY</span> <span class="num">1</span>
+)
+<span class="kw">SELECT</span> mth, rev,
+  <span class="fn">LAG</span>(rev, <span class="num">12</span>) <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> mth) <span class="kw">AS</span> rev_prev_yr,
+  <span class="fn">ROUND</span>(<span class="num">100.0</span> * (rev - <span class="fn">LAG</span>(rev,<span class="num">12</span>) <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> mth))
+    / <span class="fn">NULLIF</span>(<span class="fn">LAG</span>(rev,<span class="num">12</span>) <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> mth), <span class="num">0</span>), <span class="num">2</span>) <span class="kw">AS</span> yoy_pct
+<span class="kw">FROM</span> monthly <span class="kw">ORDER BY</span> mth;</pre>
+        <div class="callout gotcha en"><span class="tag">Gotcha</span> <code class="inline">LAG(rev,12)</code> only works if every month is present (no gaps). If months can be missing, build a month spine and LEFT JOIN first, otherwise "12 rows back" ≠ "12 months back". Always wrap the denominator in <code class="inline">NULLIF(...,0)</code>.</div>
+        <div class="callout gotcha ru"><span class="tag">Подвох</span> <code class="inline">LAG(rev,12)</code> работает только если каждый месяц присутствует (нет пропусков). Если месяцы могут пропадать, построй шпалу месяцев и LEFT JOIN сначала, иначе «12 строк назад» ≠ «12 месяцев назад». Всегда оборачивай знаменатель в <code class="inline">NULLIF(...,0)</code>.</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- P8 -->
+  <div class="flip" data-flip>
+    <div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="prob-q"><span class="prob-n">8</span><span class="en">Users who logged in 3+ consecutive days (return the users).</span><span class="ru">Пользователи, логинившиеся 3+ последовательных дня (вернуть пользователей).</span></div>
+        <div class="reveal-hint"><span class="en">▸ click to reveal solution</span><span class="ru">▸ кликни, чтобы увидеть решение</span></div>
+      </div>
+      <div class="flip-face flip-back"><div class="flip-back-inner">
+        <button class="back-btn" data-back><span class="en">← back</span><span class="ru">← назад</span></button>
+<pre><span class="kw">WITH</span> d <span class="kw">AS</span> (
+  <span class="kw">SELECT DISTINCT</span> user_id, login_date <span class="kw">FROM</span> <span class="tbl">logins</span>
+),
+grp <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> user_id, login_date,
+    <span class="fn">DATE_SUB</span>(login_date,
+      <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(
+        <span class="kw">PARTITION BY</span> user_id <span class="kw">ORDER BY</span> login_date)) <span class="kw">AS</span> island
+  <span class="kw">FROM</span> d
+)
+<span class="kw">SELECT DISTINCT</span> user_id <span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> user_id, island, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> run_len
+  <span class="kw">FROM</span> grp <span class="kw">GROUP BY</span> user_id, island
+) <span class="kw">WHERE</span> run_len &gt;= <span class="num">3</span>;</pre>
+        <div class="callout tip en"><span class="tag">Tip</span> Same gaps-and-islands engine as P3, just filter on run length. Alternative purely with LAG: check the previous two days equal date-1 and date-2 — but the island trick scales to any N cleanly.</div>
+        <div class="callout tip ru"><span class="tag">Совет</span> Тот же движок gaps-and-islands, что и в P3, просто фильтруй по длине пробега. Альтернатива чисто через LAG: проверь, что предыдущие два дня равны date-1 и date-2 — но island-трюк масштабируется на любое N чисто.</div>
+      </div></div>
+    </div>
+  </div>
+
+  <hr class="soft">
+  <div class="callout tip">
+    <span class="tag en">Live-screen meta-tips</span>
+    <span class="tag ru">Мета-советы для live-скрина</span>
+    <ul class="tight en" style="margin-top:6px">
+      <li>State the <b>grain</b> and your <b>assumptions</b> before writing. Ask about NULLs, duplicates, ties, time zones.</li>
+      <li>Build incrementally with CTEs; name them well; talk through each step.</li>
+      <li>Mention indexes/partitions/join strategy if asked about scale — show the optimization mindset.</li>
+      <li>Validate: "let me check edge cases — ties, empty groups, NULL keys."</li>
+    </ul>
+    <ul class="tight ru" style="margin-top:6px">
+      <li>Проговори <b>зерно</b> и свои <b>предположения</b> перед написанием. Спроси про NULL, дубли, дубли значений, часовые пояса.</li>
+      <li>Строй инкрементально через CTE; давай им хорошие имена; проговаривай каждый шаг.</li>
+      <li>Упомяни индексы/партиции/стратегию джойнов, если спросят про масштаб — покажи оптимизационный mindset.</li>
+      <li>Валидируй: «дай проверю краевые случаи — дубли, пустые группы, NULL-ключи».</li>
+    </ul>
+  </div>
+</section>
+
+<div class="footnote">
+  <span class="en">SQL &amp; Data Modeling — Data Engineering Interview Prep · single-file revision deck · built for Amal Imangulov.</span>
+  <span class="ru">SQL и моделирование данных — Подготовка к DE-интервью · single-file шпаргалка · собрана для Amal Imangulov.</span>
+</div>
+
+</main>
+
+<script>
+  // Theme + Lang toggle (combined, shared localStorage keys)
+  (function(){
+    var root = document.documentElement;
+    var langBtn = document.getElementById('langBtn');
+    var themeBtn = document.getElementById('themeBtn');
+
+    var savedTheme = localStorage.getItem('de_cheat_theme') || 'dark';
+    var savedLang = localStorage.getItem('de_cheat_lang') || 'en';
+
+    root.setAttribute('data-theme', savedTheme);
+    root.setAttribute('data-lang', savedLang);
+
+    function syncButtons(){
+      var t = root.getAttribute('data-theme');
+      var l = root.getAttribute('data-lang');
+      themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+      langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+    }
+    syncButtons();
+
+    langBtn.addEventListener('click', function(){
+      var l = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+      root.setAttribute('data-lang', l);
+      localStorage.setItem('de_cheat_lang', l);
+      syncButtons();
+    });
+
+    themeBtn.addEventListener('click', function(){
+      var t = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', t);
+      localStorage.setItem('de_cheat_theme', t);
+      syncButtons();
+    });
+  })();
+
+  // Scroll reveal
+  (function(){
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function(e){ e.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.08 });
+    els.forEach(function(e){ io.observe(e); });
+  })();
+
+  // Flip cards
+  (function(){
+    document.querySelectorAll('.flip').forEach(function(card){
+      var front = card.querySelector('.flip-front');
+      front.addEventListener('click', function(){ card.classList.add('flipped'); });
+      var back = card.querySelector('[data-back]');
+      if (back) back.addEventListener('click', function(e){
+        e.stopPropagation();
+        card.classList.remove('flipped');
+      });
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Airflow & Orchestration — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a; --card: #151d30; --card2: #1c2740; --text: #e6ecf5; --muted: #93a1bd;
+    --accent: #1877F2; --green: #02e2ac; --orange: #f59e0b; --purple: #a855f7;
+    --border: #243151; --code-bg: #0d1424; --shadow: rgba(0,0,0,.45);
+    --kw: #a855f7; --str: #02e2ac; --com: #6b7a99; --num: #f59e0b; --fn: #1877F2;
+  }
+  [data-theme="light"] {
+    --bg: #f4f7fc; --card: #ffffff; --card2: #eef2f9; --text: #11203b; --muted: #5a6b88;
+    --accent: #1877F2; --green: #079e7c; --orange: #c47a08; --purple: #8b3fd6;
+    --border: #d6deec; --code-bg: #f0f3fa; --shadow: rgba(20,40,80,.12);
+    --kw: #8b3fd6; --str: #079e7c; --com: #8a96ab; --num: #c47a08; --fn: #1156c7;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55; font-size: 15px; -webkit-font-smoothing: antialiased;
+  }
+  code, pre, .mono { font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100; background: rgba(10,14,26,.92);
+    backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 4px; padding: 10px 16px; flex-wrap: wrap;
+  }
+  [data-theme="light"] nav { background: rgba(244,247,252,.92); }
+  nav .brand { font-weight: 800; color: var(--accent); margin-right: 10px; white-space: nowrap; font-size: 14px; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 12.5px; padding: 5px 9px;
+    border-radius: 7px; transition: all .15s; white-space: nowrap;
+  }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  /* HEADER */
+  header { padding: 38px 22px 18px; max-width: 1080px; margin: 0 auto; }
+  header h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -.5px; }
+  header h1 .gr { background: linear-gradient(90deg, var(--accent), var(--purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  header .sub { color: var(--muted); font-size: 15px; }
+  .badges { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge { font-size: 12px; padding: 4px 11px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted); }
+  .badge.hot { color: var(--orange); border-color: var(--orange); }
+  .badge.gap { color: var(--purple); border-color: var(--purple); }
+
+  main { max-width: 1080px; margin: 0 auto; padding: 0 22px 80px; }
+
+  /* SECTION */
+  section { margin: 26px 0; }
+  .sec-head {
+    display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;
+    padding: 12px 16px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; transition: border-color .15s;
+  }
+  .sec-head:hover { border-color: var(--accent); }
+  .sec-head h2 { margin: 0; font-size: 19px; }
+  .sec-head .ico { color: var(--accent); font-size: 18px; }
+  .sec-head .chev { margin-left: auto; color: var(--muted); transition: transform .2s; }
+  .sec-head.collapsed .chev { transform: rotate(-90deg); }
+  .sec-body { padding: 14px 4px 4px; }
+  .sec-body.hidden { display: none; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; margin: 12px 0; box-shadow: 0 2px 10px var(--shadow);
+  }
+  .card h3 { margin: 0 0 8px; font-size: 16px; }
+  .card h3 .tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; margin-left: 8px; vertical-align: middle; }
+  .tag.def { background: rgba(24,119,242,.15); color: var(--accent); }
+  .tag.warn { background: rgba(245,158,11,.15); color: var(--orange); }
+
+  p { margin: 8px 0; }
+  ul { margin: 8px 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+  b, strong { color: var(--text); }
+  .accent { color: var(--accent); } .green { color: var(--green); } .orange { color: var(--orange); } .purple { color: var(--purple); }
+  .muted { color: var(--muted); }
+
+  /* CODE */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 10px 0;
+  }
+  code.inline { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 13px; color: var(--green); }
+  .k { color: var(--kw); } .s { color: var(--str); } .c { color: var(--com); font-style: italic; } .n { color: var(--num); } .f { color: var(--fn); }
+
+  /* TABLE */
+  .tbl-wrap { overflow-x: auto; margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 520px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--accent); font-weight: 700; border-bottom: 2px solid var(--border); }
+  tr:hover td { background: var(--card2); }
+
+  /* CALLOUT */
+  .callout { border-left: 3px solid var(--orange); background: rgba(245,158,11,.07); border-radius: 0 10px 10px 0; padding: 11px 15px; margin: 12px 0; }
+  .callout.probe { border-color: var(--accent); background: rgba(24,119,242,.07); }
+  .callout.amal { border-color: var(--green); background: rgba(2,226,172,.07); }
+  .callout.gap { border-color: var(--purple); background: rgba(168,85,247,.08); }
+  .callout .lbl { font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; display: block; margin-bottom: 3px; }
+  .callout.probe .lbl { color: var(--accent); }
+  .callout.amal .lbl { color: var(--green); }
+  .callout.gap .lbl { color: var(--purple); }
+  .callout .lbl.o { color: var(--orange); }
+
+  /* ASCII diagram */
+  .ascii { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; overflow-x: auto; font-size: 12.5px; line-height: 1.45; color: var(--muted); white-space: pre; }
+  .ascii b { color: var(--accent); }
+
+  /* FLIP CARDS */
+  .flip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin: 12px 0; }
+  .flip { perspective: 1200px; height: 160px; cursor: pointer; }
+  .flip-inner { position: relative; width: 100%; height: 100%; transition: transform .5s; transform-style: preserve-3d; }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face {
+    position: absolute; inset: 0; backface-visibility: hidden; border-radius: 12px;
+    border: 1px solid var(--border); padding: 14px; display: flex; flex-direction: column;
+    justify-content: center; overflow: auto;
+  }
+  .flip-front { background: var(--card); }
+  .flip-front .q { font-weight: 700; font-size: 14.5px; }
+  .flip-front .hint { color: var(--muted); font-size: 11.5px; margin-top: 8px; }
+  .flip-back { background: var(--card2); transform: rotateY(180deg); font-size: 13px; }
+  .flip-back .a { color: var(--green); }
+
+  .pill-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+  .pill { font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: var(--card2); border: 1px solid var(--border); color: var(--muted); }
+
+  footer { text-align: center; color: var(--muted); font-size: 12.5px; padding: 30px 0; border-top: 1px solid var(--border); margin-top: 40px; }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 24px; }
+    nav .brand { display: none; }
+    .sec-head h2 { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">✈ Airflow Cheatsheet</span>
+  <a href="#mental"><span class="en">Mental Model</span><span class="ru">Ментальная модель</span></a>
+  <a href="#lifecycle"><span class="en">Lifecycle</span><span class="ru">Жизненный цикл</span></a>
+  <a href="#core"><span class="en">Core Objects</span><span class="ru">Базовые объекты</span></a>
+  <a href="#sched"><span class="en">Scheduling</span><span class="ru">Расписание</span></a>
+  <a href="#idem"><span class="en">Idempotency</span><span class="ru">Идемпотентность</span></a>
+  <a href="#sensors"><span class="en">Sensors/XCom</span><span class="ru">Sensors/XCom</span></a>
+  <a href="#exec"><span class="en">Executors</span><span class="ru">Исполнители</span></a>
+  <a href="#dyn"><span class="en">Dynamic/SLA</span><span class="ru">Dynamic/SLA</span></a>
+  <a href="#vs"><span class="en">vs Dataswarm</span><span class="ru">vs Dataswarm</span></a>
+  <a href="#gotchas"><span class="en">Gotchas</span><span class="ru">Подводные камни</span></a>
+  <a href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header>
+  <h1><span class="gr"><span class="en">Airflow & Orchestration</span><span class="ru">Airflow и оркестрация</span></span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</span>
+  </div>
+  <div class="badges">
+    <span class="badge hot"><span class="en">⭐ TOP topic: idempotency + backfills</span><span class="ru">⭐ ТОПОВАЯ тема: идемпотентность + backfills</span></span>
+    <span class="badge"><span class="en">Anchor story: McMakler Airflow migration</span><span class="ru">Якорная история: миграция на Airflow в McMakler</span></span>
+    <span class="badge gap"><span class="en">Study-gap bridge: Flink / Kafka / Iceberg</span><span class="ru">Пробел для изучения: Flink / Kafka / Iceberg</span></span>
+  </div>
+  <div class="callout amal en" style="margin-top:16px">
+    <span class="lbl">Your one-liner credential</span>
+    At <b>McMakler</b> you migrated a proprietary orchestrator to <b>Airflow</b>, killed
+    <b>100s of K EUR/yr</b> in licensing, built a proprietary <b>Salesforce sync layer</b> on Airflow,
+    and grew the team <b>2→7</b>. That is "I have actually operated Airflow in production." Lead with it.
+  </div>
+  <div class="callout amal ru" style="margin-top:16px">
+    <span class="lbl">Твоя формула в одно предложение</span>
+    В <b>McMakler</b> ты мигрировал проприетарный оркестратор на <b>Airflow</b>, убил
+    <b>сотни тысяч EUR/год</b> на лицензиях, построил проприетарный <b>слой синхронизации Salesforce</b> на Airflow
+    и вырастил команду с <b>2 до 7</b> человек. Это «я реально эксплуатировал Airflow в продакшене». Начинай с этого.
+  </div>
+</header>
+
+<main>
+
+<!-- MENTAL MODEL -->
+<section id="mental">
+  <div class="sec-head"><span class="ico">◆</span><h2><span class="en">The Mental Model</span><span class="ru">Ментальная модель</span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <p class="en">Airflow is an <b>orchestrator</b>, not a compute engine. It <span class="accent">schedules, sequences, retries, and tracks state</span> of tasks. It does <b>not</b> process big data itself — it triggers Spark/dbt/SQL/containers that do.</p>
+      <p class="ru">Airflow — это <b>оркестратор</b>, а не движок вычислений. Он <span class="accent">планирует, упорядочивает, перезапускает и отслеживает состояние</span> задач. Он <b>не</b> обрабатывает большие данные сам — он запускает Spark/dbt/SQL/контейнеры, которые это делают.</p>
+      <div class="ascii en"><b>WHAT AIRFLOW IS</b>            vs        <b>WHAT IT IS NOT</b>
+─────────────────────────       ─────────────────────────
+• schedules work (time/data)     ✗ a data processing engine
+• declares dependencies (DAG)    ✗ a streaming system (use Flink/Kafka)
+• retries + tracks task state    ✗ a guarantee of correct data
+• triggers Spark/dbt/SQL/pods    ✗ exactly-once (it's at-least-once)</div>
+      <div class="ascii ru"><b>ЧТО ТАКОЕ AIRFLOW</b>            vs        <b>ЧТО ОН НЕ ДЕЛАЕТ</b>
+─────────────────────────       ─────────────────────────
+• планирует работу (время/данные) ✗ движок обработки данных
+• объявляет зависимости (DAG)    ✗ стриминг-система (используй Flink/Kafka)
+• ретраи + отслеживание состояния ✗ гарантия корректных данных
+• запускает Spark/dbt/SQL/pods   ✗ exactly-once (это at-least-once)</div>
+      <p class="muted en">Say this out loud in the call: "Airflow gives me <b>at-least-once execution</b>; <b>correct outputs</b> come from making tasks <b>idempotent</b>." That single sentence signals seniority.</p>
+      <p class="muted ru">Произнеси это вслух на созвоне: «Airflow даёт мне <b>at-least-once execution</b>; <b>корректные результаты</b> получаются за счёт того, что задачи <b>идемпотентны</b>». Одно это предложение — сигнал сеньорности.</p>
+    </div>
+  </div>
+</section>
+
+<!-- LIFECYCLE -->
+<section id="lifecycle">
+  <div class="sec-head"><span class="ico">◆</span><h2><span class="en">End-to-End Run Lifecycle</span><span class="ru">Жизненный цикл выполнения</span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <div class="ascii en"> DAG file (.py)
+      │  parsed by
+      ▼
+ <b>SCHEDULER / DAG Processor</b> ──► creates <b>DagRun</b> when data_interval elapses
+      │                              creates <b>TaskInstance</b> (scheduled→queued)
+      ▼
+ <b>EXECUTOR</b> (Local / Celery / Kubernetes)
+      │  dispatches to
+      ▼
+ <b>WORKER</b> ──► re-parses DAG file, runs operator.execute() in fresh process
+      │
+      ▼
+ <b>METADATA DB</b> (Postgres) ◄── state: running→success/failed/up_for_retry
+      ▲                              scheduler polls to release downstream tasks
+      │
+ <b>WEBSERVER / UI</b> (reads metadata DB)
+      </div>
+      <div class="ascii ru"> DAG-файл (.py)
+      │  парсится
+      ▼
+ <b>SCHEDULER / DAG Processor</b> ──► создаёт <b>DagRun</b> по окончании data_interval
+      │                              создаёт <b>TaskInstance</b> (scheduled→queued)
+      ▼
+ <b>EXECUTOR</b> (Local / Celery / Kubernetes)
+      │  отправляет на
+      ▼
+ <b>WORKER</b> ──► заново парсит DAG-файл, запускает operator.execute() в новом процессе
+      │
+      ▼
+ <b>METADATA DB</b> (Postgres) ◄── состояние: running→success/failed/up_for_retry
+      ▲                              scheduler опрашивает, чтобы освободить downstream-таски
+      │
+ <b>WEBSERVER / UI</b> (читает metadata DB)
+      </div>
+      <div class="callout probe en"><span class="lbl">Interviewer will probe</span>
+        "When does a <code class="inline">@daily</code> run for June 13 actually fire?" →
+        <b>at the END of the interval</b> (00:00 June 14). <code class="inline">logical_date</code> = <b>start</b> of the interval, lagging wall-clock by one interval. Get this right or lose credibility.
+      </div>
+      <div class="callout probe ru"><span class="lbl">О чём спросит интервьюер</span>
+        «Когда реально запускается <code class="inline">@daily</code> за 13 июня?» →
+        <b>в КОНЦЕ интервала</b> (00:00 14 июня). <code class="inline">logical_date</code> = <b>начало</b> интервала, отстаёт от реального времени на один интервал. Если ошибёшься — потеряешь доверие.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CORE OBJECTS -->
+<section id="core">
+  <div class="sec-head"><span class="ico">◆</span><h2><span class="en">Core Objects &amp; Vocabulary</span><span class="ru">Базовые объекты и терминология</span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <div class="tbl-wrap"><table class="en">
+        <tr><th>Term</th><th>What it is</th></tr>
+        <tr><td><b>DAG</b></td><td>Directed Acyclic Graph: the pipeline <i>definition</i>. Acyclic ⇒ valid topological order, no infinite loops.</td></tr>
+        <tr><td><b>DagRun</b></td><td>One execution of a DAG for a specific data interval / logical date.</td></tr>
+        <tr><td><b>Operator</b></td><td>Template/class for a unit of work (PythonOperator, BashOperator, SQL ops, KubernetesPodOperator).</td></tr>
+        <tr><td><b>Task</b></td><td>An operator <i>instantiated</i> in a DAG (a node in the graph).</td></tr>
+        <tr><td><b>TaskInstance</b></td><td>One run of one task for one DagRun — the thing that actually <b>has state</b>.</td></tr>
+        <tr><td><b>Sensor</b></td><td>Special operator that <i>waits</i> for a condition (file, partition, external task).</td></tr>
+        <tr><td><b>XCom</b></td><td>Cross-communication: small key/value passed between tasks via metadata DB.</td></tr>
+        <tr><td><b>Connection / Variable</b></td><td>Credentials+endpoints / arbitrary global config k-v.</td></tr>
+        <tr><td><b>Pool</b></td><td>Caps concurrent task slots for a scarce resource (e.g. a fragile DB).</td></tr>
+        <tr><td><b>Triggerer</b></td><td>Async process running <b>deferrable operators</b> so waiting tasks don't hold worker slots.</td></tr>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <tr><th>Термин</th><th>Что это</th></tr>
+        <tr><td><b>DAG</b></td><td>Directed Acyclic Graph: <i>определение</i> пайплайна. Acyclic ⇒ валидный топологический порядок, нет бесконечных циклов.</td></tr>
+        <tr><td><b>DagRun</b></td><td>Одно выполнение DAG для конкретного data interval / logical date.</td></tr>
+        <tr><td><b>Operator</b></td><td>Шаблон/класс для единицы работы (PythonOperator, BashOperator, SQL ops, KubernetesPodOperator).</td></tr>
+        <tr><td><b>Task</b></td><td>Оператор, <i>проинстанцированный</i> в DAG (узел в графе).</td></tr>
+        <tr><td><b>TaskInstance</b></td><td>Один запуск одной задачи для одного DagRun — вот он-то и <b>имеет состояние</b>.</td></tr>
+        <tr><td><b>Sensor</b></td><td>Специальный оператор, который <i>ждёт</i> условия (файл, партиция, внешняя задача).</td></tr>
+        <tr><td><b>XCom</b></td><td>Cross-communication: маленький key/value, передаваемый между задачами через metadata DB.</td></tr>
+        <tr><td><b>Connection / Variable</b></td><td>Credentials+endpoints / произвольный глобальный конфиг k-v.</td></tr>
+        <tr><td><b>Pool</b></td><td>Ограничивает одновременные слоты задач для дефицитного ресурса (напр. хрупкой БД).</td></tr>
+        <tr><td><b>Triggerer</b></td><td>Асинхронный процесс для <b>deferrable операторов</b>, чтобы ожидающие задачи не занимали воркер-слоты.</td></tr>
+      </table></div>
+      <p class="muted en"><b>Analogy:</b> Operator : Task : TaskInstance ≈ class : object : invocation-with-state.</p>
+      <p class="muted ru"><b>Аналогия:</b> Operator : Task : TaskInstance ≈ класс : объект : вызов-с-состоянием.</p>
+      <pre class="en"><span class="c"># TaskFlow API (modern, preferred over raw operators)</span>
+<span class="k">from</span> airflow.decorators <span class="k">import</span> dag, task
+
+<span class="f">@dag</span>(schedule=<span class="s">"@daily"</span>, start_date=<span class="f">datetime</span>(<span class="n">2026</span>,<span class="n">1</span>,<span class="n">1</span>), catchup=<span class="k">False</span>)
+<span class="k">def</span> <span class="f">pipeline</span>():
+    <span class="f">@task</span>
+    <span class="k">def</span> <span class="f">extract</span>(ds=<span class="k">None</span>):        <span class="c"># ds = logical date string</span>
+        <span class="k">return</span> <span class="s">f"s3://raw/</span>{ds}<span class="s">/file.parquet"</span>  <span class="c"># small pointer → XCom OK</span>
+    <span class="f">@task</span>
+    <span class="k">def</span> <span class="f">load</span>(path): ...
+    <span class="f">load</span>(<span class="f">extract</span>())                  <span class="c"># dependency inferred from data flow</span>
+pipeline()</pre>
+      <pre class="ru"><span class="c"># TaskFlow API (современный, предпочтительнее сырых операторов)</span>
+<span class="k">from</span> airflow.decorators <span class="k">import</span> dag, task
+
+<span class="f">@dag</span>(schedule=<span class="s">"@daily"</span>, start_date=<span class="f">datetime</span>(<span class="n">2026</span>,<span class="n">1</span>,<span class="n">1</span>), catchup=<span class="k">False</span>)
+<span class="k">def</span> <span class="f">pipeline</span>():
+    <span class="f">@task</span>
+    <span class="k">def</span> <span class="f">extract</span>(ds=<span class="k">None</span>):        <span class="c"># ds = строка логической даты</span>
+        <span class="k">return</span> <span class="s">f"s3://raw/</span>{ds}<span class="s">/file.parquet"</span>  <span class="c"># маленький указатель → XCom ОК</span>
+    <span class="f">@task</span>
+    <span class="k">def</span> <span class="f">load</span>(path): ...
+    <span class="f">load</span>(<span class="f">extract</span>())                  <span class="c"># зависимость выводится из потока данных</span>
+pipeline()</pre>
+    </div>
+  </div>
+</section>
+
+<!-- SCHEDULING -->
+<section id="sched">
+  <div class="sec-head"><span class="ico">◆</span><h2><span class="en">Scheduling, Dependencies &amp; Trigger Rules</span><span class="ru">Расписание, зависимости и правила триггеров</span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3 class="en">Scheduling knobs <span class="tag def">key</span></h3>
+      <h3 class="ru">Настройки расписания <span class="tag def">ключевое</span></h3>
+      <ul class="en">
+        <li><code class="inline">start_date</code> — first interval considered. <span class="orange">Never dynamic</span> (<code class="inline">datetime.now()</code>) → undefined first interval.</li>
+        <li><code class="inline">schedule</code> — cron / preset (<code class="inline">@daily</code>) / timedelta / <code class="inline">None</code> / dataset list.</li>
+        <li><code class="inline">catchup</code> — <code class="inline">True</code> backfills <b>every</b> interval from start_date on unpause (can spawn 100s of runs). <span class="green">Default to <code class="inline">catchup=False</code></span> + controlled backfills.</li>
+        <li><code class="inline">max_active_runs</code> / <code class="inline">max_active_tasks</code> / <code class="inline">parallelism</code> — concurrency blast-radius control.</li>
+      </ul>
+      <ul class="ru">
+        <li><code class="inline">start_date</code> — первый рассматриваемый интервал. <span class="orange">Никогда динамический</span> (<code class="inline">datetime.now()</code>) → неопределённый первый интервал.</li>
+        <li><code class="inline">schedule</code> — cron / пресет (<code class="inline">@daily</code>) / timedelta / <code class="inline">None</code> / список dataset.</li>
+        <li><code class="inline">catchup</code> — <code class="inline">True</code> заполняет <b>каждый</b> интервал от start_date при снятии с паузы (может породить сотни запусков). <span class="green">По умолчанию ставь <code class="inline">catchup=False</code></span> + контролируемые backfills.</li>
+        <li><code class="inline">max_active_runs</code> / <code class="inline">max_active_tasks</code> / <code class="inline">parallelism</code> — контроль радиуса поражения параллелизма.</li>
+      </ul>
+      <h3 class="en">Dependencies &amp; Trigger Rules</h3>
+      <h3 class="ru">Зависимости и правила триггеров</h3>
+      <pre>extract <span class="k">>></span> transform <span class="k">>></span> load          <span class="c en"># or chain(), set_downstream()</span><span class="c ru"># или chain(), set_downstream()</span></pre>
+      <div class="tbl-wrap"><table class="en">
+        <tr><th>Trigger rule</th><th>Fires when…</th><th>Use for</th></tr>
+        <tr><td><code class="inline">all_success</code> <span class="muted">(default)</span></td><td>all upstream succeeded</td><td>normal flow</td></tr>
+        <tr><td><code class="inline">all_done</code></td><td>all upstream finished (any state)</td><td>cleanup / notify regardless</td></tr>
+        <tr><td><code class="inline">none_failed_min_one_success</code></td><td>none failed, ≥1 succeeded</td><td>join after branching</td></tr>
+        <tr><td><code class="inline">one_failed</code> / <code class="inline">one_success</code></td><td>≥1 in that state</td><td>fast-fail / fan-in alerts</td></tr>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <tr><th>Правило триггера</th><th>Срабатывает когда…</th><th>Для чего</th></tr>
+        <tr><td><code class="inline">all_success</code> <span class="muted">(по умолч.)</span></td><td>все upstream успешны</td><td>обычный поток</td></tr>
+        <tr><td><code class="inline">all_done</code></td><td>все upstream завершены (любое состояние)</td><td>cleanup / уведомление в любом случае</td></tr>
+        <tr><td><code class="inline">none_failed_min_one_success</code></td><td>ни один не упал, ≥1 успешен</td><td>join после ветвления</td></tr>
+        <tr><td><code class="inline">one_failed</code> / <code class="inline">one_success</code></td><td>≥1 в этом состоянии</td><td>быстрый fail / fan-in алерты</td></tr>
+      </table></div>
+      <div class="callout probe en"><span class="lbl">Interviewer will probe</span>
+        "Run a notify task even if the pipeline failed?" → <code class="inline">trigger_rule="all_done"</code>.
+        "Conditional path?" → <code class="inline">@task.branch</code> + <code class="inline">none_failed_min_one_success</code> on the join.
+      </div>
+      <div class="callout probe ru"><span class="lbl">О чём спросит интервьюер</span>
+        «Запустить notify-таску, даже если пайплайн упал?» → <code class="inline">trigger_rule="all_done"</code>.
+        «Условный путь?» → <code class="inline">@task.branch</code> + <code class="inline">none_failed_min_one_success</code> на join.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IDEMPOTENCY -->
+<section id="idem">
+  <div class="sec-head"><span class="ico">★</span><h2><span class="en">Idempotency, Backfills &amp; Retries</span><span class="ru">Идемпотентность, backfills и ретраи</span> <span class="badge hot" style="font-size:11px"><span class="en">most-asked</span><span class="ru">частый вопрос</span></span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3 class="en">Idempotency = same logical date, run N times → same end state <span class="tag def">core</span></h3>
+      <h3 class="ru">Идемпотентность = та же logical date, запущено N раз → то же конечное состояние <span class="tag def">суть</span></h3>
+      <p class="en">Required because retries, manual reruns, and backfills <b>will</b> re-execute tasks.</p>
+      <p class="ru">Требуется, потому что ретраи, ручные перезапуски и backfills <b>неизбежно</b> переисполнят задачи.</p>
+      <ul class="en">
+        <li><b>Partition-scoped writes</b> — write only the partition for <code class="inline">{{ ds }}</code>, never "everything since yesterday."</li>
+        <li><b>Overwrite-by-partition / MERGE / upsert</b> — a rerun <i>replaces</i>, never appends. (dbt <code class="inline">--full-refresh</code> on a partition; <code class="inline">INSERT OVERWRITE</code>; Iceberg <code class="inline">replaceWhere</code> / <code class="inline">MERGE</code>.)</li>
+        <li><b>Deterministic inputs</b> — parameterize off <code class="inline">logical_date</code>, <span class="orange">never <code class="inline">datetime.now()</code> / <code class="inline">CURRENT_DATE</code></span>. #1 idempotency bug.</li>
+        <li><b>Guard non-replayable side effects</b> (emails, external API mutations).</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Запись с ограничением партицией</b> — пишем только партицию для <code class="inline">{{ ds }}</code>, никогда не «всё с вчерашнего дня».</li>
+        <li><b>Перезапись по партиции / MERGE / upsert</b> — перезапуск <i>заменяет</i>, никогда не добавляет. (dbt <code class="inline">--full-refresh</code> на партицию; <code class="inline">INSERT OVERWRITE</code>; Iceberg <code class="inline">replaceWhere</code> / <code class="inline">MERGE</code>.)</li>
+        <li><b>Детерминированные входные данные</b> — параметризуй от <code class="inline">logical_date</code>, <span class="orange">никогда от <code class="inline">datetime.now()</code> / <code class="inline">CURRENT_DATE</code></span>. Это баг №1 в идемпотентности.</li>
+        <li><b>Защищай неповторяемые побочные эффекты</b> (email, мутации внешних API).</li>
+      </ul>
+      <pre class="en"><span class="c"># BAD — non-idempotent: appends, uses wall-clock</span>
+<span class="k">INSERT INTO</span> sales <span class="k">SELECT</span> * <span class="k">FROM</span> src <span class="k">WHERE</span> dt <span class="k">=</span> <span class="f">CURRENT_DATE</span>;
+
+<span class="c"># GOOD — idempotent: overwrite the exact partition for the logical date</span>
+<span class="k">INSERT OVERWRITE</span> sales <span class="k">PARTITION</span> (ds=<span class="s">'{{ ds }}'</span>)
+<span class="k">SELECT</span> * <span class="k">FROM</span> src <span class="k">WHERE</span> dt <span class="k">=</span> <span class="s">'{{ ds }}'</span>;</pre>
+      <pre class="ru"><span class="c"># ПЛОХО — неидемпотентно: добавляет, использует реальное время</span>
+<span class="k">INSERT INTO</span> sales <span class="k">SELECT</span> * <span class="k">FROM</span> src <span class="k">WHERE</span> dt <span class="k">=</span> <span class="f">CURRENT_DATE</span>;
+
+<span class="c"># ХОРОШО — идемпотентно: перезаписывает точную партицию для логической даты</span>
+<span class="k">INSERT OVERWRITE</span> sales <span class="k">PARTITION</span> (ds=<span class="s">'{{ ds }}'</span>)
+<span class="k">SELECT</span> * <span class="k">FROM</span> src <span class="k">WHERE</span> dt <span class="k">=</span> <span class="s">'{{ ds }}'</span>;</pre>
+      <h3>Backfills</h3>
+      <div class="tbl-wrap"><table class="en">
+        <tr><th>Mechanism</th><th>What</th></tr>
+        <tr><td><code class="inline">catchup=True</code></td><td>auto-fills missing intervals on unpause</td></tr>
+        <tr><td><code class="inline">airflow dags backfill -s -e</code></td><td>bounded historical range on demand</td></tr>
+        <tr><td><code class="inline">clear</code> TaskInstances</td><td>wipe state → scheduler reruns ("rerun yesterday")</td></tr>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <tr><th>Механизм</th><th>Что делает</th></tr>
+        <tr><td><code class="inline">catchup=True</code></td><td>автоматически заполняет пропущенные интервалы при снятии с паузы</td></tr>
+        <tr><td><code class="inline">airflow dags backfill -s -e</code></td><td>ограниченный исторический диапазон по требованию</td></tr>
+        <tr><td><code class="inline">clear</code> TaskInstances</td><td>стирает состояние → scheduler перезапускает («переиграть вчера»)</td></tr>
+      </table></div>
+      <p class="muted en">All three rely on idempotency. Limit blast radius with <code class="inline">max_active_runs</code> + pools so a backfill doesn't DoS sources.</p>
+      <p class="muted ru">Все три опираются на идемпотентность. Ограничь радиус поражения через <code class="inline">max_active_runs</code> + pools, чтобы backfill не задосил источники.</p>
+      <h3 class="en">Retries</h3>
+      <h3 class="ru">Ретраи</h3>
+      <p class="en"><code class="inline">retries</code>, <code class="inline">retry_delay</code>, <code class="inline">retry_exponential_backoff=True</code>. Retries help <b>transient</b> failures <i>only if the task is idempotent</i>. Don't retry deterministic failures (bad SQL) — wasted time. Alert on final failure via <code class="inline">on_failure_callback</code>.</p>
+      <p class="ru"><code class="inline">retries</code>, <code class="inline">retry_delay</code>, <code class="inline">retry_exponential_backoff=True</code>. Ретраи помогают <b>временным</b> сбоям <i>только если задача идемпотентна</i>. Не ретрай детерминированные ошибки (плохой SQL) — потеря времени. Алерт на окончательный провал через <code class="inline">on_failure_callback</code>.</p>
+      <div class="callout amal en"><span class="lbl">Anchor to your experience</span>
+        At <b>Meta</b> you fixed a green-but-wrong defect across <b>6.2B records / 34% of threads</b> and restored
+        <b>100+ downstream metrics</b>. Use it for "success ≠ correctness." At <b>McMakler</b>, the Salesforce sync had
+        to be idempotent — re-syncing must upsert on a natural key, never duplicate records.
+      </div>
+      <div class="callout amal ru"><span class="lbl">Привязка к опыту</span>
+        В <b>Meta</b> ты исправил дефект «зелёно, но неправильно» на <b>6,2 млрд записей / 34% тредов</b> и восстановил
+        <b>100+ downstream-метрик</b>. Используй это для «успех ≠ корректность». В <b>McMakler</b> синхронизация Salesforce
+        должна была быть идемпотентной — ре-синк должен делать upsert по натуральному ключу, никогда не дублировать записи.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SENSORS / XCOM -->
+<section id="sensors">
+  <div class="sec-head"><span class="ico">◆</span><h2><span class="en">Sensors &amp; XComs</span><span class="ru">Sensors и XComs</span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3 class="en">Sensors — wait for a condition</h3>
+      <h3 class="ru">Sensors — ожидание условия</h3>
+      <ul class="en">
+        <li>FileSensor, S3KeySensor, ExternalTaskSensor, custom sensors.</li>
+        <li><span class="orange">CRITICAL:</span> use <code class="inline">mode="reschedule"</code> or <b>deferrable operators</b> (triggerer), NOT <code class="inline">mode="poke"</code>. Poke holds a worker slot the whole time → many sensors = <b>pool starvation / deadlock</b>.</li>
+        <li>Set <code class="inline">timeout</code> + <code class="inline">poke_interval</code>; decide soft-fail vs hard-fail.</li>
+        <li><b>Better:</b> prefer event/data-driven triggering (Datasets/Assets) over polling.</li>
+      </ul>
+      <ul class="ru">
+        <li>FileSensor, S3KeySensor, ExternalTaskSensor, кастомные sensors.</li>
+        <li><span class="orange">КРИТИЧНО:</span> используй <code class="inline">mode="reschedule"</code> или <b>deferrable операторы</b> (triggerer), НЕ <code class="inline">mode="poke"</code>. Poke держит слот воркера всё время → много sensors = <b>истощение pool / deadlock</b>.</li>
+        <li>Устанавливай <code class="inline">timeout</code> + <code class="inline">poke_interval</code>; решай soft-fail vs hard-fail.</li>
+        <li><b>Лучше:</b> предпочитай event/data-driven триггеры (Datasets/Assets) вместо поллинга.</li>
+      </ul>
+      <div class="callout probe en"><span class="lbl">Interviewer will probe</span>
+        "10,000 sensors waiting on files — what breaks?" → poke-mode worker starvation. Fix: reschedule mode / deferrable operators that offload to the async triggerer (near-zero resources while waiting).
+      </div>
+      <div class="callout probe ru"><span class="lbl">О чём спросит интервьюер</span>
+        «10 000 sensors ждут файлов — что сломается?» → poke-режим истощает воркеры. Лечение: reschedule-режим / deferrable операторы, которые разгружают на асинхронный triggerer (почти нулевые ресурсы при ожидании).
+      </div>
+      <h3 class="en">XComs — small messages between tasks</h3>
+      <h3 class="ru">XComs — маленькие сообщения между задачами</h3>
+      <ul class="en">
+        <li>Stored in metadata DB; TaskFlow return values auto-become XComs.</li>
+        <li><span class="orange">Danger:</span> meant for <b>small metadata</b> (a path, a count, a date). <b>Never push dataframes / large payloads</b> — bloats the DB, kills the scheduler.</li>
+        <li>Big data → write to S3/warehouse, pass the <b>pointer</b> via XCom. Custom XCom backend can offload to S3/GCS.</li>
+      </ul>
+      <ul class="ru">
+        <li>Хранятся в metadata DB; возвращаемые значения TaskFlow автоматически становятся XComs.</li>
+        <li><span class="orange">Опасность:</span> предназначены для <b>малых метаданных</b> (путь, счётчик, дата). <b>Никогда не пиши dataframes / большие payload</b> — раздувает DB, убивает scheduler.</li>
+        <li>Большие данные → пиши в S3/хранилище, передавай <b>указатель</b> через XCom. Кастомный XCom-бэкенд может разгружать в S3/GCS.</li>
+      </ul>
+      <h3 class="en">ExternalTaskSensor — cross-DAG dep trap</h3>
+      <h3 class="ru">ExternalTaskSensor — ловушка cross-DAG зависимостей</h3>
+      <p class="en">Both DAGs must share the same logical date or set <code class="inline">execution_delta</code> / <code class="inline">execution_date_fn</code> to align. Mismatched schedules ⇒ <b>waits forever</b>. Modern fix: <b>Datasets/Assets</b> decouple from schedule alignment entirely.</p>
+      <p class="ru">Оба DAG должны иметь одинаковую logical date или установить <code class="inline">execution_delta</code> / <code class="inline">execution_date_fn</code> для выравнивания. Несовпадающие расписания ⇒ <b>ждёт вечно</b>. Современное лечение: <b>Datasets/Assets</b> полностью отвязаны от выравнивания расписаний.</p>
+    </div>
+  </div>
+</section>
+
+<!-- EXECUTORS -->
+<section id="exec">
+  <div class="sec-head"><span class="ico">◆</span><h2><span class="en">Executors — Scaling the Work</span><span class="ru">Исполнители — масштабирование работы</span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <div class="tbl-wrap"><table class="en">
+        <tr><th>Executor</th><th>How it runs</th><th>Use case</th><th>Trade-off</th></tr>
+        <tr><td>Sequential</td><td>1 task, SQLite</td><td>demos</td><td>no parallelism</td></tr>
+        <tr><td>Local</td><td>subprocesses on scheduler host</td><td>small single-node</td><td>bounded by one box</td></tr>
+        <tr><td>Celery</td><td>queue (Redis/RabbitMQ) + worker fleet</td><td>steady horizontal scale</td><td>run brokers+workers; idle cost</td></tr>
+        <tr><td>Kubernetes</td><td>one pod per task</td><td>bursty, isolation, per-task deps</td><td>pod startup latency</td></tr>
+        <tr><td>CeleryKubernetes</td><td>hybrid</td><td>steady + bursty mix</td><td>complexity</td></tr>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <tr><th>Исполнитель</th><th>Как запускает</th><th>Применение</th><th>Компромисс</th></tr>
+        <tr><td>Sequential</td><td>1 задача, SQLite</td><td>демки</td><td>нет параллелизма</td></tr>
+        <tr><td>Local</td><td>подпроцессы на хосте scheduler</td><td>малый single-node</td><td>ограничен одной машиной</td></tr>
+        <tr><td>Celery</td><td>очередь (Redis/RabbitMQ) + флот воркеров</td><td>стабильная горизонтальная масштаб.</td><td>нужны брокеры+воркеры; стоимость простоя</td></tr>
+        <tr><td>Kubernetes</td><td>один pod на задачу</td><td>пиковая, изоляция, per-task deps</td><td>задержка старта pod</td></tr>
+        <tr><td>CeleryKubernetes</td><td>гибридный</td><td>стабильная + пиковая смесь</td><td>сложность</td></tr>
+      </table></div>
+      <div class="callout probe en"><span class="lbl">Interviewer will probe</span>
+        "Workers idle off-peak, cost matters" → <b>Kubernetes</b> (pod-per-task, scales to zero) or deferrable operators.
+        "High throughput, steady, low latency" → <b>Celery</b> (warm workers, no pod cold-start).
+      </div>
+      <div class="callout probe ru"><span class="lbl">О чём спросит интервьюер</span>
+        «Воркеры простаивают в низкую нагрузку, важна цена» → <b>Kubernetes</b> (pod-per-task, масштабируется до нуля) или deferrable операторы.
+        «Высокая пропускная, стабильная, низкая задержка» → <b>Celery</b> (тёплые воркеры, нет холодного старта pod).
+      </div>
+      <p class="muted en"><b>Concurrency controls:</b> <code class="inline">parallelism</code> (cluster) ⊃ <code class="inline">max_active_tasks</code> (per DAG) ⊃ <b>Pool</b> slots (per resource) ⊃ <code class="inline">priority_weight</code> (queue order).</p>
+      <p class="muted ru"><b>Контроль параллелизма:</b> <code class="inline">parallelism</code> (кластер) ⊃ <code class="inline">max_active_tasks</code> (на DAG) ⊃ <b>Pool</b>-слоты (на ресурс) ⊃ <code class="inline">priority_weight</code> (порядок в очереди).</p>
+    </div>
+  </div>
+</section>
+
+<!-- DYNAMIC / SLA -->
+<section id="dyn">
+  <div class="sec-head"><span class="ico">◆</span><h2><span class="en">Dynamic DAGs, SLAs &amp; Testing</span><span class="ru">Динамические DAG, SLA и тестирование</span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3 class="en">Dynamic — two different things</h3>
+      <h3 class="ru">Dynamic — две разные вещи</h3>
+      <ul class="en">
+        <li><b>Dynamic DAG generation</b> — build DAG objects in a loop from config (YAML/DB). Cost: parsed every scheduler loop ⇒ <span class="orange">keep top-level code cheap</span> (no API/DB calls at module level).</li>
+        <li><b>Dynamic Task Mapping</b> (<code class="inline">.expand()</code>, 2.3+) — fan out a task over a runtime list (map/reduce). Count decided at runtime, visible in UI. Preferred when the <i>count</i> is data-dependent.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Динамическая генерация DAG</b> — сборка DAG-объектов в цикле из конфига (YAML/DB). Цена: парсится каждый scheduler-цикл ⇒ <span class="orange">держи код на верхнем уровне дешёвым</span> (никаких API/DB вызовов на уровне модуля).</li>
+        <li><b>Dynamic Task Mapping</b> (<code class="inline">.expand()</code>, 2.3+) — размножение задачи по runtime-списку (map/reduce). Число решается в runtime, видно в UI. Предпочтительно, когда <i>число</i> зависит от данных.</li>
+      </ul>
+      <pre>process = run.expand(item=get_items())   <span class="c en"># N instances at runtime</span><span class="c ru"># N экземпляров в runtime</span></pre>
+      <h3 class="en">SLAs <span class="tag warn">be honest</span></h3>
+      <h3 class="ru">SLA <span class="tag warn">будь честен</span></h3>
+      <p class="en">Max expected duration relative to logical date; miss → <code class="inline">sla_miss_callback</code>/email. <span class="orange">Caveat:</span> built-in SLAs are weak — only evaluated by scheduler, <b>don't fire if the task never starts</b>, tied to logical date. Say: "I'd back it with freshness/deadline checks rather than rely on the built-in feature."</p>
+      <p class="ru">Макс. ожидаемая длительность относительно logical date; промах → <code class="inline">sla_miss_callback</code>/email. <span class="orange">Оговорка:</span> встроенные SLA слабые — оцениваются только scheduler, <b>не срабатывают, если задача не стартует</b>, привязаны к logical date. Говори: «Я бы подкрепил их проверками freshness/deadline, а не полагался на встроенную фичу».</p>
+      <h3 class="en">Testing <span class="tag def">important</span></h3>
+      <h3 class="ru">Тестирование <span class="tag def">важно</span></h3>
+      <ul class="en">
+        <li><b>DAG-import tests</b> — assert all DAGs parse, no cycles, expected task counts (pytest over DagBag, run in CI on every PR).</li>
+        <li><b>Unit-test the logic, not the operator</b> — extract business logic into plain functions; operator is glue.</li>
+        <li><code class="inline">airflow tasks test &lt;dag&gt; &lt;task&gt; &lt;date&gt;</code> — run one TaskInstance without scheduler/DB writes.</li>
+        <li><b>Data tests</b> — dbt tests / Great Expectations / row-count + freshness as actual tasks.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>DAG-import тесты</b> — утверждай, что все DAG парсятся, нет циклов, ожидаемое число задач (pytest поверх DagBag, запускай в CI на каждом PR).</li>
+        <li><b>Юнит-тести логику, а не оператор</b> — вынимай бизнес-логику в plain-функции; оператор — клей.</li>
+        <li><code class="inline">airflow tasks test &lt;dag&gt; &lt;task&gt; &lt;date&gt;</code> — запуск одной TaskInstance без scheduler/DB-записи.</li>
+        <li><b>Data-тесты</b> — dbt tests / Great Expectations / row-count + freshness как реальные задачи.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- VS DATASWARM -->
+<section id="vs">
+  <div class="sec-head"><span class="ico">◆</span><h2><span class="en">Airflow vs Dataswarm / Chronos vs Spark/Flink</span><span class="ru">Airflow vs Dataswarm / Chronos vs Spark/Flink</span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3 class="en">Airflow vs Dataswarm/Chronos</h3>
+      <h3 class="ru">Airflow vs Dataswarm/Chronos</h3>
+      <div class="tbl-wrap"><table class="en">
+        <tr><th>Dimension</th><th>Airflow (OSS)</th><th>Dataswarm / Chronos (Meta)</th></tr>
+        <tr><td>Paradigm</td><td>task / control-flow centric</td><td>data-asset / partition centric</td></tr>
+        <tr><td>Scheduling</td><td>time-interval; you own start_date/catchup</td><td>platform-managed; declare partitions + waits</td></tr>
+        <tr><td>Dependencies</td><td>explicit task deps + Sensors/Datasets</td><td>wait-on-upstream-partition (data-driven)</td></tr>
+        <tr><td>Backfill</td><td><code class="inline">dags backfill</code>, you manage it</td><td>first-class, platform-orchestrated</td></tr>
+        <tr><td>Infra</td><td>you run scheduler/executor/workers/DB</td><td>fully managed, autoscaled</td></tr>
+        <tr><td>Observability</td><td>UI + wire your own DQ/alerts</td><td>integrated lineage, Scuba, DQ monitors</td></tr>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <tr><th>Измерение</th><th>Airflow (OSS)</th><th>Dataswarm / Chronos (Meta)</th></tr>
+        <tr><td>Парадигма</td><td>task / control-flow центрично</td><td>data-asset / partition центрично</td></tr>
+        <tr><td>Расписание</td><td>time-interval; ты владеешь start_date/catchup</td><td>управляется платформой; декларируешь партиции + waits</td></tr>
+        <tr><td>Зависимости</td><td>явные зависимости задач + Sensors/Datasets</td><td>wait-on-upstream-partition (data-driven)</td></tr>
+        <tr><td>Backfill</td><td><code class="inline">dags backfill</code>, ты управляешь</td><td>first-class, оркестрируется платформой</td></tr>
+        <tr><td>Инфраструктура</td><td>ты запускаешь scheduler/executor/workers/DB</td><td>полностью managed, autoscaled</td></tr>
+        <tr><td>Наблюдаемость</td><td>UI + ты подключаешь DQ/alerts</td><td>интегрированы lineage, Scuba, DQ monitors</td></tr>
+      </table></div>
+      <div class="callout amal en"><span class="lbl">Say this</span>
+        "Dataswarm pushes a <b>declarative, data-asset</b> model — does the output partition exist? — whereas vanilla
+        Airflow is <b>control-flow</b> centric. But Airflow's <b>Datasets/Assets</b> are converging on the same model.
+        I've seen both: managed (Meta) and operate-it-yourself (McMakler). The principles — idempotency, partitioning,
+        dependency-as-data, backfills — transfer directly."
+      </div>
+      <div class="callout amal ru"><span class="lbl">Скажи это</span>
+        «Dataswarm продвигает <b>декларативную, data-asset</b> модель — существует ли выходная партиция? — тогда как
+        обычный Airflow центрируется на <b>control-flow</b>. Но Airflow-овые <b>Datasets/Assets</b> сходятся к той же модели.
+        Я видел оба: managed (Meta) и operate-it-yourself (McMakler). Принципы — идемпотентность, партиционирование,
+        dependency-as-data, backfills — переносятся напрямую.»
+      </div>
+      <h3 class="en">Where Airflow sits vs compute engines (bridges to DE interview)</h3>
+      <h3 class="ru">Где Airflow по отношению к движкам вычислений (связь с DE-интервью)</h3>
+      <div class="ascii"><b>Kafka</b>  ──►  <b>Flink</b> (stream, stateful, exactly-once via checkpoints)  ──►  <b>Iceberg</b>
+                                                                          ▲
+<b>Airflow</b>  ──►  <b>Spark</b> / dbt / SQL  (batch / ELT)  ──────────────────────┘
+   orchestrates batch          compute               open table format (ACID, snapshots, time-travel)
+</div>
+      <p class="muted en">Airflow orchestrates <b>batch</b>. Streaming = <b>Flink + Kafka</b> (Airflow is the wrong tool there). Iceberg is the table format under both — its snapshot isolation + <code class="inline">MERGE</code> is what makes idempotent partition overwrite clean.</p>
+      <p class="muted ru">Airflow оркестрирует <b>batch</b>. Стриминг = <b>Flink + Kafka</b> (Airflow там не подходит). Iceberg — формат таблицы под обоими — его snapshot isolation + <code class="inline">MERGE</code> делают идемпотентную перезапись партиций чистой.</p>
+    </div>
+  </div>
+</section>
+
+<!-- GOTCHAS -->
+<section id="gotchas">
+  <div class="sec-head"><span class="ico">▲</span><h2><span class="en">Top Gotchas / Anti-Patterns</span><span class="ru">Основные подводные камни / антипаттерны</span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <ul class="en">
+        <li><span class="orange">▲</span> Heavy code at <b>top level</b> of DAG files → slow parsing (runs every scheduler loop + every worker).</li>
+        <li><span class="orange">▲</span> Passing <b>large data through XCom</b> → DB bloat, scheduler death.</li>
+        <li><span class="orange">▲</span> <code class="inline">datetime.now()</code> / <code class="inline">CURRENT_DATE</code> instead of logical date → breaks idempotency &amp; backfills.</li>
+        <li><span class="orange">▲</span> <b>Dynamic <code class="inline">start_date</code></b> → DagRuns may never trigger.</li>
+        <li><span class="orange">▲</span> <code class="inline">mode="poke"</code> sensors → worker starvation.</li>
+        <li><span class="orange">▲</span> <b>Non-idempotent appends</b> → duplicates on retry.</li>
+        <li><span class="orange">▲</span> One giant monolithic task vs granular, individually-retryable tasks.</li>
+        <li><span class="orange">▲</span> Treating <b>task-success as data-correctness</b> (no DQ checks) → silent empty/wrong data.</li>
+        <li><span class="orange">▲</span> Secrets in <b>Variables</b> → use a secrets backend (Vault / AWS Secrets Manager).</li>
+        <li><span class="orange">▲</span> <code class="inline">catchup=True</code> left on by accident → 100s of concurrent runs hammering sources.</li>
+        <li><span class="orange">▲</span> <b>Renaming a DAG</b> → history keyed on <code class="inline">dag_id</code>; new id loses history + may re-trigger catchup.</li>
+      </ul>
+      <ul class="ru">
+        <li><span class="orange">▲</span> Тяжёлый код на <b>верхнем уровне</b> DAG-файлов → медленный парсинг (запускается каждый scheduler-цикл + каждый воркер).</li>
+        <li><span class="orange">▲</span> Передача <b>больших данных через XCom</b> → раздутие DB, смерть scheduler.</li>
+        <li><span class="orange">▲</span> <code class="inline">datetime.now()</code> / <code class="inline">CURRENT_DATE</code> вместо logical date → ломает идемпотентность и backfills.</li>
+        <li><span class="orange">▲</span> <b>Динамический <code class="inline">start_date</code></b> → DagRuns могут никогда не сработать.</li>
+        <li><span class="orange">▲</span> <code class="inline">mode="poke"</code> sensors → истощение воркеров.</li>
+        <li><span class="orange">▲</span> <b>Неидемпотентные appends</b> → дубли при ретраях.</li>
+        <li><span class="orange">▲</span> Одна гигантская монолитная задача vs гранулярные, по отдельности ретраибл задачи.</li>
+        <li><span class="orange">▲</span> Считать <b>успех задачи = корректность данных</b> (нет DQ-проверок) → тихие пустые/неправильные данные.</li>
+        <li><span class="orange">▲</span> Секреты в <b>Variables</b> → используй secrets backend (Vault / AWS Secrets Manager).</li>
+        <li><span class="orange">▲</span> <code class="inline">catchup=True</code> оставлен случайно → сотни одновременных запусков молотят источники.</li>
+        <li><span class="orange">▲</span> <b>Переименование DAG</b> → история ключуется на <code class="inline">dag_id</code>; новый id теряет историю + может перезапустить catchup.</li>
+      </ul>
+      <div class="callout gap en"><span class="lbl">Study-gap — be clear &amp; honest</span>
+        For <b>Flink / Iceberg</b>: "My production Airflow/Spark/Kafka experience is real (McMakler migration, Front Tier
+        Scala/Spark-on-Hadoop, IU Group Kafka). Flink &amp; Iceberg I know conceptually and am ramping." Then connect:
+        Iceberg snapshot isolation = clean idempotent overwrites; Flink = streaming counterpart of batch Spark (event-time,
+        watermarks, checkpoints for exactly-once); Kafka = the log Airflow batch-consumes or triggers jobs against.
+      </div>
+      <div class="callout gap ru"><span class="lbl">Пробел для изучения — будь чёток и честен</span>
+        По <b>Flink / Iceberg</b>: «Мой продакшен-опыт Airflow/Spark/Kafka реален (миграция McMakler, Front Tier
+        Scala/Spark-на-Hadoop, IU Group Kafka). Flink и Iceberg я знаю концептуально и разгоняюсь.» Затем свяжи:
+        Iceberg snapshot isolation = чистая идемпотентная перезапись; Flink = стриминговый аналог batch Spark (event-time,
+        watermarks, checkpoints для exactly-once); Kafka = лог, который Airflow batch-консумит или против которого запускает jobs.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SELF QUIZ -->
+<section id="quiz">
+  <div class="sec-head"><span class="ico">◆</span><h2><span class="en">Self-Quiz — Flip to Reveal</span><span class="ru">Самопроверка — переверни карточку</span></h2><span class="chev">▾</span></div>
+  <div class="sec-body">
+    <p class="muted en">Tap a card to flip. Cover the answer, say it out loud, then check.</p>
+    <p class="muted ru">Нажми на карточку, чтобы перевернуть. Закрой ответ, произнеси вслух, затем проверь.</p>
+    <div class="flip-grid reveal">
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">When does a <code class="inline">@daily</code> run for June 13 fire, and what is its logical_date?</div><div class="q ru">Когда запускается <code class="inline">@daily</code> за 13 июня, и чему равна его logical_date?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en">Fires at the END of the interval (00:00 June 14). <b>logical_date = start of interval = June 13</b>. Lags wall-clock by one interval.</div><div class="a ru">Срабатывает в КОНЦЕ интервала (00:00 14 июня). <b>logical_date = начало интервала = 13 июня</b>. Отстаёт от реального времени на один интервал.</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">How do you make a task idempotent?</div><div class="q ru">Как сделать задачу идемпотентной?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en">Partition-scoped writes keyed on logical_date + overwrite/MERGE/upsert (not append) + deterministic inputs (no <code class="inline">now()</code>). So N runs = same end state.</div><div class="a ru">Запись по партициям на logical_date + overwrite/MERGE/upsert (не append) + детерминированные входы (не <code class="inline">now()</code>). Так N запусков = одно конечное состояние.</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">Why is <code class="inline">mode="poke"</code> on sensors dangerous at scale?</div><div class="q ru">Почему <code class="inline">mode="poke"</code> на sensors опасен на масштабе?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en">Each sensor holds a worker slot the entire wait → pool starvation/deadlock. Use <b>reschedule mode</b> or <b>deferrable operators</b> (async triggerer).</div><div class="a ru">Каждый sensor держит слот воркера всё время ожидания → истощение pool/deadlock. Используй <b>reschedule mode</b> или <b>deferrable операторы</b> (async triggerer).</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">What must NOT go through XCom, and why?</div><div class="q ru">Что НЕЛЬЗЯ передавать через XCom, и почему?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en">Large payloads / dataframes — XComs live in the metadata DB. Pass a <b>pointer (S3 path)</b>; store the data in the warehouse.</div><div class="a ru">Большие payload / dataframes — XComs хранятся в metadata DB. Передавай <b>указатель (путь S3)</b>; храни данные в хранилище.</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">Daily DAG is green for 3 days but produced no data. First checks?</div><div class="q ru">Ежедневный DAG зелёный 3 дня, но не создал данных. Первые проверки?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en">Are DagRuns even created? (paused / scheduler / catchup). If tasks "succeeded" empty → upstream empty, <code class="inline">CURRENT_DATE</code> bug, swallowed exception, schema drift. Success ≠ correctness → add DQ checks.</div><div class="a ru">Вообще создаются DagRuns? (paused / scheduler / catchup). Если задачи «успешны» пусто → upstream пуст, баг <code class="inline">CURRENT_DATE</code>, проглоченное исключение, дрейф схемы. Успех ≠ корректность → добавь DQ-проверки.</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">Executor for bursty load where workers must scale to zero off-peak?</div><div class="q ru">Исполнитель для пиковой нагрузки, где воркеры должны масштабироваться до нуля в низкую нагрузку?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en"><b>KubernetesExecutor</b> (pod per task, scales to zero) or deferrable operators. Celery = steady high-throughput, low latency.</div><div class="a ru"><b>KubernetesExecutor</b> (pod на задачу, масштабируется до нуля) или deferrable операторы. Celery = стабильная высокая пропускная, низкая задержка.</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">Run a notify/cleanup task even if upstream failed?</div><div class="q ru">Запустить notify/cleanup-задачу, даже если upstream упал?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en"><code class="inline">trigger_rule="all_done"</code> (fires once all upstream finish, any state).</div><div class="a ru"><code class="inline">trigger_rule="all_done"</code> (срабатывает, как только все upstream завершены, любое состояние).</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">Consistency guarantee Airflow gives?</div><div class="q ru">Какую гарантию консистентности даёт Airflow?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en"><b>At-least-once</b> execution (retries/reruns/backfills). Exactly-once <i>outputs</i> only via <b>idempotent tasks</b>.</div><div class="a ru"><b>At-least-once</b> execution (ретраи/перезапуски/backfills). Exactly-once <i>выходы</i> только через <b>идемпотентные задачи</b>.</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">Dynamic DAG generation vs Dynamic Task Mapping?</div><div class="q ru">Динамическая генерация DAG vs динамическое маппинг задач?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en">Generation = build N DAG objects from config (cost: parsed every loop). Mapping = <code class="inline">.expand()</code> fans one task over a runtime list (count data-dependent).</div><div class="a ru">Генерация = сборка N DAG-объектов из конфига (цена: парсится каждый цикл). Маппинг = <code class="inline">.expand()</code> размножает одну задачу по runtime-списку (число зависит от данных).</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">Airflow vs Dataswarm — one-sentence framing?</div><div class="q ru">Airflow vs Dataswarm — формула в одно предложение?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en">Airflow = control-flow/time centric (you operate it); Dataswarm = managed, data-asset/partition centric. Airflow's Datasets are converging on that model; principles transfer.</div><div class="a ru">Airflow = control-flow/время центричен (ты эксплуатируешь); Dataswarm = managed, data-asset/partition центричен. Airflow-овые Datasets сходятся к той модели; принципы переносятся.</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">Why never use a dynamic <code class="inline">start_date</code>?</div><div class="q ru">Почему никогда не использовать динамический <code class="inline">start_date</code>?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en">It makes the first data interval undefined; the scheduler may never compute a triggerable interval → DagRuns don't fire.</div><div class="a ru">Это делает первый data interval неопределённым; scheduler может никогда не вычислить запускаемый интервал → DagRuns не срабатывают.</div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q en">How does Iceberg make idempotent writes clean?</div><div class="q ru">Как Iceberg делает идемпотентные записи чистыми?</div><div class="hint en">tap to flip</div><div class="hint ru">нажми, чтобы перевернуть</div></div>
+        <div class="flip-face flip-back"><div class="a en">Snapshot isolation (readers never see partial partition) + <code class="inline">MERGE</code>/<code class="inline">replaceWhere</code> partition overwrite → a rerun just creates a new snapshot replacing that day.</div><div class="a ru">Snapshot isolation (читатели не видят частичную партицию) + <code class="inline">MERGE</code>/<code class="inline">replaceWhere</code> перезапись партиции → перезапуск просто создаёт новый snapshot, заменяя тот день.</div></div>
+      </div></div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Airflow & Orchestration · Data Engineering Interview Prep · built for Amal Imangulov<br>
+  Lead with the McMakler migration. Say "at-least-once + idempotency" early. Be honest on Flink/Iceberg, then bridge.</span>
+  <span class="ru">Airflow и оркестрация · подготовка к Data Engineering интервью · собрано для Амаля Имангулова<br>
+  Начинай с миграции McMakler. Говори «at-least-once + идемпотентность» в начале. Будь честен по Flink/Iceberg, затем связывай.</span>
+</footer>
+
+</main>
+
+<script>
+  // THEME + LANG TOGGLE (combined IIFE from kafka.html)
+  (function() {
+    const root = document.documentElement;
+    const langBtn = document.getElementById('langBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const THEME_KEY = 'de_cheat_theme';
+    const LANG_KEY = 'de_cheat_lang';
+
+    // restore
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+    const savedLang = localStorage.getItem(LANG_KEY) || 'en';
+    root.setAttribute('data-theme', savedTheme);
+    root.setAttribute('data-lang', savedLang);
+
+    function syncButtons() {
+      const theme = root.getAttribute('data-theme');
+      const lang = root.getAttribute('data-lang');
+      themeBtn.textContent = theme === 'dark' ? '🌙 Dark' : '☀️ Light';
+      langBtn.textContent = lang === 'en' ? '🌐 RU' : '🌐 EN';
+    }
+    syncButtons();
+
+    langBtn.addEventListener('click', () => {
+      const next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+      root.setAttribute('data-lang', next);
+      localStorage.setItem(LANG_KEY, next);
+      syncButtons();
+    });
+
+    themeBtn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem(THEME_KEY, next);
+      syncButtons();
+    });
+  })();
+
+  // COLLAPSIBLE SECTIONS
+  document.querySelectorAll('.sec-head').forEach(h => {
+    h.addEventListener('click', () => {
+      h.classList.toggle('collapsed');
+      const body = h.nextElementSibling;
+      if (body && body.classList.contains('sec-body')) body.classList.toggle('hidden');
+    });
+  });
+
+  // FLIP CARDS
+  document.querySelectorAll('.flip').forEach(c => {
+    c.addEventListener('click', () => c.classList.toggle('flipped'));
+  });
+
+  // SCROLL REVEAL
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ACTIVE NAV HIGHLIGHT (subtle)
+  const navLinks = [...document.querySelectorAll('nav a')];
+  const secs = navLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  const navIo = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.style.color = '');
+        const active = navLinks.find(l => l.getAttribute('href') === '#' + e.target.id);
+        if (active) active.style.color = 'var(--accent)';
+      }
+    });
+  }, { rootMargin: '-60px 0px -70% 0px' });
+  secs.forEach(s => navIo.observe(s));
+</script>
+</body>
+</html>

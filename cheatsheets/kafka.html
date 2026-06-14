@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Kafka — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #151d30;
+    --card2: #1b2641;
+    --text: #e7ecf5;
+    --muted: #94a3b8;
+    --border: #25304d;
+    --accent: #1877F2;
+    --green: #02e2ac;
+    --orange: #f59e0b;
+    --purple: #a855f7;
+    --code-bg: #0d1322;
+    --shadow: rgba(0,0,0,0.45);
+  }
+  [data-theme="light"] {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --card2: #eef2fa;
+    --text: #14213d;
+    --muted: #5b6b86;
+    --border: #d6deec;
+    --accent: #1877F2;
+    --green: #058f6e;
+    --orange: #c2790a;
+    --purple: #8b3fd6;
+    --code-bg: #f0f3fa;
+    --shadow: rgba(40,60,100,0.12);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    transition: background .25s, color .25s;
+  }
+  code, pre, .mono { font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, "Courier New", monospace; }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* ---- Nav ---- */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 4px;
+    padding: 8px 14px; overflow-x: auto; white-space: nowrap;
+  }
+  nav .brand { font-weight: 700; color: var(--accent); margin-right: 10px; font-size: 14px; flex-shrink:0; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 12.5px;
+    padding: 5px 9px; border-radius: 7px; transition: .15s; flex-shrink:0;
+  }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  /* ---- Layout ---- */
+  header.hero {
+    padding: 34px 20px 22px; max-width: 1080px; margin: 0 auto;
+  }
+  header.hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -.5px; }
+  header.hero .sub { color: var(--muted); font-size: 15px; }
+  header.hero .pill {
+    display:inline-block; background: var(--card2); border:1px solid var(--border);
+    color: var(--green); font-size:12px; padding:3px 10px; border-radius: 20px; margin-top:10px; margin-right:6px;
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 0 20px 80px; }
+
+  section { margin: 26px 0; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px; margin: 14px 0;
+    box-shadow: 0 4px 18px var(--shadow);
+  }
+  h2 {
+    font-size: 21px; margin: 30px 0 4px; letter-spacing: -.3px;
+    display:flex; align-items:center; gap:9px;
+  }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size: 16px; margin: 16px 0 6px; }
+  p { margin: 8px 0; }
+  ul { margin: 8px 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+  strong { color: var(--text); }
+  .k { color: var(--accent); font-weight:600; }
+  .g { color: var(--green); font-weight:600; }
+  .o { color: var(--orange); font-weight:600; }
+  .pu { color: var(--purple); font-weight:600; }
+  .muted { color: var(--muted); }
+
+  /* collapsible */
+  details.collapse {
+    border: 1px solid var(--border); border-radius: 12px;
+    margin: 12px 0; background: var(--card); overflow: hidden;
+    box-shadow: 0 4px 18px var(--shadow);
+  }
+  details.collapse > summary {
+    cursor: pointer; padding: 14px 18px; font-weight: 650; font-size: 16px;
+    list-style: none; display:flex; align-items:center; gap:10px;
+    user-select: none;
+  }
+  details.collapse > summary::-webkit-details-marker { display:none; }
+  details.collapse > summary::before {
+    content: "▸"; color: var(--accent); transition: transform .2s; font-size:13px;
+  }
+  details.collapse[open] > summary::before { transform: rotate(90deg); }
+  details.collapse > summary:hover { background: var(--card2); }
+  .collapse-body { padding: 2px 18px 16px; border-top: 1px solid var(--border); }
+
+  /* code */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 13px 15px; overflow-x: auto;
+    font-size: 13px; line-height: 1.5; margin: 10px 0;
+  }
+  pre .cm { color: var(--muted); }       /* comment */
+  pre .kw { color: var(--purple); }      /* keyword */
+  pre .st { color: var(--green); }       /* string/value */
+  pre .nm { color: var(--orange); }      /* number */
+  pre .pr { color: var(--accent); }      /* property */
+  code.inline {
+    background: var(--code-bg); border:1px solid var(--border);
+    border-radius: 5px; padding: 1px 6px; font-size: 12.5px; color: var(--green);
+  }
+
+  /* ascii diagram */
+  .ascii {
+    background: var(--code-bg); border:1px solid var(--border);
+    border-radius:10px; padding: 14px; overflow-x:auto;
+    font-size: 12.5px; line-height: 1.4; color: var(--text); white-space: pre;
+  }
+
+  /* table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--accent); font-weight: 650; border-bottom: 2px solid var(--border); }
+  tr:hover td { background: var(--card2); }
+
+  /* callouts */
+  .callout {
+    border-left: 4px solid var(--orange); background: color-mix(in srgb, var(--orange) 9%, var(--card));
+    border-radius: 0 10px 10px 0; padding: 11px 15px; margin: 12px 0; font-size: 14px;
+  }
+  .callout.probe { border-color: var(--purple); background: color-mix(in srgb, var(--purple) 9%, var(--card)); }
+  .callout.anchor { border-color: var(--green); background: color-mix(in srgb, var(--green) 9%, var(--card)); }
+  .callout.gap { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--card)); }
+  .callout .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .callout.probe .lbl { color: var(--purple); }
+  .callout .lbl.warn { color: var(--orange); }
+  .callout.anchor .lbl { color: var(--green); }
+  .callout.gap .lbl { color: var(--accent); }
+
+  /* flip cards */
+  .flip-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin: 14px 0; }
+  .flip {
+    perspective: 1200px; height: 170px; cursor: pointer;
+  }
+  .flip-inner {
+    position: relative; width:100%; height:100%; transition: transform .5s;
+    transform-style: preserve-3d;
+  }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face {
+    position:absolute; inset:0; backface-visibility: hidden;
+    border:1px solid var(--border); border-radius: 12px; padding: 16px;
+    display:flex; flex-direction:column; justify-content:center;
+    box-shadow: 0 4px 18px var(--shadow);
+  }
+  .flip-front { background: var(--card); }
+  .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color: var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background: var(--card2); transform: rotateY(180deg); font-size: 13px; overflow-y:auto; }
+  .flip-back .a { color: var(--text); }
+
+  .reveal { opacity:0; transform: translateY(18px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+
+  .tag { font-size:11px; padding:2px 8px; border-radius:20px; border:1px solid var(--border); margin-left:6px; }
+  .tag.easy { color: var(--green); }
+  .tag.med { color: var(--orange); }
+  .tag.hard { color: var(--purple); }
+  .fire { font-size:13px; }
+
+  footer { text-align:center; color: var(--muted); font-size:12.5px; padding: 30px 20px; border-top:1px solid var(--border); }
+
+  @media (max-width: 600px) {
+    header.hero h1 { font-size: 24px; }
+    .flip { height: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">⚡ Kafka</span>
+  <a href="#fundamentals"><span class="en">Fundamentals</span><span class="ru">Основы</span></a>
+  <a href="#groups"><span class="en">Consumers</span><span class="ru">Консьюмеры</span></a>
+  <a href="#replication"><span class="en">Replication/ISR</span><span class="ru">Репликация/ISR</span></a>
+  <a href="#delivery"><span class="en">Delivery</span><span class="ru">Доставка</span></a>
+  <a href="#ordering"><span class="en">Ordering</span><span class="ru">Порядок</span></a>
+  <a href="#retention"><span class="en">Retention</span><span class="ru">Хранение</span></a>
+  <a href="#eos"><span class="en">EOS/Tx</span><span class="ru">EOS/Транз.</span></a>
+  <a href="#tuning"><span class="en">Tuning</span><span class="ru">Тюнинг</span></a>
+  <a href="#ecosystem"><span class="en">Schema/Connect</span><span class="ru">Schema/Connect</span></a>
+  <a href="#failures"><span class="en">Failures</span><span class="ru">Сбои</span></a>
+  <a href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1>Apache Kafka — <span class="k"><span class="en">DE Interview Prep</span><span class="ru">Подготовка к DE-интервью</span></span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</span>
+  </div>
+  <span class="pill"><span class="en">Distributed systems</span><span class="ru">Распределённые системы</span></span>
+  <span class="pill"><span class="en">Failure modes</span><span class="ru">Режимы сбоев</span></span>
+  <span class="pill"><span class="en">Streaming at scale</span><span class="ru">Стриминг на масштабе</span></span>
+  <span class="pill"><span class="en">Anchor: IU Group / Syntea Kafka ingestion</span><span class="ru">Якорь: IU Group / Syntea Kafka ingestion</span></span>
+</header>
+
+<main>
+
+<!-- =============== FUNDAMENTALS =============== -->
+<section id="fundamentals">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. Fundamentals: Topics, Partitions, Offsets</span><span class="ru">1. Основы: топики, партиции, оффсеты</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><span class="k">Topic</span> = named logical stream, split into <span class="k">partitions</span> (the unit of parallelism, ordering &amp; replication).</li>
+      <li><span class="k">Partition</span> = append-only, immutable, <strong>ordered</strong> log on disk.</li>
+      <li><span class="k">Offset</span> = a record's position in a partition. Monotonic, per-partition, never reused.</li>
+      <li><strong>Ordering is guaranteed only WITHIN a partition.</strong> The partition key decides what's ordered together.</li>
+      <li>Routing: explicit partition → key hash (<code class="inline">murmur2(key) % numPartitions</code>) → sticky/round-robin if no key.</li>
+      <li><strong>Partition count caps consumer parallelism</strong> (≤1 active consumer per partition per group).</li>
+    </ul>
+    <ul class="ru">
+      <li><span class="k">Топик (Topic)</span> = именованный логический поток, разбитый на <span class="k">партиции</span> (единица параллелизма, упорядочивания и репликации).</li>
+      <li><span class="k">Партиция (Partition)</span> = неизменяемый лог на диске с дозаписью в конец (append-only) и <strong>гарантированным порядком</strong>.</li>
+      <li><span class="k">Оффсет (Offset)</span> = позиция записи внутри партиции. Монотонный, отдельный на партицию, не переиспользуется.</li>
+      <li><strong>Порядок гарантируется только ВНУТРИ партиции.</strong> Ключ партиционирования решает, что упорядочено вместе.</li>
+      <li>Маршрутизация: явная партиция → хеш ключа (<code class="inline">murmur2(key) % numPartitions</code>) → sticky/round-robin, если ключа нет.</li>
+      <li><strong>Число партиций ограничивает параллелизм консьюмеров</strong> (≤1 активный консьюмер на партицию в рамках группы).</li>
+    </ul>
+
+    <div class="ascii en">Topic "events"  (3 partitions, RF=3)
+P0 ─ off:0  1  2  3  4 ◄─ leader on Broker A   (followers B,C)
+P1 ─ off:0  1  2  3      ◄─ leader on Broker B   (followers A,C)
+P2 ─ off:0  1  2  3  4  5 ◄─ leader on Broker C  (followers A,B)
+            ▲ append-only, monotonic offsets, per-partition order</div>
+    <div class="ascii ru">Топик "events"  (3 партиции, RF=3)
+P0 ─ off:0  1  2  3  4 ◄─ лидер на брокере A   (реплики B,C)
+P1 ─ off:0  1  2  3      ◄─ лидер на брокере B   (реплики A,C)
+P2 ─ off:0  1  2  3  4  5 ◄─ лидер на брокере C  (реплики A,B)
+            ▲ дозапись в конец, монотонные оффсеты, порядок внутри партиции</div>
+
+    <div class="callout anchor en">
+      <span class="lbl">Amal anchor</span>
+      On Syntea ingestion I keyed events by <code class="inline">student_id</code> so all events for a student landed on one partition (ordered), while spreading load for throughput.
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">Якорь Amal</span>
+      На ingestion в Syntea я партиционировал события по <code class="inline">student_id</code>, чтобы все события одного студента попадали в одну партицию (упорядоченно), при этом распределяя нагрузку ради пропускной способности.
+    </div>
+    <div class="callout probe en">
+      <span class="lbl">Interviewer will probe</span>
+      "What breaks if you increase partition count?" → keys re-hash to different partitions, so per-key ordering across the resize boundary breaks. Partition count is a careful, near one-way decision.
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">О чём спросит интервьюер</span>
+      «Что сломается, если увеличить число партиций?» → ключи перехешируются в другие партиции, поэтому порядок по ключу на границе изменения ломается. Число партиций — это аккуратное, почти необратимое решение.
+    </div>
+  </div>
+</section>
+
+<!-- =============== CONSUMER GROUPS =============== -->
+<section id="groups">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Producers, Consumers, Consumer Groups</span><span class="ru">2. Продюсеры, консьюмеры, группы консьюмеров</span></h2>
+
+  <details class="collapse reveal" open>
+    <summary><span class="en">Consumer groups &amp; the rebalance protocol</span><span class="ru">Группы консьюмеров и протокол ребаланса</span></summary>
+    <div class="collapse-body">
+      <ul class="en">
+        <li><span class="g">Consumer group</span> = consumers sharing a <code class="inline">group.id</code>. The group coordinator assigns each partition to exactly one member.</li>
+        <li>Offsets committed <strong>per group</strong> to internal <code class="inline">__consumer_offsets</code> → that's how a group resumes.</li>
+        <li><span class="o">Rebalance</span> = reassign partitions on join/leave/crash, partition-count change, or subscription change.</li>
+      </ul>
+      <ul class="ru">
+        <li><span class="g">Группа консьюмеров</span> = консьюмеры с общим <code class="inline">group.id</code>. Координатор группы назначает каждую партицию ровно одному участнику.</li>
+        <li>Оффсеты коммитятся <strong>на группу</strong> во внутренний топик <code class="inline">__consumer_offsets</code> → так группа возобновляет чтение.</li>
+        <li><span class="o">Ребаланс (Rebalance)</span> = переназначение партиций при входе/выходе/падении участника, изменении числа партиций или подписки.</li>
+      </ul>
+      <h3><span class="en">Two timeouts that matter</span><span class="ru">Два важных таймаута</span></h3>
+      <table class="en">
+        <tr><th>Setting</th><th>Meaning</th><th>If exceeded</th></tr>
+        <tr><td><code class="inline">session.timeout.ms</code></td><td>Liveness via heartbeat thread</td><td>Member considered dead</td></tr>
+        <tr><td><code class="inline">max.poll.interval.ms</code></td><td>Max gap between <code class="inline">poll()</code> calls (progress)</td><td>Member kicked → rebalance</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Настройка</th><th>Смысл</th><th>При превышении</th></tr>
+        <tr><td><code class="inline">session.timeout.ms</code></td><td>Признак «жив» через поток heartbeat</td><td>Участник считается мёртвым</td></tr>
+        <tr><td><code class="inline">max.poll.interval.ms</code></td><td>Макс. интервал между вызовами <code class="inline">poll()</code> (прогресс)</td><td>Участник исключён → ребаланс</td></tr>
+      </table>
+      <h3><span class="en">Rebalance pain at scale</span><span class="ru">Боль ребаланса на масштабе</span></h3>
+      <ul class="en">
+        <li><strong>Eager (stop-the-world):</strong> everyone revokes all partitions, processing halts → "rebalance storm".</li>
+        <li><strong>Fixes:</strong> <span class="g">incremental cooperative rebalancing</span> (only moved partitions revoked) + <span class="g">static membership</span> (<code class="inline">group.instance.id</code>) so a quick restart doesn't trigger a rebalance.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Eager (stop-the-world):</strong> все отзывают все партиции, обработка встаёт → «шторм ребалансов».</li>
+        <li><strong>Лечится:</strong> <span class="g">инкрементальный кооперативный ребаланс</span> (отзываются только перемещаемые партиции) + <span class="g">статическое членство</span> (<code class="inline">group.instance.id</code>), чтобы быстрый рестарт не запускал ребаланс.</li>
+      </ul>
+      <div class="callout probe en">
+        <span class="lbl">Interviewer will probe</span>
+        "Consumer keeps getting kicked from the group, why?" → per-batch processing exceeds <code class="inline">max.poll.interval.ms</code>. Fix: lower <code class="inline">max.poll.records</code>, move work off the poll thread, or raise the interval.
+      </div>
+      <div class="callout probe ru">
+        <span class="lbl">О чём спросит интервьюер</span>
+        «Консьюмера постоянно выкидывает из группы, почему?» → обработка батча превышает <code class="inline">max.poll.interval.ms</code>. Лечение: уменьшить <code class="inline">max.poll.records</code>, вынести работу из poll-потока или увеличить интервал.
+      </div>
+    </div>
+  </details>
+
+  <details class="collapse reveal">
+    <summary><span class="en">Producer internals: send() → durable</span><span class="ru">Внутренности продюсера: send() → надёжно записано</span></summary>
+    <div class="collapse-body">
+      <ol class="en">
+        <li>Serialize key/value.</li>
+        <li>Partitioner picks partition (key hash / sticky).</li>
+        <li>Buffer into a per-partition batch in <code class="inline">buffer.memory</code>.</li>
+        <li>Sender thread flushes when <code class="inline">batch.size</code> full or <code class="inline">linger.ms</code> elapses.</li>
+        <li>Broker appends to leader log, replicates to followers.</li>
+        <li>Ack per <code class="inline">acks</code>; idempotence dedupes retries (PID + sequence).</li>
+        <li>Callback fires (offset on success, or retriable/non-retriable error).</li>
+      </ol>
+      <ol class="ru">
+        <li>Сериализация ключа/значения.</li>
+        <li>Партиционер выбирает партицию (хеш ключа / sticky).</li>
+        <li>Буферизация в батч на партицию в пределах <code class="inline">buffer.memory</code>.</li>
+        <li>Поток sender отправляет, когда заполнен <code class="inline">batch.size</code> или истёк <code class="inline">linger.ms</code>.</li>
+        <li>Брокер дописывает в лог лидера, реплицирует на фолловеров.</li>
+        <li>Ack согласно <code class="inline">acks</code>; идемпотентность дедуплицирует ретраи (PID + sequence).</li>
+        <li>Срабатывает callback (оффсет при успехе либо ретраибл/нон-ретраибл ошибка).</li>
+      </ol>
+      <p class="en"><code class="inline">send()</code> is <strong>async</strong> (returns a Future). <code class="inline">max.block.ms</code> bounds how long it blocks when buffers are full = backpressure signal.</p>
+      <p class="ru"><code class="inline">send()</code> — <strong>асинхронный</strong> (возвращает Future). <code class="inline">max.block.ms</code> ограничивает время блокировки при заполненных буферах = сигнал backpressure.</p>
+    </div>
+  </details>
+
+  <details class="collapse reveal">
+    <summary><span class="en">Offset management: auto vs manual commit</span><span class="ru">Управление оффсетами: авто- vs ручной коммит</span></summary>
+    <div class="collapse-body">
+      <ul class="en">
+        <li><strong>Auto commit</strong> (timer-based): simple but commits regardless of processing → loss/dupes on crash. Avoid for anything that matters.</li>
+        <li><strong>Manual:</strong> <code class="inline">commitSync</code> (safe, blocking) / <code class="inline">commitAsync</code> (fast, best-effort). Commit <strong>after</strong> processing = at-least-once.</li>
+        <li><strong>Where you commit defines your delivery semantics.</strong></li>
+        <li><code class="inline">auto.offset.reset</code> = <code class="inline">earliest</code>/<code class="inline">latest</code>/<code class="inline">none</code> when no committed offset exists.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Авто-коммит</strong> (по таймеру): просто, но коммитит независимо от обработки → потери/дубли при падении. Избегать для всего важного.</li>
+        <li><strong>Ручной:</strong> <code class="inline">commitSync</code> (надёжно, блокирующе) / <code class="inline">commitAsync</code> (быстро, best-effort). Коммит <strong>после</strong> обработки = at-least-once.</li>
+        <li><strong>Где коммитишь — там и определяются семантики доставки.</strong></li>
+        <li><code class="inline">auto.offset.reset</code> = <code class="inline">earliest</code>/<code class="inline">latest</code>/<code class="inline">none</code>, когда закоммиченного оффсета нет.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<!-- =============== REPLICATION =============== -->
+<section id="replication">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">3. Replication, ISR &amp; Durability</span><span class="ru">3. Репликация, ISR и надёжность</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li>Each partition: 1 <span class="k">leader</span> + (RF−1) <span class="k">followers</span>. Reads/writes go through the leader; followers fetch to stay in sync.</li>
+      <li><span class="pu">ISR (In-Sync Replicas)</span> = replicas caught up within <code class="inline">replica.lag.time.max.ms</code>.</li>
+      <li><span class="pu">High watermark (HW)</span> = offset all ISR have → highest offset a consumer can read.</li>
+    </ul>
+    <ul class="ru">
+      <li>Каждая партиция: 1 <span class="k">лидер</span> + (RF−1) <span class="k">фолловеров</span>. Чтение/запись идут через лидера; фолловеры подтягивают данные, чтобы оставаться в синхроне.</li>
+      <li><span class="pu">ISR (In-Sync Replicas)</span> = реплики, отставшие не больше чем на <code class="inline">replica.lag.time.max.ms</code>.</li>
+      <li><span class="pu">High watermark (HW)</span> = оффсет, который есть у всех ISR → максимальный оффсет, доступный консьюмеру для чтения.</li>
+    </ul>
+
+    <h3><span class="en">The durability triad (you need ALL three)</span><span class="ru">Триада надёжности (нужны ВСЕ три)</span></h3>
+    <table class="en">
+      <tr><th>Setting</th><th>Value</th><th>Why</th></tr>
+      <tr><td><code class="inline">acks</code></td><td><span class="g">all</span></td><td>Leader waits for all ISR before ack</td></tr>
+      <tr><td><code class="inline">min.insync.replicas</code></td><td><span class="g">2</span> (with RF=3)</td><td>Reject writes if &lt;2 in sync (no silent under-replicated writes)</td></tr>
+      <tr><td><code class="inline">enable.idempotence</code></td><td><span class="g">true</span></td><td>Dedupe retries; bounded retries</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Настройка</th><th>Значение</th><th>Зачем</th></tr>
+      <tr><td><code class="inline">acks</code></td><td><span class="g">all</span></td><td>Лидер ждёт все ISR перед ack</td></tr>
+      <tr><td><code class="inline">min.insync.replicas</code></td><td><span class="g">2</span> (при RF=3)</td><td>Отклонять запись, если в синхроне &lt;2 (нет тихих недореплицированных записей)</td></tr>
+      <tr><td><code class="inline">enable.idempotence</code></td><td><span class="g">true</span></td><td>Дедуп ретраев; ограниченные ретраи</td></tr>
+    </table>
+    <p class="en">Plus <code class="inline">unclean.leader.election.enable=false</code> → never elect an out-of-sync replica (which would guarantee loss). Spread replicas across <strong>racks/AZs</strong>.</p>
+    <p class="ru">Плюс <code class="inline">unclean.leader.election.enable=false</code> → никогда не выбирать лидером отставшую реплику (это гарантировало бы потерю данных). Разносить реплики по <strong>стойкам/зонам доступности (AZ)</strong>.</p>
+
+    <h3><span class="en">acks comparison</span><span class="ru">Сравнение acks</span></h3>
+    <table class="en">
+      <tr><th>acks</th><th>Durability</th><th>Risk</th></tr>
+      <tr><td><code class="inline">0</code></td><td>None</td><td>Fire-and-forget, can lose data</td></tr>
+      <tr><td><code class="inline">1</code></td><td>Leader only</td><td>Loss if leader dies pre-replication</td></tr>
+      <tr><td><code class="inline">all</code></td><td>All ISR</td><td>Higher latency (tune batching to compensate)</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>acks</th><th>Надёжность</th><th>Риск</th></tr>
+      <tr><td><code class="inline">0</code></td><td>Нет</td><td>Fire-and-forget, можно потерять данные</td></tr>
+      <tr><td><code class="inline">1</code></td><td>Только лидер</td><td>Потеря, если лидер падает до репликации</td></tr>
+      <tr><td><code class="inline">all</code></td><td>Все ISR</td><td>Выше задержка (компенсировать батчингом)</td></tr>
+    </table>
+
+    <div class="callout probe en">
+      <span class="lbl">Interviewer will probe</span>
+      "RF=3, <code class="inline">min.insync.replicas=3</code>, one broker down — what happens?" → ISR (2) &lt; min.isr (3), so <code class="inline">acks=all</code> producers <strong>error/block</strong>. That's why min.isr is usually RF−1: tolerate one broker down and keep accepting writes (deliberate CP-leaning trade-off).
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">О чём спросит интервьюер</span>
+      «RF=3, <code class="inline">min.insync.replicas=3</code>, один брокер упал — что будет?» → ISR (2) &lt; min.isr (3), поэтому продюсеры с <code class="inline">acks=all</code> <strong>получают ошибку/блокируются</strong>. Поэтому min.isr обычно RF−1: переживаем падение одного брокера и продолжаем принимать записи (осознанный выбор в сторону CP).
+    </div>
+  </div>
+</section>
+
+<!-- =============== DELIVERY SEMANTICS =============== -->
+<section id="delivery">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">4. Delivery Semantics</span><span class="ru">4. Семантики доставки</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Semantic</th><th>How</th><th>Trade-off</th></tr>
+      <tr><td><span class="o">At-most-once</span></td><td>Commit offset <strong>before</strong> processing</td><td>No dupes, possible <strong>loss</strong></td></tr>
+      <tr><td><span class="g">At-least-once</span> <em class="muted">(default, most common)</em></td><td>Process <strong>then</strong> commit</td><td>No loss, possible <strong>dupes</strong></td></tr>
+      <tr><td><span class="pu">Exactly-once</span></td><td>Idempotent producer + transactions</td><td>No loss/dupes; cost &amp; complexity</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Семантика</th><th>Как</th><th>Компромисс</th></tr>
+      <tr><td><span class="o">At-most-once</span></td><td>Коммит оффсета <strong>до</strong> обработки</td><td>Нет дублей, возможна <strong>потеря</strong></td></tr>
+      <tr><td><span class="g">At-least-once</span> <em class="muted">(по умолчанию, самый частый)</em></td><td>Сначала обработка, <strong>затем</strong> коммит</td><td>Нет потерь, возможны <strong>дубли</strong></td></tr>
+      <tr><td><span class="pu">Exactly-once</span></td><td>Идемпотентный продюсер + транзакции</td><td>Нет потерь/дублей; цена и сложность</td></tr>
+    </table>
+    <div class="callout en">
+      <span class="lbl warn">Key insight</span>
+      Delivery semantics = <strong>where you commit the offset</strong> relative to processing. This link gets probed hard at Senior level.
+    </div>
+    <div class="callout ru">
+      <span class="lbl warn">Ключевая мысль</span>
+      Семантика доставки = <strong>где ты коммитишь оффсет</strong> относительно обработки. На уровне Senior эту связь дожимают сильно.
+    </div>
+    <div class="callout anchor en">
+      <span class="lbl">Amal anchor (honest)</span>
+      Most of my ingestion targeted <strong>at-least-once + idempotent/upsert sinks</strong> (dedupe at the warehouse on a natural key) because end-to-end EOS adds latency and ops cost that often isn't worth it when the sink can dedupe cheaply.
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">Якорь Amal (честно)</span>
+      Большая часть моего ingestion была нацелена на <strong>at-least-once + идемпотентные/upsert приёмники</strong> (дедуп в хранилище по натуральному ключу), потому что сквозной EOS добавляет задержку и операционную стоимость, которые часто не оправданы, если приёмник умеет дешёво дедуплицировать.
+    </div>
+  </div>
+</section>
+
+<!-- =============== ORDERING =============== -->
+<section id="ordering">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">5. Ordering Guarantees</span><span class="ru">5. Гарантии порядка</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li>Guarantee: <strong>total order within a partition only</strong>. No global/topic-wide order.</li>
+      <li>Ordering can break <em>even within a partition</em> if:
+        <br><code class="inline">max.in.flight.requests.per.connection &gt; 1</code> <strong>AND</strong> <code class="inline">enable.idempotence=false</code> <strong>AND</strong> retries on → a retried earlier batch can land after a later one.</li>
+      <li><strong>Fix:</strong> enable idempotence (preserves order with up to 5 in-flight) or set in-flight to 1.</li>
+      <li>Need global order? Single partition (kills parallelism) or carry a logical sequence and reorder downstream.</li>
+    </ul>
+    <ul class="ru">
+      <li>Гарантия: <strong>полный порядок только внутри партиции</strong>. Глобального порядка по топику нет.</li>
+      <li>Порядок может сломаться <em>даже внутри партиции</em>, если:
+        <br><code class="inline">max.in.flight.requests.per.connection &gt; 1</code> <strong>И</strong> <code class="inline">enable.idempotence=false</code> <strong>И</strong> включены ретраи → переотправленный ранний батч может прийти после более позднего.</li>
+      <li><strong>Лечение:</strong> включить идемпотентность (сохраняет порядок до 5 in-flight) или поставить in-flight = 1.</li>
+      <li>Нужен глобальный порядок? Одна партиция (убивает параллелизм) либо нести логический sequence и переупорядочивать на стороне потребителя.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- =============== RETENTION =============== -->
+<section id="retention">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">6. Retention &amp; Log Compaction</span><span class="ru">6. Хранение и компакция лога</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th></th><th>Delete retention</th><th>Compaction</th></tr>
+      <tr><td>policy</td><td><code class="inline">cleanup.policy=delete</code></td><td><code class="inline">cleanup.policy=compact</code></td></tr>
+      <tr><td>keeps</td><td>Everything within <code class="inline">retention.ms</code>/<code class="inline">.bytes</code></td><td>At least <strong>latest value per key</strong>, forever</td></tr>
+      <tr><td>use for</td><td>Event streams (old events stop mattering)</td><td>Changelogs / current state of an entity</td></tr>
+      <tr><td>example</td><td>raw clickstream</td><td><code class="inline">__consumer_offsets</code>, Streams state, CDC state</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th></th><th>Delete retention</th><th>Компакция</th></tr>
+      <tr><td>политика</td><td><code class="inline">cleanup.policy=delete</code></td><td><code class="inline">cleanup.policy=compact</code></td></tr>
+      <tr><td>хранит</td><td>Всё в пределах <code class="inline">retention.ms</code>/<code class="inline">.bytes</code></td><td>Как минимум <strong>последнее значение на ключ</strong>, навсегда</td></tr>
+      <tr><td>для чего</td><td>Потоки событий (старые события перестают быть важны)</td><td>Changelog / текущее состояние сущности</td></tr>
+      <tr><td>пример</td><td>сырой clickstream</td><td><code class="inline">__consumer_offsets</code>, состояние Streams, состояние CDC</td></tr>
+    </table>
+    <ul class="en">
+      <li>Can combine: <code class="inline">compact,delete</code>.</li>
+      <li><span class="o">Tombstone</span> = record with key + <strong>null value</strong> → marks key for deletion in a compacted topic; kept <code class="inline">delete.retention.ms</code> so consumers can observe the delete.</li>
+      <li>Compaction is "latest wins per key," <strong>not</strong> full event-history preservation.</li>
+    </ul>
+    <ul class="ru">
+      <li>Можно комбинировать: <code class="inline">compact,delete</code>.</li>
+      <li><span class="o">Tombstone</span> = запись с ключом + <strong>null-значением</strong> → помечает ключ к удалению в компактируемом топике; хранится <code class="inline">delete.retention.ms</code>, чтобы консьюмеры успели увидеть удаление.</li>
+      <li>Компакция — это «побеждает последнее значение на ключ», а <strong>не</strong> сохранение полной истории событий.</li>
+    </ul>
+    <div class="callout probe en">
+      <span class="lbl">Interviewer will probe</span>
+      "Consumer needs every event but topic is compacted?" → don't compact; intermediate values are gone. Use delete retention long enough, or keep a raw event topic + a separate compacted state topic.
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">О чём спросит интервьюер</span>
+      «Консьюмеру нужны все события, но топик компактируется?» → не компактировать; промежуточные значения уже потеряны. Использовать достаточно длинный delete retention или держать отдельно сырой топик событий + отдельный компактируемый топик состояния.
+    </div>
+  </div>
+</section>
+
+<!-- =============== EOS / TRANSACTIONS =============== -->
+<section id="eos">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">7. Exactly-Once: Idempotent Producer &amp; Transactions</span><span class="ru">7. Exactly-Once: идемпотентный продюсер и транзакции</span></h2>
+
+  <details class="collapse reveal" open>
+    <summary><span class="en">Idempotent vs Transactional producer — the precise difference</span><span class="ru">Идемпотентный vs транзакционный продюсер — точная разница</span></summary>
+    <div class="collapse-body">
+      <ul class="en">
+        <li><span class="g">Idempotent</span> (<code class="inline">enable.idempotence=true</code>): broker dedupes <strong>producer retries</strong> per partition via <strong>PID + sequence number</strong>. Stops retry dupes within a session. On by default in modern Kafka. Does <em>not</em> give atomic multi-partition writes.</li>
+        <li><span class="pu">Transactional</span> (<code class="inline">transactional.id</code>): builds on idempotence, adds <strong>atomic writes across partitions/topics + offset commit</strong>, survives across sessions → true <strong>consume-process-produce</strong> EOS. Consumers set <code class="inline">isolation.level=read_committed</code>.</li>
+      </ul>
+      <ul class="ru">
+        <li><span class="g">Идемпотентный</span> (<code class="inline">enable.idempotence=true</code>): брокер дедуплицирует <strong>ретраи продюсера</strong> на партицию через <strong>PID + sequence number</strong>. Убирает дубли от ретраев в рамках сессии. В современной Kafka включён по умолчанию. <em>Не</em> даёт атомарной записи в несколько партиций.</li>
+        <li><span class="pu">Транзакционный</span> (<code class="inline">transactional.id</code>): строится поверх идемпотентности, добавляет <strong>атомарную запись в несколько партиций/топиков + коммит оффсета</strong>, переживает рестарты сессий → настоящий EOS по схеме <strong>consume-process-produce</strong>. Консьюмеры ставят <code class="inline">isolation.level=read_committed</code>.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="collapse reveal">
+    <summary><span class="en">How transactions work on the wire</span><span class="ru">Как транзакции работают «на проводе»</span></summary>
+    <div class="collapse-body">
+      <ul class="en">
+        <li>Producer registers <code class="inline">transactional.id</code> → broker assigns PID + <strong>epoch</strong> (epoch <span class="pu">fences zombies</span> from a prior incarnation).</li>
+        <li><code class="inline">beginTransaction</code> → produce + <code class="inline">sendOffsetsToTransaction</code> → <code class="inline">commitTransaction</code>/<code class="inline">abortTransaction</code>.</li>
+        <li>The <strong>transaction coordinator</strong> writes a tx log and inserts <strong>commit/abort markers</strong> into each partition.</li>
+        <li><code class="inline">read_committed</code> consumers use markers + the <span class="pu">Last Stable Offset (LSO)</span> to skip aborted/open-transaction data.</li>
+      </ul>
+      <ul class="ru">
+        <li>Продюсер регистрирует <code class="inline">transactional.id</code> → брокер выдаёт PID + <strong>epoch</strong> (epoch <span class="pu">отсекает «зомби»</span> из прошлой инкарнации).</li>
+        <li><code class="inline">beginTransaction</code> → запись + <code class="inline">sendOffsetsToTransaction</code> → <code class="inline">commitTransaction</code>/<code class="inline">abortTransaction</code>.</li>
+        <li><strong>Координатор транзакций</strong> пишет tx-лог и вставляет <strong>маркеры commit/abort</strong> в каждую партицию.</li>
+        <li>Консьюмеры с <code class="inline">read_committed</code> используют маркеры + <span class="pu">Last Stable Offset (LSO)</span>, чтобы пропускать отменённые/открытые транзакции.</li>
+      </ul>
+      <pre class="en"><span class="cm"># Java-ish consume-process-produce EOS</span>
+producer.<span class="pr">initTransactions</span>();
+<span class="kw">while</span> (true) {
+  records = consumer.<span class="pr">poll</span>(d);
+  producer.<span class="pr">beginTransaction</span>();
+  <span class="kw">for</span> (r : records) producer.<span class="pr">send</span>(transform(r));
+  producer.<span class="pr">sendOffsetsToTransaction</span>(offsets, groupMetadata);
+  producer.<span class="pr">commitTransaction</span>();  <span class="cm">// offsets + output atomic</span>
+}</pre>
+      <pre class="ru"><span class="cm"># EOS consume-process-produce (псевдо-Java)</span>
+producer.<span class="pr">initTransactions</span>();
+<span class="kw">while</span> (true) {
+  records = consumer.<span class="pr">poll</span>(d);
+  producer.<span class="pr">beginTransaction</span>();
+  <span class="kw">for</span> (r : records) producer.<span class="pr">send</span>(transform(r));
+  producer.<span class="pr">sendOffsetsToTransaction</span>(offsets, groupMetadata);
+  producer.<span class="pr">commitTransaction</span>();  <span class="cm">// оффсеты + вывод атомарно</span>
+}</pre>
+    </div>
+  </details>
+
+  <div class="callout gap reveal en">
+    <span class="lbl">Critical caveat (say this)</span>
+    Kafka EOS is exactly-once <strong>within Kafka</strong>. For an external sink (DB/S3/warehouse) you still need an <strong>idempotent or transactional sink</strong>. Kafka transactions don't extend to arbitrary external systems.
+  </div>
+  <div class="callout gap reveal ru">
+    <span class="lbl">Важная оговорка (произнеси это)</span>
+    Kafka EOS — это exactly-once <strong>внутри Kafka</strong>. Для внешнего приёмника (БД/S3/хранилище) всё равно нужен <strong>идемпотентный или транзакционный приёмник</strong>. Транзакции Kafka не распространяются на произвольные внешние системы.
+  </div>
+  <div class="callout probe reveal en">
+    <span class="lbl">Interviewer will probe</span>
+    "Why not always EOS?" → throughput/latency cost (extra coordination, tx markers, longer commit cycles) and it doesn't cover external sinks. At-least-once + idempotent sink is simpler and usually enough.
+  </div>
+  <div class="callout probe reveal ru">
+    <span class="lbl">О чём спросит интервьюер</span>
+    «Почему не всегда EOS?» → цена по пропускной способности/задержке (доп. координация, tx-маркеры, более долгие циклы коммита), и он не покрывает внешние приёмники. At-least-once + идемпотентный приёмник проще и обычно достаточно.
+  </div>
+</section>
+
+<!-- =============== TUNING =============== -->
+<section id="tuning">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">8. Throughput Tuning</span><span class="ru">8. Тюнинг пропускной способности</span></h2>
+  <div class="card reveal">
+    <h3><span class="en">Producer</span><span class="ru">Продюсер</span></h3>
+    <ul class="en">
+      <li><strong>Batch:</strong> raise <code class="inline">batch.size</code> + <code class="inline">linger.ms</code> (wait a few ms to fill batches) — small latency cost, big throughput win.</li>
+      <li><strong>Compress:</strong> <code class="inline">compression.type=lz4</code>/<code class="inline">zstd</code> (zstd best ratio, lz4 best CPU).</li>
+      <li><code class="inline">max.in.flight.requests.per.connection=5</code> safe with idempotence on.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Батчинг:</strong> поднять <code class="inline">batch.size</code> + <code class="inline">linger.ms</code> (подождать пару мс, чтобы наполнить батчи) — небольшая цена по задержке, большой выигрыш в пропускной способности.</li>
+      <li><strong>Сжатие:</strong> <code class="inline">compression.type=lz4</code>/<code class="inline">zstd</code> (zstd — лучшая степень сжатия, lz4 — экономнее по CPU).</li>
+      <li><code class="inline">max.in.flight.requests.per.connection=5</code> безопасно при включённой идемпотентности.</li>
+    </ul>
+    <h3><span class="en">Consumer</span><span class="ru">Консьюмер</span></h3>
+    <ul class="en">
+      <li><code class="inline">fetch.min.bytes</code> / <code class="inline">fetch.max.wait.ms</code> → bigger fetches.</li>
+      <li>Balance <code class="inline">max.poll.records</code> vs <code class="inline">max.poll.interval.ms</code>; scale consumers to partition count; parallelize off the poll thread.</li>
+    </ul>
+    <ul class="ru">
+      <li><code class="inline">fetch.min.bytes</code> / <code class="inline">fetch.max.wait.ms</code> → более крупные fetch-запросы.</li>
+      <li>Балансировать <code class="inline">max.poll.records</code> и <code class="inline">max.poll.interval.ms</code>; масштабировать консьюмеров под число партиций; параллелить вне poll-потока.</li>
+    </ul>
+    <h3><span class="en">Why Kafka is fast</span><span class="ru">Почему Kafka быстрая</span></h3>
+    <p class="en">Sequential disk I/O + OS <strong>page cache</strong> + <strong>zero-copy</strong> (<code class="inline">sendfile</code>). Give the broker RAM; let the page cache work.</p>
+    <p class="ru">Последовательный дисковый I/O + <strong>page cache</strong> ОС + <strong>zero-copy</strong> (<code class="inline">sendfile</code>). Дай брокеру RAM; пусть работает page cache.</p>
+    <div class="callout probe en">
+      <span class="lbl">Interviewer will probe</span>
+      "Downside of too many partitions?" → slower recovery/failover, more controller/metadata overhead, more memory for buffers, higher tail latency, <code class="inline">__consumer_offsets</code> pressure. Right-size for peak (~2x headroom), not infinity.
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">О чём спросит интервьюер</span>
+      «Минусы слишком большого числа партиций?» → медленнее восстановление/failover, больше нагрузка на контроллер/метаданные, больше памяти на буферы, выше tail latency, давление на <code class="inline">__consumer_offsets</code>. Подбирать под пик (~2x запас), а не «в бесконечность».
+    </div>
+  </div>
+</section>
+
+<!-- =============== ECOSYSTEM =============== -->
+<section id="ecosystem">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">9. Schema Registry &amp; Kafka Connect</span><span class="ru">9. Schema Registry и Kafka Connect</span></h2>
+
+  <details class="collapse reveal" open>
+    <summary>Schema Registry</summary>
+    <div class="collapse-body">
+      <ul class="en">
+        <li>Central store for Avro/Protobuf/JSON schemas; message carries a small <strong>schema ID</strong>, not the whole schema → tiny payloads.</li>
+        <li>Enforces <strong>compatibility</strong>: BACKWARD (default), FORWARD, FULL, NONE. BACKWARD = new schema reads old data.</li>
+        <li>Catches breaking changes <strong>at produce time</strong>, not 2am in a dead consumer.</li>
+        <li>Safe: add a field <strong>with a default</strong>. Breaking: remove a required field / change a type.</li>
+      </ul>
+      <ul class="ru">
+        <li>Центральное хранилище схем Avro/Protobuf/JSON; в сообщении лежит маленький <strong>schema ID</strong>, а не вся схема → крошечный payload.</li>
+        <li>Обеспечивает <strong>совместимость</strong>: BACKWARD (по умолчанию), FORWARD, FULL, NONE. BACKWARD = новая схема читает старые данные.</li>
+        <li>Ловит ломающие изменения <strong>в момент записи</strong>, а не в 2 часа ночи в упавшем консьюмере.</li>
+        <li>Безопасно: добавить поле <strong>со значением по умолчанию</strong>. Ломает: удалить обязательное поле / сменить тип.</li>
+      </ul>
+      <div class="callout probe en">
+        <span class="lbl">Interviewer will probe</span>
+        "Producer adds a required field with no default?" → fails BACKWARD compat for old data/consumers; registry rejects it if compatibility is enforced.
+      </div>
+      <div class="callout probe ru">
+        <span class="lbl">О чём спросит интервьюер</span>
+        «Продюсер добавляет обязательное поле без default?» → ломает BACKWARD-совместимость для старых данных/консьюмеров; registry отклонит, если совместимость включена.
+      </div>
+    </div>
+  </details>
+
+  <details class="collapse reveal">
+    <summary>Kafka Connect</summary>
+    <div class="collapse-body">
+      <ul class="en">
+        <li>Framework for scalable, fault-tolerant <strong>integration</strong> via reusable connectors: <span class="g">source</span> (DB/CDC → Kafka) and <span class="o">sink</span> (Kafka → warehouse/S3/ES).</li>
+        <li><strong>Distributed mode:</strong> worker cluster, config-driven, connectors split into <strong>tasks</strong> for parallelism; offsets/restart handled for you.</li>
+        <li>Use Connect for standard integrations (<span class="pu">Debezium</span> CDC, S3/JDBC/Elasticsearch sinks) → get retries, scaling, monitoring free.</li>
+        <li>Write a custom consumer for non-trivial business logic SMTs can't express.</li>
+      </ul>
+      <ul class="ru">
+        <li>Фреймворк для масштабируемой отказоустойчивой <strong>интеграции</strong> через переиспользуемые коннекторы: <span class="g">source</span> (БД/CDC → Kafka) и <span class="o">sink</span> (Kafka → хранилище/S3/ES).</li>
+        <li><strong>Distributed mode:</strong> кластер воркеров, управление через конфиги, коннекторы делятся на <strong>tasks</strong> ради параллелизма; оффсеты/рестарт берёт на себя фреймворк.</li>
+        <li>Использовать Connect для стандартных интеграций (<span class="pu">Debezium</span> CDC, sink-и в S3/JDBC/Elasticsearch) → бесплатно получаешь ретраи, масштабирование, мониторинг.</li>
+        <li>Писать кастомный консьюмер для нетривиальной бизнес-логики, которую не выразить через SMT.</li>
+      </ul>
+      <div class="callout probe en">
+        <span class="lbl">Interviewer will probe</span>
+        "Postgres → warehouse near-real-time, minimal code?" → Debezium source connector + warehouse/S3 sink connector via Connect (Debezium reads the WAL, emits row changes).
+      </div>
+      <div class="callout probe ru">
+        <span class="lbl">О чём спросит интервьюер</span>
+        «Postgres → хранилище почти в реальном времени, минимум кода?» → source-коннектор Debezium + sink-коннектор в хранилище/S3 через Connect (Debezium читает WAL и эмитит изменения строк).
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- =============== FAILURE MODES =============== -->
+<section id="failures">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">10. Common Failure Modes</span><span class="ru">10. Типичные режимы сбоев</span></h2>
+  <div class="card reveal">
+    <p class="muted en">Frame every failure answer as: <strong>detect → contain → recover → prevent</strong>.</p>
+    <p class="muted ru">Любой ответ про сбой строй как: <strong>обнаружить → локализовать → восстановить → предотвратить</strong>.</p>
+    <table class="en">
+      <tr><th>Failure</th><th>Symptom</th><th>Handling</th></tr>
+      <tr><td><span class="o">Poison pill</span></td><td>Deser/schema error crashes consumer in a loop</td><td><strong>DLQ</strong> with payload + error meta; alert; never block the partition</td></tr>
+      <tr><td>Consumer lag blowup</td><td><code class="inline">records-lag-max</code> climbing</td><td>Scale consumers ≤ #partitions; fix hot keys; tune fetch; parallelize off poll thread</td></tr>
+      <tr><td>Hot partition / skew</td><td>One partition lags, rest fine</td><td>Fix partition key / composite key / custom partitioner</td></tr>
+      <tr><td>Rebalance storm</td><td>Group churns, processing halts</td><td>Static membership + cooperative rebalancing; reduce per-batch work</td></tr>
+      <tr><td>Broker/disk/AZ loss</td><td>Under-replicated partitions</td><td>RF + ISR + rack awareness across AZs</td></tr>
+      <tr><td>Leader dies</td><td>Brief unavailability</td><td>New leader from ISR; HW gates visibility; acks=all data survives; idempotence avoids dupes on retry</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Сбой</th><th>Симптом</th><th>Обработка</th></tr>
+      <tr><td><span class="o">Poison pill</span></td><td>Ошибка десериализации/схемы крашит консьюмера в цикле</td><td><strong>DLQ</strong> с payload + метаданными ошибки; алерт; никогда не блокировать партицию</td></tr>
+      <tr><td>Взрыв лага консьюмера</td><td><code class="inline">records-lag-max</code> растёт</td><td>Масштабировать консьюмеров ≤ числа партиций; чинить горячие ключи; тюнить fetch; параллелить вне poll-потока</td></tr>
+      <tr><td>Горячая партиция / перекос</td><td>Одна партиция отстаёт, остальные ок</td><td>Чинить ключ партиционирования / составной ключ / кастомный партиционер</td></tr>
+      <tr><td>Шторм ребалансов</td><td>Группа «дёргается», обработка встаёт</td><td>Статическое членство + кооперативный ребаланс; уменьшить работу на батч</td></tr>
+      <tr><td>Потеря брокера/диска/AZ</td><td>Недореплицированные партиции</td><td>RF + ISR + распределение по стойкам/AZ</td></tr>
+      <tr><td>Падение лидера</td><td>Кратковременная недоступность</td><td>Новый лидер из ISR; HW ограничивает видимость; при acks=all данные выживают; идемпотентность убирает дубли при ретрае</td></tr>
+    </table>
+    <div class="callout anchor en">
+      <span class="lbl">Amal anchor</span>
+      On Syntea, event volume spiked around exam periods. I sized partitions for peak concurrency and added <strong>lag alerting</strong> so we caught a slow downstream enrichment step before it became student-visible latency.
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">Якорь Amal</span>
+      В Syntea объём событий резко рос в экзаменационные периоды. Я заложил число партиций под пиковую конкуренцию и добавил <strong>алертинг по лагу</strong>, чтобы поймать медленный шаг обогащения ниже по потоку до того, как он превратится в видимую студентам задержку.
+    </div>
+    <div class="callout probe en">
+      <span class="lbl">Interviewer will probe</span>
+      "How do you reprocess after a bug fix?" → reset offsets on a stopped group (<code class="inline">--reset-offsets --to-datetime/--to-earliest</code>) or new group id to replay from retention — requires the data is still within retention.
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">О чём спросит интервьюер</span>
+      «Как переобработать данные после фикса бага?» → сбросить оффсеты на остановленной группе (<code class="inline">--reset-offsets --to-datetime/--to-earliest</code>) или взять новый group id, чтобы перечитать из retention — при условии, что данные ещё в пределах хранения.
+    </div>
+  </div>
+</section>
+
+<!-- =============== FLINK GAP =============== -->
+<section id="flink">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">11. Kafka vs Flink (study gap)</span><span class="ru">11. Kafka vs Flink (пробел для изучения)</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><span class="k">Kafka</span> = durable, partitioned, replayable <strong>log / transport</strong> (+ light processing via Kafka Streams).</li>
+      <li><span class="pu">Flink</span> = true <strong>stream-processing engine</strong>: event-time, windowing, watermarks, large keyed state with checkpointing, EOS via distributed snapshots (Chandy-Lamport). Kafka is usually Flink's source &amp; sink.</li>
+    </ul>
+    <ul class="ru">
+      <li><span class="k">Kafka</span> = надёжный, партиционированный, перечитываемый <strong>лог / транспорт</strong> (+ лёгкая обработка через Kafka Streams).</li>
+      <li><span class="pu">Flink</span> = полноценный <strong>движок потоковой обработки</strong>: event-time, окна, watermarks, большое keyed state с чекпоинтами, EOS через распределённые снапшоты (Chandy-Lamport). Kafka обычно служит для Flink источником и приёмником.</li>
+    </ul>
+    <div class="callout gap en">
+      <span class="lbl">Honest gap statement (rehearse verbatim)</span>
+      "My production streaming has been Kafka-centric ingestion plus batch/warehouse processing (dbt, and Scala/Spark-on-Hadoop earlier). I've studied Flink's model — event vs processing time, watermarks, keyed state, checkpoint/savepoint EOS — and I reason about it comfortably, but haven't shipped a large Flink job in prod. I ramp fast and have the Scala/Spark and distributed-systems foundation to get there quickly."
+    </div>
+    <div class="callout gap ru">
+      <span class="lbl">Честная формулировка про пробел (отрепетировать дословно)</span>
+      «Мой продакшн-стриминг был в основном Kafka-центричный ingestion плюс батч/warehouse-обработка (dbt, раньше — Scala/Spark на Hadoop). Я изучил модель Flink — event vs processing time, watermarks, keyed state, EOS через checkpoint/savepoint — и уверенно рассуждаю о ней, но не выкатывал крупный Flink-джоб в прод. Я быстро вкатываюсь, и у меня есть фундамент Scala/Spark и распределённых систем, чтобы быстро туда дойти.»
+    </div>
+    <div class="callout probe en">
+      <span class="lbl">Interviewer will probe</span>
+      "Kafka EOS vs Flink EOS?" → Kafka EOS = consume-process-produce within Kafka via transactions. Flink EOS = consistent operator state via checkpoints + two-phase commit to sinks (incl. Kafka transactional producer). Flink owns operator state; Kafka owns the log.
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">О чём спросит интервьюер</span>
+      «Kafka EOS vs Flink EOS?» → Kafka EOS = consume-process-produce внутри Kafka через транзакции. Flink EOS = согласованное состояние операторов через чекпоинты + two-phase commit в приёмники (включая транзакционный продюсер Kafka). Flink владеет состоянием операторов; Kafka владеет логом.
+    </div>
+  </div>
+</section>
+
+<!-- =============== SELF QUIZ =============== -->
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">12. Flip-to-Reveal Self-Quiz</span><span class="ru">12. Самопроверка: карточки-перевёртыши</span></h2>
+  <p class="muted en">Tap a card to flip. Answer out loud first.</p>
+  <p class="muted ru">Нажми на карточку, чтобы перевернуть. Сначала ответь вслух.</p>
+  <div class="flip-grid">
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What gives per-entity ordering in Kafka?</span><span class="ru">Что даёт порядок по сущности в Kafka?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en">Use a <span class="g">partition key</span> per entity (e.g. <code class="inline">student_id</code>). Order is only guaranteed within a partition, so same key → same partition → ordered.</span><span class="ru">Использовать <span class="g">ключ партиционирования</span> на сущность (например <code class="inline">student_id</code>). Порядок гарантирован только внутри партиции, поэтому один ключ → одна партиция → упорядоченно.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">The durability triad?</span><span class="ru">Триада надёжности?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en"><code class="inline">acks=all</code> + <code class="inline">min.insync.replicas=2</code> (RF=3) + <code class="inline">enable.idempotence=true</code>. Plus <code class="inline">unclean.leader.election=false</code>.</span><span class="ru"><code class="inline">acks=all</code> + <code class="inline">min.insync.replicas=2</code> (RF=3) + <code class="inline">enable.idempotence=true</code>. Плюс <code class="inline">unclean.leader.election=false</code>.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Delivery semantics depend on what?</span><span class="ru">От чего зависят семантики доставки?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en"><strong>Where you commit the offset</strong> relative to processing. Before = at-most-once. After = at-least-once. Inside a transaction = exactly-once.</span><span class="ru"><strong>Где коммитишь оффсет</strong> относительно обработки. До = at-most-once. После = at-least-once. Внутри транзакции = exactly-once.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Idempotent vs transactional producer?</span><span class="ru">Идемпотентный vs транзакционный продюсер?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en">Idempotent = dedupe <strong>retries</strong> per partition (PID+seq). Transactional = atomic multi-partition writes + offset commit across sessions (consume-process-produce EOS).</span><span class="ru">Идемпотентный = дедуп <strong>ретраев</strong> на партицию (PID+seq). Транзакционный = атомарная запись в несколько партиций + коммит оффсета через сессии (EOS consume-process-produce).</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">High watermark?</span><span class="ru">High watermark?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en">Offset all ISR have replicated → the <strong>highest offset consumers can read</strong>. Gates visibility so you can't read data that might be lost on leader failure.</span><span class="ru">Оффсет, который реплицировали все ISR → <strong>максимальный оффсет, доступный консьюмерам для чтения</strong>. Ограничивает видимость, чтобы нельзя было прочитать данные, которые могут потеряться при падении лидера.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Compaction vs delete retention?</span><span class="ru">Компакция vs delete retention?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en">Delete = drop old data by time/size (event streams). Compact = keep <strong>latest value per key</strong> forever (changelogs/state). Tombstone (null value) deletes a key.</span><span class="ru">Delete = удалять старые данные по времени/размеру (потоки событий). Compact = хранить <strong>последнее значение на ключ</strong> навсегда (changelog/состояние). Tombstone (null-значение) удаляет ключ.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Consumer kicked from group repeatedly — why?</span><span class="ru">Консьюмера регулярно выкидывает из группы — почему?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en">Per-batch processing exceeds <code class="inline">max.poll.interval.ms</code>. Fix: lower <code class="inline">max.poll.records</code>, move work off poll thread, raise the interval, use static membership.</span><span class="ru">Обработка батча превышает <code class="inline">max.poll.interval.ms</code>. Лечение: уменьшить <code class="inline">max.poll.records</code>, вынести работу из poll-потока, увеличить интервал, включить статическое членство.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">How can ordering break within a partition?</span><span class="ru">Как порядок ломается внутри партиции?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en">in-flight &gt; 1 + idempotence off + retries → a retried earlier batch lands after a later one. Fix: enable idempotence (order-safe up to 5 in-flight).</span><span class="ru">in-flight &gt; 1 + идемпотентность выключена + ретраи → переотправленный ранний батч приходит после более позднего. Лечение: включить идемпотентность (порядок безопасен до 5 in-flight).</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What replaced ZooKeeper?</span><span class="ru">Что заменило ZooKeeper?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en"><span class="pu">KRaft</span> (KIP-500): internal Raft controller quorum storing metadata in a Kafka log. Faster failover, more partitions, simpler ops. ZK gone in Kafka 4.x.</span><span class="ru"><span class="pu">KRaft</span> (KIP-500): внутренний Raft-кворум контроллеров, хранящий метаданные в Kafka-логе. Быстрее failover, больше партиций, проще эксплуатация. ZK убран в Kafka 4.x.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Poison pill handling?</span><span class="ru">Как обрабатывать poison pill?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en">Route to a <strong>dead-letter topic</strong> with payload + error metadata, alert, continue. Never block the whole partition on one bad record.</span><span class="ru">Отправить в <strong>dead-letter топик</strong> с payload + метаданными ошибки, алерт, продолжить. Никогда не блокировать всю партицию из-за одной плохой записи.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Does Kafka EOS cover an external DB sink?</span><span class="ru">Покрывает ли Kafka EOS внешний приёмник-БД?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en">No. EOS is within Kafka. External sinks need their own <strong>idempotent upsert or transactional write</strong>. Use at-least-once + dedupe on natural key.</span><span class="ru">Нет. EOS — внутри Kafka. Внешним приёмникам нужен свой <strong>идемпотентный upsert или транзакционная запись</strong>. Использовать at-least-once + дедуп по натуральному ключу.</span></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Downside of too many partitions?</span><span class="ru">Минусы слишком большого числа партиций?</span></div><div class="tap"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+      <div class="flip-face flip-back"><div class="a"><span class="en">Slower recovery/failover, more controller/metadata overhead, more buffer memory, higher tail latency, offsets-topic pressure. Right-size for peak (~2x).</span><span class="ru">Медленнее восстановление/failover, больше нагрузка на контроллер/метаданные, больше памяти на буферы, выше tail latency, давление на топик оффсетов. Подбирать под пик (~2x).</span></div></div>
+    </div></div>
+
+  </div>
+</section>
+
+<footer>
+  <span class="en">Built for Amal Imangulov · Data Engineering interview prep · Anchor your Kafka stories on <strong>IU Group / Syntea</strong> · Lead with durability, failure modes, and honest Flink-gap framing.</span>
+  <span class="ru">Сделано для Amal Imangulov · Подготовка к Data Engineering интервью · Якори для историй про Kafka — <strong>IU Group / Syntea</strong> · Веди с надёжности, режимов сбоев и честной формулировки про пробел во Flink.</span>
+</footer>
+
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  // ---- theme toggle ----
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+  }
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('de_cheat_theme'); } catch (e) {}
+  applyTheme(savedTheme || 'dark');
+  themeBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('de_cheat_theme', next); } catch (e) {}
+  });
+
+  // ---- language toggle ----
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l) {
+    root.setAttribute('data-lang', l);
+    root.setAttribute('lang', l);
+    langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+  }
+  var savedLang = null;
+  try { savedLang = localStorage.getItem('de_cheat_lang'); } catch (e) {}
+  applyLang(savedLang || 'en');
+  langBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+    applyLang(next);
+    try { localStorage.setItem('de_cheat_lang', next); } catch (e) {}
+  });
+
+  // ---- flip cards ----
+  document.querySelectorAll('.flip').forEach(function (c) {
+    c.addEventListener('click', function () { c.classList.toggle('flipped'); });
+  });
+
+  // ---- scroll reveal ----
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+  // ---- active nav highlight ----
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav a'));
+  var secs = links.map(function (l) { return document.querySelector(l.getAttribute('href')); }).filter(Boolean);
+  var spy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        links.forEach(function (l) { l.style.color = ''; l.style.background = ''; });
+        var active = links.find(function (l) { return l.getAttribute('href') === '#' + en.target.id; });
+        if (active) { active.style.color = 'var(--text)'; active.style.background = 'var(--card2)'; }
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  secs.forEach(function (s) { spy.observe(s); });
+})();
+</script>
+</body>
+</html>

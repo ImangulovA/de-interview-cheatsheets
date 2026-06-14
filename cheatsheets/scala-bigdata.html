@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scala for Big Data — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #151d30;
+    --card-2: #1b2540;
+    --text: #e6edf7;
+    --muted: #94a3b8;
+    --border: #243049;
+    --accent: #1877F2;
+    --green: #02e2ac;
+    --orange: #f59e0b;
+    --purple: #a855f7;
+    --code-bg: #0d1424;
+    --shadow: rgba(0,0,0,0.4);
+  }
+  [data-theme="light"] {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --card-2: #eef2fa;
+    --text: #1a2233;
+    --muted: #5b6678;
+    --border: #d7deea;
+    --accent: #1877F2;
+    --green: #059e7c;
+    --orange: #c9790a;
+    --purple: #8b3fd6;
+    --code-bg: #f0f3fa;
+    --shadow: rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55; font-size: 15px; transition: background .25s, color .25s;
+  }
+  code, pre, .mono { font-family: "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace; }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px; padding: 10px 18px; flex-wrap: wrap;
+  }
+  nav .brand { font-weight: 700; color: var(--accent); white-space: nowrap; }
+  nav .brand small { color: var(--muted); font-weight: 500; }
+  nav .links { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
+  nav a { color: var(--muted); text-decoration: none; font-size: 12.5px; padding: 4px 9px; border-radius: 7px; white-space: nowrap; }
+  nav a:hover { color: var(--text); background: var(--card-2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  /* LAYOUT */
+  header.hero { max-width: 1080px; margin: 0 auto; padding: 34px 20px 10px; }
+  header.hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -.5px; }
+  header.hero h1 .accent { color: var(--accent); }
+  header.hero .sub { color: var(--muted); font-size: 15px; max-width: 760px; }
+  .tagline { display: inline-block; margin-top: 12px; padding: 7px 13px; border-radius: 9px;
+    background: linear-gradient(90deg, color-mix(in srgb,var(--purple) 22%,transparent), color-mix(in srgb,var(--accent) 18%,transparent));
+    border: 1px solid var(--border); font-size: 13px; }
+  main { max-width: 1080px; margin: 0 auto; padding: 10px 20px 80px; }
+
+  section { margin-top: 26px; }
+  .sec-head {
+    display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;
+    padding: 12px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    transition: border-color .2s;
+  }
+  .sec-head:hover { border-color: var(--accent); }
+  .sec-head h2 { margin: 0; font-size: 18px; flex: 1; }
+  .sec-head .num { color: var(--accent); font-weight: 700; font-size: 13px; min-width: 26px; }
+  .sec-head .chev { color: var(--muted); transition: transform .25s; font-size: 13px; }
+  .sec-body { overflow: hidden; transition: max-height .35s ease; }
+  section.collapsed .sec-body { max-height: 0 !important; }
+  section.collapsed .chev { transform: rotate(-90deg); }
+  .sec-inner { padding: 6px 4px 4px; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin: 12px 0; box-shadow: 0 1px 3px var(--shadow); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } nav .links { display:none; } }
+
+  h3 { margin: 16px 0 6px; font-size: 15.5px; }
+  h4 { margin: 12px 0 4px; font-size: 13.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  p { margin: 7px 0; }
+  ul { margin: 7px 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+  .muted { color: var(--muted); }
+  b, strong { color: var(--text); }
+
+  /* CODE */
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 13px 15px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 10px 0; }
+  pre code { color: var(--text); }
+  code.inline { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 12.5px; color: var(--green); }
+  .k { color: var(--purple); }   /* keyword */
+  .t { color: var(--orange); }   /* type */
+  .s { color: var(--green); }    /* string/literal */
+  .c { color: var(--muted); font-style: italic; } /* comment */
+  .f { color: var(--accent); }   /* function */
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+  tr:hover td { background: var(--card-2); }
+  td code, th code { font-size: 12px; }
+
+  /* CALLOUTS */
+  .callout { border-left: 3px solid var(--orange); background: color-mix(in srgb, var(--orange) 9%, transparent); border-radius: 0 8px 8px 0; padding: 9px 13px; margin: 10px 0; font-size: 13.5px; }
+  .callout.probe { border-color: var(--purple); background: color-mix(in srgb, var(--purple) 11%, transparent); }
+  .callout.anchor { border-color: var(--green); background: color-mix(in srgb, var(--green) 10%, transparent); }
+  .callout .lbl { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; display: block; margin-bottom: 2px; }
+  .callout.gotcha .lbl { color: var(--orange); }
+  .callout.probe .lbl { color: var(--purple); }
+  .callout.anchor .lbl { color: var(--green); }
+
+  /* BADGES */
+  .badge { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: .4px; }
+  .b-easy { background: color-mix(in srgb,var(--green) 22%,transparent); color: var(--green); }
+  .b-med { background: color-mix(in srgb,var(--orange) 22%,transparent); color: var(--orange); }
+  .b-hard { background: color-mix(in srgb,var(--purple) 24%,transparent); color: var(--purple); }
+  .b-top { background: color-mix(in srgb,var(--accent) 24%,transparent); color: var(--accent); }
+
+  /* FLIP CARDS */
+  .flip-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+  @media (max-width: 720px) { .flip-wrap { grid-template-columns: 1fr; } }
+  .flip { perspective: 1200px; height: 150px; cursor: pointer; }
+  .flip-inner { position: relative; width: 100%; height: 100%; transition: transform .5s; transform-style: preserve-3d; }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 11px; border: 1px solid var(--border); padding: 14px; display: flex; flex-direction: column; justify-content: center; }
+  .flip-front { background: var(--card); }
+  .flip-front .q { font-weight: 600; font-size: 14px; }
+  .flip-front .hint { color: var(--muted); font-size: 11px; margin-top: 8px; }
+  .flip-back { background: var(--card-2); transform: rotateY(180deg); font-size: 12.8px; overflow-y: auto; }
+  .flip-back .a { color: var(--green); }
+
+  .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .pill { font-size: 12px; padding: 4px 11px; border-radius: 20px; background: var(--card-2); border: 1px solid var(--border); }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  .ascii { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 13px; font-size: 12px; line-height: 1.35; overflow-x: auto; color: var(--muted); white-space: pre; }
+  .ascii .hl { color: var(--accent); }
+  .ascii .hl2 { color: var(--green); }
+  footer { max-width: 1080px; margin: 0 auto; padding: 20px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); }
+  a.ref { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">Scala·BigData</span>
+  <div class="links">
+    <a href="#syntax"><span class="en">Syntax</span><span class="ru">Синтаксис</span></a>
+    <a href="#immut"><span class="en">Immutability</span><span class="ru">Неизменяемость</span></a>
+    <a href="#case"><span class="en">Case+Match</span><span class="ru">Case+Match</span></a>
+    <a href="#option">Option/Either</a>
+    <a href="#coll"><span class="en">Collections</span><span class="ru">Коллекции</span></a>
+    <a href="#implicit">Implicits</a>
+    <a href="#spark">Spark</a>
+    <a href="#idiom"><span class="en">Idioms</span><span class="ru">Идиомы</span></a>
+    <a href="#java"><span class="en">Java Interop</span><span class="ru">Java Interop</span></a>
+    <a href="#rosetta">Rosetta</a>
+    <a href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+  </div>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="accent">Scala</span> <span class="en">for Big Data</span><span class="ru">для Big Data</span></h1>
+  <div class="sub en">A dense, skimmable cheatsheet for a Python/SQL data engineer bridging to JVM big-data work (Spark / Flink / Kafka / Iceberg). Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</div>
+  <div class="sub ru">Компактная шпаргалка для Python/SQL дата-инженера, переходящего на JVM big-data (Spark / Flink / Kafka / Iceberg). Быстрое повторение перед Data Engineering интервью. Заточена под Senior/Lead DE.</div>
+  <div class="tagline en">Your anchor: real production <b>Scala + Spark on Hadoop</b> (Front Tier, bank default model, 50% loss reduction). Lead with it; say you're actively refreshing. <b>Never bluff.</b></div>
+  <div class="tagline ru">Якорь: реальный production <b>Scala + Spark на Hadoop</b> (Front Tier, модель дефолтов банков, снижение потерь на 50%). Лидируй с этого; говори, что активно освежаешь. <b>Никогда не блефуй.</b></div>
+  <div class="pill-row" style="margin-top:14px">
+    <span class="pill en">⭐ 5 top topics drilled</span>
+    <span class="pill ru">⭐ 5 ключевых тем</span>
+    <span class="pill en">Flip-cards for self-quiz ↓</span>
+    <span class="pill ru">Карточки-переворотки ↓</span>
+    <span class="pill en">Click section headers to collapse</span>
+    <span class="pill ru">Клик на заголовок сворачивает секцию</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ SYNTAX ============ -->
+<section id="syntax">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">01</span><h2><span class="en">Syntax essentials for a Python dev</span><span class="ru">Основы синтаксиса для Python-разработчика</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <p class="muted en">Static types, expression-oriented (almost everything returns a value), semicolons optional, braces or significant indentation (Scala 3). The last expression is the return value — no <code class="inline">return</code> needed.</p>
+      <p class="muted ru">Статическая типизация, ориентация на выражения (почти всё возвращает значение), точки с запятой опциональны, фигурные скобки или значимые отступы (Scala 3). Последнее выражение — это возвращаемое значение, <code class="inline">return</code> не нужен.</p>
+<pre><code><span class="k">object</span> <span class="t">Demo</span> {
+  <span class="k">val</span> name: <span class="t">String</span> = <span class="s">"amal"</span>      <span class="c">// immutable, type inferred if omitted</span>
+  <span class="k">var</span> count: <span class="t">Int</span> = <span class="s">0</span>             <span class="c">// reassignable (avoid)</span>
+
+  <span class="k">def</span> <span class="f">square</span>(x: <span class="t">Int</span>): <span class="t">Int</span> = x * x   <span class="c">// = body, last expr returned</span>
+
+  <span class="k">def</span> <span class="f">grade</span>(s: <span class="t">Int</span>): <span class="t">String</span> =          <span class="c">// if is an expression</span>
+    <span class="k">if</span> (s >= <span class="s">90</span>) <span class="s">"A"</span> <span class="k">else</span> <span class="s">"B"</span>
+
+  <span class="k">val</span> doubled = <span class="t">List</span>(<span class="s">1</span>,<span class="s">2</span>,<span class="s">3</span>).map(_ * <span class="s">2</span>)  <span class="c">// _ = positional arg</span>
+  <span class="k">val</span> msg = s<span class="s">"hello $name, n=$count"</span>     <span class="c">// string interpolation</span>
+}</code></pre>
+      <div class="grid2">
+        <div>
+          <h4 class="en">Mental model vs Python</h4>
+          <h4 class="ru">Ментальная модель vs Python</h4>
+          <ul class="en">
+            <li><code class="inline">val</code> ≈ a name you can't rebind (not <code class="inline">const</code> of contents)</li>
+            <li>Type annotations come <i>after</i> the name: <code class="inline">x: Int</code></li>
+            <li>Lambdas: <code class="inline">x =&gt; x + 1</code> or shorthand <code class="inline">_ + 1</code></li>
+            <li><code class="inline">Unit</code> ≈ <code class="inline">None</code>/<code class="inline">void</code> (returned by side-effecting code)</li>
+          </ul>
+          <ul class="ru">
+            <li><code class="inline">val</code> ≈ имя, которое нельзя переприсвоить (не <code class="inline">const</code> содержимого)</li>
+            <li>Аннотация типа идёт <i>после</i> имени: <code class="inline">x: Int</code></li>
+            <li>Лямбды: <code class="inline">x =&gt; x + 1</code> или краткая форма <code class="inline">_ + 1</code></li>
+            <li><code class="inline">Unit</code> ≈ <code class="inline">None</code>/<code class="inline">void</code> (возвращается побочно-эффектным кодом)</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="en">Gotchas coming from Python</h4>
+          <h4 class="ru">Подводные камни для Python-разработчиков</h4>
+          <ul class="en">
+            <li>No truthiness — conditions must be <code class="inline">Boolean</code></li>
+            <li>Indentation is cosmetic in Scala 2 (use braces); Scala 3 allows significant indentation</li>
+            <li>Everything is an object; no primitives at the language level (boxing handled by JVM)</li>
+            <li><code class="inline">==</code> is value equality (calls <code class="inline">.equals</code>), unlike Java</li>
+          </ul>
+          <ul class="ru">
+            <li>Нет truthiness — условия должны быть <code class="inline">Boolean</code></li>
+            <li>Отступы косметические в Scala 2 (нужны фигурные скобки); Scala 3 допускает значимые отступы</li>
+            <li>Всё — объект; на уровне языка нет примитивов (boxing обрабатывает JVM)</li>
+            <li><code class="inline">==</code> — это равенство по значению (вызывает <code class="inline">.equals</code>), в отличие от Java</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ IMMUTABILITY ============ -->
+<section id="immut">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">02</span><h2><span class="en">Immutability &amp; why distributed code loves it</span><span class="ru">Неизменяемость и почему распределённый код её любит</span> <span class="badge b-top">⭐ <span class="en">probed</span><span class="ru">дожимают</span></span></h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <div class="grid2">
+        <div>
+          <h4><code class="inline">val</code> vs <code class="inline">var</code></h4>
+          <p class="en"><code class="inline">val</code> = immutable <b>binding</b> (can't reassign the reference). <code class="inline">var</code> = reassignable. Default to <code class="inline">val</code>; use <code class="inline">var</code> rarely + locally.</p>
+          <p class="ru"><code class="inline">val</code> = неизменяемая <b>привязка</b> (нельзя переприсвоить ссылку). <code class="inline">var</code> = переприсваиваемая. По умолчанию <code class="inline">val</code>; <code class="inline">var</code> редко и локально.</p>
+          <h4 class="en">immutable vs mutable collections</h4>
+          <h4 class="ru">immutable vs mutable коллекции</h4>
+          <p class="en"><code class="inline">scala.collection.immutable.*</code> return a <b>new</b> collection on every change; the original is untouched. <code class="inline">mutable.*</code> change in place.</p>
+          <p class="ru"><code class="inline">scala.collection.immutable.*</code> возвращают <b>новую</b> коллекцию при каждом изменении; оригинал не затронут. <code class="inline">mutable.*</code> меняют на месте.</p>
+        </div>
+        <div>
+          <h4 class="en">Why it matters in Spark</h4>
+          <h4 class="ru">Почему это важно в Spark</h4>
+          <ul class="en">
+            <li>Closures are serialized + shipped to executors; pure, side-effect-free transforms are <b>safe to retry</b> and <b>safe to parallelize</b>.</li>
+            <li>Referential transparency = Spark can <b>recompute a lost partition</b> from lineage (fault recovery).</li>
+            <li>Mutating shared state inside <code class="inline">map</code>/<code class="inline">foreach</code> is a bug — each executor mutates its own copy → use <b>accumulators</b>.</li>
+          </ul>
+          <ul class="ru">
+            <li>Замыкания сериализуются и отправляются на executors; чистые трансформации без побочных эффектов <b>безопасно повторять</b> и <b>безопасно параллелить</b>.</li>
+            <li>Ссылочная прозрачность = Spark может <b>пересчитать потерянную партицию</b> из lineage (fault recovery).</li>
+            <li>Мутация общего состояния внутри <code class="inline">map</code>/<code class="inline">foreach</code> — это баг; каждый executor мутирует свою копию → используй <b>аккумуляторы</b>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout gotcha en"><span class="lbl">⚠ The #1 trap</span> <code class="inline">val</code> does <b>not</b> make the object immutable — only the reference. <code class="inline">val xs = mutable.ArrayBuffer(1,2)</code> — you can't reassign <code class="inline">xs</code>, but you <i>can</i> <code class="inline">xs += 3</code>. Call this out before they ask.</div>
+      <div class="callout gotcha ru"><span class="lbl">⚠ Ловушка №1</span> <code class="inline">val</code> <b>не</b> делает объект неизменяемым — только ссылку. <code class="inline">val xs = mutable.ArrayBuffer(1,2)</code> — нельзя переприсвоить <code class="inline">xs</code>, но <i>можно</i> <code class="inline">xs += 3</code>. Назови это до того, как спросят.</div>
+      <div class="callout anchor en"><span class="lbl">Amal anchor</span> "In my Front Tier Spark pipeline, transformations were pure functions over RDDs/DataFrames — that's what kept retries and partition recomputation correct at scale."</div>
+      <div class="callout anchor ru"><span class="lbl">Якорь Amal</span> «В моём Spark-пайплайне во Front Tier трансформации были чистыми функциями над RDD/DataFrame — это и обеспечивало корректность ретраев и пересчёта партиций на масштабе.»</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ CASE CLASSES + PATTERN MATCHING ============ -->
+<section id="case">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">03</span><h2><span class="en">Case classes &amp; pattern matching</span><span class="ru">Case-классы и pattern matching</span> <span class="badge b-top">⭐ <span class="en">workhorse</span><span class="ru">рабочая лошадка</span></span></h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <div class="grid2">
+        <div>
+          <h4 class="en">A case class auto-generates</h4>
+          <h4 class="ru">Case-класс автоматически генерирует</h4>
+          <ul class="en">
+            <li>immutable <code class="inline">val</code> fields</li>
+            <li><code class="inline">equals</code>/<code class="inline">hashCode</code> = <b>value equality</b></li>
+            <li><code class="inline">toString</code>, <code class="inline">copy</code></li>
+            <li>companion <code class="inline">apply</code> (no <code class="inline">new</code>) + <code class="inline">unapply</code> (enables matching/destructuring)</li>
+          </ul>
+          <ul class="ru">
+            <li>неизменяемые поля <code class="inline">val</code></li>
+            <li><code class="inline">equals</code>/<code class="inline">hashCode</code> = <b>равенство по значению</b></li>
+            <li><code class="inline">toString</code>, <code class="inline">copy</code></li>
+            <li>companion-объект с <code class="inline">apply</code> (без <code class="inline">new</code>) + <code class="inline">unapply</code> (позволяет pattern matching/деструктуризацию)</li>
+          </ul>
+          <p class="muted en">Value equality is why case classes are great Spark keys — same fields → equal → same hash for <code class="inline">reduceByKey</code>, joins, <code class="inline">distinct</code>.</p>
+          <p class="muted ru">Равенство по значению — вот почему case-классы отличные ключи для Spark: одинаковые поля → равны → один и тот же хеш для <code class="inline">reduceByKey</code>, joins, <code class="inline">distinct</code>.</p>
+        </div>
+        <div>
+          <h4 class="en">Sealed ADT = exhaustiveness</h4>
+          <h4 class="ru">Sealed ADT = полнота проверки</h4>
+          <p class="en">A <code class="inline">sealed trait</code> + case classes restricts subtypes to one file, so the compiler <b>warns on non-exhaustive matches</b>. Model your event types this way and the compiler tells you when you forgot a case.</p>
+          <p class="ru"><code class="inline">sealed trait</code> + case-классы ограничивают подтипы одним файлом, поэтому компилятор <b>предупреждает о неполных match</b>. Моделируй типы событий так, и компилятор скажет, когда забыл case.</p>
+        </div>
+      </div>
+<pre><code><span class="k">sealed trait</span> <span class="t">Event</span>
+<span class="k">case class</span> <span class="t">Click</span>(userId: <span class="t">Long</span>, ts: <span class="t">Long</span>) <span class="k">extends</span> <span class="t">Event</span>
+<span class="k">case class</span> <span class="t">Purchase</span>(userId: <span class="t">Long</span>, amount: <span class="t">Double</span>, ts: <span class="t">Long</span>) <span class="k">extends</span> <span class="t">Event</span>
+<span class="k">case object</span> <span class="t">Heartbeat</span> <span class="k">extends</span> <span class="t">Event</span>
+
+<span class="k">def</span> <span class="f">revenue</span>(e: <span class="t">Event</span>): <span class="t">Double</span> = e <span class="k">match</span> {
+  <span class="k">case</span> <span class="t">Purchase</span>(_, amt, _) <span class="k">if</span> amt > <span class="s">0</span> => amt   <span class="c">// destructure + guard</span>
+  <span class="k">case</span> _: <span class="t">Click</span>                          => <span class="s">0.0</span>   <span class="c">// type match</span>
+  <span class="k">case</span> <span class="t">Heartbeat</span>                         => <span class="s">0.0</span>   <span class="c">// singleton match</span>
+}</code></pre>
+      <div class="callout probe en"><span class="lbl">Interviewer will probe</span> "What does <code class="inline">sealed</code> give you?" → compiler-checked exhaustiveness. "What enables matching on a case class?" → the generated <code class="inline">unapply</code> extractor.</div>
+      <div class="callout probe ru"><span class="lbl">О чём спросит интервьюер</span> «Что даёт <code class="inline">sealed</code>?» → проверку полноты на уровне компилятора. «Что позволяет делать matching на case-классе?» → сгенерированный <code class="inline">unapply</code> extractor.</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ OPTION / EITHER ============ -->
+<section id="option">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">04</span><h2>Option / Either / Try — <span class="en">modelling absence &amp; failure</span><span class="ru">моделирование отсутствия и сбоев</span> <span class="badge b-top">⭐</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <table class="en">
+        <tr><th>Type</th><th>Cases</th><th>Use when</th></tr>
+        <tr><td><code class="inline">Option[A]</code></td><td><code class="inline">Some(a)</code> / <code class="inline">None</code></td><td>value may be absent; no reason needed</td></tr>
+        <tr><td><code class="inline">Either[L,R]</code></td><td><code class="inline">Left(err)</code> / <code class="inline">Right(ok)</code></td><td>can fail and you need the <b>reason</b> (Right = success)</td></tr>
+        <tr><td><code class="inline">Try[A]</code></td><td><code class="inline">Success(a)</code> / <code class="inline">Failure(t)</code></td><td>wrapping code that throws: <code class="inline">Try(parse(s))</code></td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Тип</th><th>Случаи</th><th>Когда использовать</th></tr>
+        <tr><td><code class="inline">Option[A]</code></td><td><code class="inline">Some(a)</code> / <code class="inline">None</code></td><td>значение может отсутствовать; причина не нужна</td></tr>
+        <tr><td><code class="inline">Either[L,R]</code></td><td><code class="inline">Left(err)</code> / <code class="inline">Right(ok)</code></td><td>может упасть, и нужна <b>причина</b> (Right = успех)</td></tr>
+        <tr><td><code class="inline">Try[A]</code></td><td><code class="inline">Success(a)</code> / <code class="inline">Failure(t)</code></td><td>оборачивание кода, который бросает исключения: <code class="inline">Try(parse(s))</code></td></tr>
+      </table>
+<pre><code><span class="k">def</span> <span class="f">parseAge</span>(s: <span class="t">String</span>): <span class="t">Option</span>[<span class="t">Int</span>] = s.toIntOption.filter(_ >= <span class="s">0</span>)
+
+<span class="k">val</span> age = parseAge(raw).getOrElse(<span class="s">-1</span>)        <span class="c">// explicit default, no NPE</span>
+
+<span class="c">// chaining short-circuits on the first None / Left / Failure</span>
+<span class="k">val</span> total = <span class="k">for</span> {
+  a &lt;- parseAge(x)
+  b &lt;- parseAge(y)
+} <span class="k">yield</span> a + b                              <span class="c">// Option[Int]</span></code></pre>
+      <div class="callout gotcha en"><span class="lbl">⚠ null still exists</span> Scala interops with Java, so <code class="inline">null</code> is real. Idiom: wrap Java returns with <code class="inline">Option(javaCall())</code> → <code class="inline">null</code> becomes <code class="inline">None</code> safely.</div>
+      <div class="callout gotcha ru"><span class="lbl">⚠ null всё ещё существует</span> Scala взаимодействует с Java, поэтому <code class="inline">null</code> реален. Идиома: оборачивай Java-возвраты в <code class="inline">Option(javaCall())</code> → <code class="inline">null</code> безопасно становится <code class="inline">None</code>.</div>
+      <div class="callout probe en"><span class="lbl">Probe</span> "Option vs Either?" → Option = present/absent; Either/Try = carries the failure reason. <b>Spark angle:</b> nullability lives in the DataFrame schema, not as <code class="inline">Option</code> per row, but a UDF returning <code class="inline">Option[T]</code> produces a nullable column.</div>
+      <div class="callout probe ru"><span class="lbl">Проба</span> «Option vs Either?» → Option = есть/нет; Either/Try = несёт причину сбоя. <b>Угол Spark:</b> nullability живёт в схеме DataFrame, а не как <code class="inline">Option</code> на строку, но UDF, возвращающий <code class="inline">Option[T]</code>, даёт nullable-колонку.</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ COLLECTIONS + FUNCTIONAL OPS ============ -->
+<section id="coll">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">05</span><h2><span class="en">Collections + functional ops (map / flatMap / fold)</span><span class="ru">Коллекции + функциональные операции (map / flatMap / fold)</span> <span class="badge b-top">⭐</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <div class="grid2">
+        <div>
+          <h4 class="en">The big three</h4>
+          <h4 class="ru">Большая тройка</h4>
+          <ul class="en">
+            <li><code class="inline">map(f: A=&gt;B)</code> — 1:1, keeps cardinality</li>
+            <li><code class="inline">flatMap(f: A=&gt;F[B])</code> — 1:many then flatten (can expand <i>or</i> drop)</li>
+            <li><code class="inline">foldLeft(z)((acc,x)=&gt;…)</code> — aggregate to one value with explicit zero; <code class="inline">reduce</code> has no zero (fails on empty)</li>
+          </ul>
+          <ul class="ru">
+            <li><code class="inline">map(f: A=&gt;B)</code> — 1:1, сохраняет количество</li>
+            <li><code class="inline">flatMap(f: A=&gt;F[B])</code> — 1:много, затем flatten (может расширить <i>или</i> отбросить)</li>
+            <li><code class="inline">foldLeft(z)((acc,x)=&gt;…)</code> — свёртка в одно значение с явным zero; <code class="inline">reduce</code> без zero (падает на пустой)</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="en">Sequence types</h4>
+          <h4 class="ru">Типы последовательностей</h4>
+          <ul class="en">
+            <li><code class="inline">List</code> — immutable linked; O(1) prepend</li>
+            <li><code class="inline">Vector</code> — immutable, ~O(1) indexed (default)</li>
+            <li><code class="inline">Array</code> — mutable, JVM-native, Java interop</li>
+            <li><code class="inline">Map</code>/<code class="inline">Set</code> — immutable by default</li>
+          </ul>
+          <ul class="ru">
+            <li><code class="inline">List</code> — неизменяемый связный; O(1) prepend</li>
+            <li><code class="inline">Vector</code> — неизменяемый, ~O(1) по индексу (по умолчанию)</li>
+            <li><code class="inline">Array</code> — мутабельный, JVM-нативный, Java interop</li>
+            <li><code class="inline">Map</code>/<code class="inline">Set</code> — immutable по умолчанию</li>
+          </ul>
+        </div>
+      </div>
+<pre><code><span class="t">List</span>(<span class="s">1</span>,<span class="s">2</span>).flatMap(x => <span class="t">List</span>(x, x*<span class="s">10</span>))   <span class="c">// List(1,10,2,20)</span>
+<span class="t">List</span>(<span class="s">1</span>,<span class="s">2</span>,<span class="s">3</span>,<span class="s">4</span>).foldLeft(<span class="s">0</span>)(_ + _)      <span class="c">// 10</span>
+xs.collect { <span class="k">case</span> <span class="t">Purchase</span>(_, amt, _) => amt }  <span class="c">// map+filter via partial fn</span>
+events.groupBy(_.userId)                  <span class="c">// Map[Long, List[Event]]</span>
+xs.zipWithIndex                           <span class="c">// like Python enumerate</span>
+xs.sliding(<span class="s">3</span>)                            <span class="c">// windowing over a Seq</span></code></pre>
+      <div class="callout en"><span class="lbl">Why flatMap matters twice</span> It tokenizes in Spark word-count (<code class="inline">flatMap(_.split(" "))</code>) <i>and</i> it's the engine behind <code class="inline">for</code>-comprehensions / monadic chaining of <code class="inline">Option</code>/<code class="inline">Either</code>/<code class="inline">Future</code>.</div>
+      <div class="callout ru"><span class="lbl">Почему flatMap важен дважды</span> Он токенизирует в Spark word-count (<code class="inline">flatMap(_.split(" "))</code>) <i>и</i> это движок <code class="inline">for</code>-comprehensions / монадической цепочки <code class="inline">Option</code>/<code class="inline">Either</code>/<code class="inline">Future</code>.</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ IMPLICITS ============ -->
+<section id="implicit">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">06</span><h2>Implicits <span class="en">basics</span><span class="ru">основы</span> (Scala 3: given / using)</h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <p class="en">Three things you'll actually meet:</p>
+      <p class="ru">Три вещи, с которыми реально встретишься:</p>
+      <ul class="en">
+        <li><b>Implicit parameters</b> — compiler supplies a value: a <code class="inline">SparkSession</code>, an <code class="inline">ExecutionContext</code>, an <code class="inline">Encoder[T]</code>.</li>
+        <li><b>Type classes</b> — ad-hoc polymorphism: <code class="inline">Ordering[T]</code>, <code class="inline">Encoder[T]</code>.</li>
+        <li><b>Extension methods</b> — add methods to existing types (old "implicit class" pattern).</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Implicit parameters</b> — компилятор подставляет значение: <code class="inline">SparkSession</code>, <code class="inline">ExecutionContext</code>, <code class="inline">Encoder[T]</code>.</li>
+        <li><b>Type classes</b> — ad-hoc полиморфизм: <code class="inline">Ordering[T]</code>, <code class="inline">Encoder[T]</code>.</li>
+        <li><b>Extension methods</b> — добавление методов к существующим типам (старый паттерн «implicit class»).</li>
+      </ul>
+      <div class="callout en"><span class="lbl">The one line to remember</span> <code class="inline">import spark.implicits._</code> supplies <b>Encoders</b> for case classes/primitives and the <code class="inline">$"col"</code> / <code class="inline">.toDF</code> / <code class="inline">.toDS</code> syntax. Without it, <code class="inline">ds.map(...)</code> won't compile (no Encoder in scope).</div>
+      <div class="callout ru"><span class="lbl">Одна строка для запоминания</span> <code class="inline">import spark.implicits._</code> даёт <b>Encoders</b> для case-классов/примитивов и синтаксис <code class="inline">$"col"</code> / <code class="inline">.toDF</code> / <code class="inline">.toDS</code>. Без этого <code class="inline">ds.map(...)</code> не скомпилируется (нет Encoder в scope).</div>
+      <div class="callout gotcha en"><span class="lbl">⚠ Senior take</span> Implicits are powerful for libraries/type classes but hurt readability ("where did this come from?"). Use sparingly in app code. Scala 3 makes them explicit via <code class="inline">given</code>/<code class="inline">using</code>.</div>
+      <div class="callout gotcha ru"><span class="lbl">⚠ Уровень Senior</span> Implicits мощны для библиотек/type classes, но вредят читаемости («откуда это взялось?»). Используй скупо в прикладном коде. Scala 3 делает их явными через <code class="inline">given</code>/<code class="inline">using</code>.</div>
+      <h4 class="en">Encoders (the why behind typed Datasets)</h4>
+      <h4 class="ru">Encoders (почему за типизированными Datasets)</h4>
+      <p class="muted en">An <code class="inline">Encoder[T]</code> converts a JVM object ↔ Spark's Tungsten binary/columnar format without slow Java/Kryo serialization. Auto-derived for case classes via <code class="inline">implicits._</code>. This is the bridge that makes <code class="inline">Dataset[T]</code> both typed <i>and</i> fast — and why typed <code class="inline">.map</code> lambdas cost ser/de.</p>
+      <p class="muted ru"><code class="inline">Encoder[T]</code> конвертирует JVM-объект ↔ бинарный/колоночный формат Tungsten без медленной Java/Kryo-сериализации. Авто-выводится для case-классов через <code class="inline">implicits._</code>. Это мост, который делает <code class="inline">Dataset[T]</code> и типизированным, <i>и</i> быстрым — и почему типизированные <code class="inline">.map</code>-лямбды стоят ser/de.</p>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ SPARK ============ -->
+<section id="spark">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">07</span><h2>Spark <span class="en">in Scala</span><span class="ru">на Scala</span>: RDD / DataFrame / Dataset <span class="badge b-top">⭐ <span class="en">heavily weighted</span><span class="ru">высокий вес</span></span></h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <table class="en">
+        <tr><th>API</th><th>Typed?</th><th>Catalyst/Tungsten?</th><th>When</th></tr>
+        <tr><td><code class="inline">RDD[T]</code></td><td>✅ compile-time</td><td>❌ none</td><td>unstructured data, fine-grained control. Slow default.</td></tr>
+        <tr><td><code class="inline">DataFrame</code> = <code class="inline">Dataset[Row]</code></td><td>❌ runtime (Row)</td><td>✅ full</td><td>relational heavy lifting. PySpark's only option.</td></tr>
+        <tr><td><code class="inline">Dataset[T]</code> (JVM only)</td><td>✅ compile-time</td><td>✅ (limited thru lambdas)</td><td>typed domain model on case classes.</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>API</th><th>Типизирован?</th><th>Catalyst/Tungsten?</th><th>Когда</th></tr>
+        <tr><td><code class="inline">RDD[T]</code></td><td>✅ compile-time</td><td>❌ нет</td><td>неструктурированные данные, детальный контроль. Медленный по умолчанию.</td></tr>
+        <tr><td><code class="inline">DataFrame</code> = <code class="inline">Dataset[Row]</code></td><td>❌ runtime (Row)</td><td>✅ полностью</td><td>реляционная тяжёлая работа. Единственный вариант PySpark.</td></tr>
+        <tr><td><code class="inline">Dataset[T]</code> (только JVM)</td><td>✅ compile-time</td><td>✅ (ограничено через lambdas)</td><td>типизированная доменная модель на case-классах.</td></tr>
+      </table>
+      <div class="callout en"><span class="lbl">"Why Scala over PySpark?" (concrete)</span> The typed <code class="inline">Dataset</code> API only exists on the JVM. It catches schema/typo errors at <b>compile time</b> and runs UDFs in-JVM with no Python↔JVM ser/de penalty.</div>
+      <div class="callout ru"><span class="lbl">«Почему Scala, а не PySpark?» (конкретно)</span> Типизированный <code class="inline">Dataset</code> API существует только на JVM. Он ловит ошибки схемы/опечатки на <b>этапе компиляции</b> и запускает UDF внутри JVM без Python↔JVM ser/de-пенальти.</div>
+      <div class="callout gotcha en"><span class="lbl">⚠ The senior trade-off</span> Typed <code class="inline">Dataset.map</code>/<code class="inline">.filter(fn)</code> lambdas are <b>opaque to Catalyst</b> — no predicate pushdown / column pruning through a closure, plus object ser/de cost. So "Dataset &gt; DataFrame" is wrong. <b>Mix:</b> DataFrame column ops for the heavy relational work, drop to typed Dataset only where compile-time safety earns its keep.</div>
+      <div class="callout gotcha ru"><span class="lbl">⚠ Компромисс уровня Senior</span> Типизированные <code class="inline">Dataset.map</code>/<code class="inline">.filter(fn)</code> лямбды <b>непрозрачны для Catalyst</b> — нет predicate pushdown / column pruning через замыкание, плюс цена object ser/de. Поэтому «Dataset &gt; DataFrame» неверно. <b>Микс:</b> DataFrame column ops для тяжёлой реляционной работы, спускайся к типизированному Dataset только там, где compile-time safety окупается.</div>
+
+      <h3 class="en">How a Spark job runs (ASCII)</h3>
+      <h3 class="ru">Как выполняется Spark-джоба (ASCII)</h3>
+      <div class="ascii en">
+ Driver (your code, builds the DAG, lazy)
+   │  action triggers a Job
+   ▼
+ <span class="hl">Job</span> ──► split at shuffles into <span class="hl">Stages</span> ──► each Stage = many <span class="hl">Tasks</span> (1 per partition)
+                                                  │
+            ┌─────────────────────────────────────┴───────────────┐
+            ▼                          ▼                           ▼
+        <span class="hl2">Executor</span>                   <span class="hl2">Executor</span>                    <span class="hl2">Executor</span>
+       (tasks on its partitions, cache, shuffle write/read)
+
+ <span class="hl">transformation</span> (map/filter/join) = lazy, builds lineage
+ <span class="hl">action</span> (count/collect/write)      = triggers execution
+ <span class="hl">shuffle</span> (groupBy/join/repartition) = stage boundary, network move
+      </div>
+      <div class="ascii ru">
+ Driver (твой код, строит DAG, ленивый)
+   │  action запускает Job
+   ▼
+ <span class="hl">Job</span> ──► разделяется на <span class="hl">Stages</span> по shuffles ──► каждый Stage = много <span class="hl">Tasks</span> (1 на партицию)
+                                                  │
+            ┌─────────────────────────────────────┴───────────────┐
+            ▼                          ▼                           ▼
+        <span class="hl2">Executor</span>                   <span class="hl2">Executor</span>                    <span class="hl2">Executor</span>
+       (задачи на своих партициях, cache, shuffle write/read)
+
+ <span class="hl">transformation</span> (map/filter/join) = ленивый, строит lineage
+ <span class="hl">action</span> (count/collect/write)      = запускает выполнение
+ <span class="hl">shuffle</span> (groupBy/join/repartition) = граница stage, сетевая пересылка
+      </div>
+
+      <h3 class="en">Word count + top-K (be able to type these)</h3>
+      <h3 class="ru">Word count + top-K (умей набрать это)</h3>
+<pre><code><span class="k">val</span> spark = <span class="t">SparkSession</span>.builder.appName(<span class="s">"wc"</span>).getOrCreate()
+<span class="k">import</span> spark.implicits._
+
+<span class="c">// RDD: reduceByKey does a MAP-SIDE COMBINE before the shuffle -> cheaper than groupByKey</span>
+<span class="k">val</span> counts = spark.sparkContext.textFile(<span class="s">"path"</span>)
+  .flatMap(_.split(<span class="s">"\\s+"</span>)).filter(_.nonEmpty)
+  .map(w => (w, <span class="s">1</span>)).reduceByKey(_ + _)
+
+<span class="c">// DataFrame: top-3 per region via window fn (mirrors your SQL skill)</span>
+<span class="k">import</span> org.apache.spark.sql.expressions.<span class="t">Window</span>
+<span class="k">val</span> w = <span class="t">Window</span>.partitionBy($<span class="s">"region"</span>).orderBy($<span class="s">"streams"</span>.desc)
+df.withColumn(<span class="s">"rn"</span>, row_number().over(w)).filter($<span class="s">"rn"</span> &lt;= <span class="s">3</span>)</code></pre>
+      <div class="callout gotcha en"><span class="lbl">⚠ Task not serializable</span> A lambda that references an instance field serializes the <b>whole enclosing object</b>; if it's not <code class="inline">Serializable</code> you get this error. <b>Fix:</b> copy the value into a local <code class="inline">val</code> before the closure, or broadcast it.</div>
+      <div class="callout gotcha ru"><span class="lbl">⚠ Task not serializable</span> Лямбда, которая ссылается на поле инстанса, сериализует <b>весь объемлющий объект</b>; если он не <code class="inline">Serializable</code>, получишь эту ошибку. <b>Лечение:</b> скопируй значение в локальный <code class="inline">val</code> перед замыканием или broadcast.</div>
+      <div class="callout probe en"><span class="lbl">Probes you'll get</span> reduceByKey vs groupByKey (map-side combine); transformation vs action; narrow vs wide; skew fix (salting / broadcast / AQE); cache vs checkpoint; repartition vs coalesce.</div>
+      <div class="callout probe ru"><span class="lbl">Пробы, которые будут</span> reduceByKey vs groupByKey (map-side combine); transformation vs action; narrow vs wide; лечение skew (salting / broadcast / AQE); cache vs checkpoint; repartition vs coalesce.</div>
+      <div class="callout anchor en"><span class="lbl">Amal anchor</span> "At Front Tier I was RDD / early-DataFrame era and had to manage shuffles + partitioning to make large joins tractable. Today I'd default to DataFrame for relational work, typed Datasets where compile-time safety on the domain model pays off."</div>
+      <div class="callout anchor ru"><span class="lbl">Якорь Amal</span> «Во Front Tier я был в эпоху RDD / ранних DataFrame и приходилось управлять shuffles + partitioning, чтобы сделать большие join управляемыми. Сегодня я бы по умолчанию брал DataFrame для реляционной работы, типизированные Datasets там, где compile-time safety на доменной модели окупается.»</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ IDIOMS ============ -->
+<section id="idiom">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">08</span><h2><span class="en">Common idioms</span><span class="ru">Общие идиомы</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <div class="grid2">
+        <div>
+          <ul class="en">
+            <li><b><code class="inline">for</code>-comprehension</b> = sugar over <code class="inline">flatMap</code>/<code class="inline">map</code>/<code class="inline">withFilter</code>; works on any monad; short-circuits.</li>
+            <li><b>companion object</b> + <code class="inline">apply</code> = factory, no <code class="inline">new</code>.</li>
+            <li><b>singleton <code class="inline">object</code></b> = Scala's "static" utility holder.</li>
+            <li><b><code class="inline">lazy val</code></b> = compute once on first access (memoized).</li>
+            <li><b>partial functions</b> in <code class="inline">collect</code> = map+filter in one.</li>
+          </ul>
+          <ul class="ru">
+            <li><b><code class="inline">for</code>-comprehension</b> = синтаксический сахар над <code class="inline">flatMap</code>/<code class="inline">map</code>/<code class="inline">withFilter</code>; работает на любой монаде; короткое замыкание.</li>
+            <li><b>companion object</b> + <code class="inline">apply</code> = фабрика, без <code class="inline">new</code>.</li>
+            <li><b>singleton <code class="inline">object</code></b> = «статический» держатель утилит в Scala.</li>
+            <li><b><code class="inline">lazy val</code></b> = вычисляется один раз при первом доступе (мемоизация).</li>
+            <li><b>partial functions</b> в <code class="inline">collect</code> = map+filter в одном.</li>
+          </ul>
+        </div>
+        <div>
+          <ul class="en">
+            <li><b>tuple destructuring</b>: <code class="inline">rdd.map { case (k,v) => (k, v*2) }</code>.</li>
+            <li><b>string interpolation</b>: <code class="inline">s"$x"</code>, <code class="inline">f"$x%.2f"</code>.</li>
+            <li><b>traits as mix-ins</b> for multiple inheritance (linearization).</li>
+            <li><b>currying</b>: <code class="inline">def add(a:Int)(b:Int)</code> → partial app <code class="inline">add(5) _</code>.</li>
+            <li><b>pure logic, separate I/O</b> → unit-test transforms without Spark.</li>
+          </ul>
+          <ul class="ru">
+            <li><b>деструктуризация кортежей</b>: <code class="inline">rdd.map { case (k,v) => (k, v*2) }</code>.</li>
+            <li><b>интерполяция строк</b>: <code class="inline">s"$x"</code>, <code class="inline">f"$x%.2f"</code>.</li>
+            <li><b>traits как mix-ins</b> для множественного наследования (линеаризация).</li>
+            <li><b>каррирование</b>: <code class="inline">def add(a:Int)(b:Int)</code> → partial app <code class="inline">add(5) _</code>.</li>
+            <li><b>чистая логика, отдельный I/O</b> → unit-тест трансформаций без Spark.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout probe en"><span class="lbl">Testing (you'll be probed)</span> ScalaTest / specs2; ScalaCheck for property-based tests of pure transforms; local <code class="inline">SparkSession("local[*]")</code> with in-memory DataFrames for Spark tests. Keep business logic pure → test without Spark; integration-test the I/O.</div>
+      <div class="callout probe ru"><span class="lbl">Тестирование (тебя спросят)</span> ScalaTest / specs2; ScalaCheck для property-based тестов чистых трансформаций; локальная <code class="inline">SparkSession("local[*]")</code> с in-memory DataFrames для Spark-тестов. Держи бизнес-логику чистой → тестируй без Spark; интеграционно тестируй I/O.</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ JAVA INTEROP ============ -->
+<section id="java">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">09</span><h2>Java interop</h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <p class="en">Scala compiles to JVM bytecode → call any Java library directly. Spark, Hadoop, and the Kafka client are all JVM/Java.</p>
+      <p class="ru">Scala компилируется в JVM-байткод → вызывай любую Java-библиотеку напрямую. Spark, Hadoop и Kafka-клиент — всё JVM/Java.</p>
+<pre><code><span class="k">import</span> scala.jdk.<span class="t">CollectionConverters</span>._   <span class="c">// the bridge import</span>
+
+<span class="k">val</span> scalaList = javaList.asScala               <span class="c">// Java -> Scala</span>
+<span class="k">val</span> javaList2 = scalaSeq.asJava                <span class="c">// Scala -> Java</span>
+
+<span class="k">val</span> safe = <span class="t">Option</span>(javaApi.getThing())          <span class="c">// null -> None, no NPE</span></code></pre>
+      <ul class="en">
+        <li><b>Collections:</b> <code class="inline">.asScala</code> / <code class="inline">.asJava</code> (e.g. iterate Kafka <code class="inline">ConsumerRecords</code>).</li>
+        <li><b>null:</b> wrap with <code class="inline">Option(...)</code>.</li>
+        <li><b>Checked exceptions:</b> Scala has none — Java checked exceptions propagate as unchecked.</li>
+        <li><b>JavaBeans:</b> <code class="inline">@BeanProperty</code> generates getters/setters when Java callers expect them.</li>
+        <li><b>Mappings:</b> <code class="inline">Unit</code> ≈ <code class="inline">void</code>; primitives/String/arrays map directly; <code class="inline">object</code> members ≈ statics.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Коллекции:</b> <code class="inline">.asScala</code> / <code class="inline">.asJava</code> (например, итерация Kafka <code class="inline">ConsumerRecords</code>).</li>
+        <li><b>null:</b> оборачивай в <code class="inline">Option(...)</code>.</li>
+        <li><b>Checked exceptions:</b> в Scala их нет — Java checked exceptions распространяются как unchecked.</li>
+        <li><b>JavaBeans:</b> <code class="inline">@BeanProperty</code> генерирует getters/setters, когда Java-вызывающий их ожидает.</li>
+        <li><b>Маппинги:</b> <code class="inline">Unit</code> ≈ <code class="inline">void</code>; примитивы/String/массивы маппятся напрямую; члены <code class="inline">object</code> ≈ statics.</li>
+      </ul>
+      <div class="callout anchor en"><span class="lbl">Amal anchor</span> "Consuming Kafka from Scala: use the Java Kafka client directly, <code class="inline">.asScala</code> the records, wrap nullable returns in <code class="inline">Option</code>." Ties to your IU Group Kafka ingestion work.</div>
+      <div class="callout anchor ru"><span class="lbl">Якорь Amal</span> «Потребление Kafka из Scala: используй Java Kafka-клиент напрямую, <code class="inline">.asScala</code> для записей, оборачивай nullable-возвраты в <code class="inline">Option</code>.» Связано с твоей работой по Kafka ingestion в IU Group.</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ ROSETTA ============ -->
+<section id="rosetta">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">10</span><h2>Python → Scala Rosetta</h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <table class="en">
+        <tr><th>Concept</th><th>Python</th><th>Scala</th></tr>
+        <tr><td>Variable</td><td><code class="inline">x = 5</code></td><td><code class="inline">val x = 5</code> / <code class="inline">var x = 5</code></td></tr>
+        <tr><td>Function</td><td><code class="inline">def f(a): return a+1</code></td><td><code class="inline">def f(a: Int): Int = a + 1</code></td></tr>
+        <tr><td>Lambda</td><td><code class="inline">lambda x: x+1</code></td><td><code class="inline">x =&gt; x + 1</code> / <code class="inline">_ + 1</code></td></tr>
+        <tr><td>List</td><td><code class="inline">[1,2,3]</code></td><td><code class="inline">List(1, 2, 3)</code></td></tr>
+        <tr><td>Dict</td><td><code class="inline">{"a":1}</code></td><td><code class="inline">Map("a" -&gt; 1)</code></td></tr>
+        <tr><td>Tuple</td><td><code class="inline">(a, b)</code></td><td><code class="inline">(a, b)</code> · <code class="inline">._1 ._2</code></td></tr>
+        <tr><td>Comprehension</td><td><code class="inline">[x*2 for x in xs]</code></td><td><code class="inline">xs.map(_ * 2)</code></td></tr>
+        <tr><td>Filter + map</td><td><code class="inline">[x*2 for x in xs if x&gt;0]</code></td><td><code class="inline">xs.filter(_ &gt; 0).map(_ * 2)</code></td></tr>
+        <tr><td>Flatten</td><td><code class="inline">[y for x in xss for y in x]</code></td><td><code class="inline">xss.flatten</code> / <code class="inline">xss.flatMap(identity)</code></td></tr>
+        <tr><td>Dataclass</td><td><code class="inline">@dataclass class P</code></td><td><code class="inline">case class P(name: String, age: Int)</code></td></tr>
+        <tr><td>None / optional get</td><td><code class="inline">None</code> · <code class="inline">d.get(k, dflt)</code></td><td><code class="inline">None: Option[T]</code> · <code class="inline">m.getOrElse(k, dflt)</code></td></tr>
+        <tr><td>try/except</td><td><code class="inline">try/except</code></td><td><code class="inline">Try { ... }</code> / <code class="inline">try ... catch { case e =&gt; }</code></td></tr>
+        <tr><td>isinstance / switch</td><td><code class="inline">isinstance</code> / <code class="inline">match</code></td><td><code class="inline">x match { case _: T =&gt; ...; case Foo(a) =&gt; ... }</code></td></tr>
+        <tr><td>String format</td><td><code class="inline">f"{x}"</code></td><td><code class="inline">s"$x"</code></td></tr>
+        <tr><td>Static method</td><td><code class="inline">@staticmethod</code></td><td>method on <code class="inline">object</code></td></tr>
+        <tr><td>enumerate</td><td><code class="inline">enumerate(xs)</code></td><td><code class="inline">xs.zipWithIndex</code></td></tr>
+        <tr><td>Aggregate</td><td><code class="inline">functools.reduce</code></td><td><code class="inline">xs.foldLeft(z)(f)</code> / <code class="inline">xs.reduce(f)</code></td></tr>
+        <tr><td>PySpark filter</td><td><code class="inline">df.filter(df.x &gt; 0)</code></td><td><code class="inline">df.filter($"x" &gt; 0)</code></td></tr>
+        <tr><td>Typed transform</td><td><i>(no equivalent)</i></td><td><code class="inline">ds.map(p =&gt; p.age): Dataset[Int]</code></td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Концепт</th><th>Python</th><th>Scala</th></tr>
+        <tr><td>Переменная</td><td><code class="inline">x = 5</code></td><td><code class="inline">val x = 5</code> / <code class="inline">var x = 5</code></td></tr>
+        <tr><td>Функция</td><td><code class="inline">def f(a): return a+1</code></td><td><code class="inline">def f(a: Int): Int = a + 1</code></td></tr>
+        <tr><td>Лямбда</td><td><code class="inline">lambda x: x+1</code></td><td><code class="inline">x =&gt; x + 1</code> / <code class="inline">_ + 1</code></td></tr>
+        <tr><td>Список</td><td><code class="inline">[1,2,3]</code></td><td><code class="inline">List(1, 2, 3)</code></td></tr>
+        <tr><td>Словарь</td><td><code class="inline">{"a":1}</code></td><td><code class="inline">Map("a" -&gt; 1)</code></td></tr>
+        <tr><td>Кортеж</td><td><code class="inline">(a, b)</code></td><td><code class="inline">(a, b)</code> · <code class="inline">._1 ._2</code></td></tr>
+        <tr><td>Comprehension</td><td><code class="inline">[x*2 for x in xs]</code></td><td><code class="inline">xs.map(_ * 2)</code></td></tr>
+        <tr><td>Filter + map</td><td><code class="inline">[x*2 for x in xs if x&gt;0]</code></td><td><code class="inline">xs.filter(_ &gt; 0).map(_ * 2)</code></td></tr>
+        <tr><td>Flatten</td><td><code class="inline">[y for x in xss for y in x]</code></td><td><code class="inline">xss.flatten</code> / <code class="inline">xss.flatMap(identity)</code></td></tr>
+        <tr><td>Датакласс</td><td><code class="inline">@dataclass class P</code></td><td><code class="inline">case class P(name: String, age: Int)</code></td></tr>
+        <tr><td>None / optional get</td><td><code class="inline">None</code> · <code class="inline">d.get(k, dflt)</code></td><td><code class="inline">None: Option[T]</code> · <code class="inline">m.getOrElse(k, dflt)</code></td></tr>
+        <tr><td>try/except</td><td><code class="inline">try/except</code></td><td><code class="inline">Try { ... }</code> / <code class="inline">try ... catch { case e =&gt; }</code></td></tr>
+        <tr><td>isinstance / switch</td><td><code class="inline">isinstance</code> / <code class="inline">match</code></td><td><code class="inline">x match { case _: T =&gt; ...; case Foo(a) =&gt; ... }</code></td></tr>
+        <tr><td>Формат строки</td><td><code class="inline">f"{x}"</code></td><td><code class="inline">s"$x"</code></td></tr>
+        <tr><td>Static-метод</td><td><code class="inline">@staticmethod</code></td><td>метод на <code class="inline">object</code></td></tr>
+        <tr><td>enumerate</td><td><code class="inline">enumerate(xs)</code></td><td><code class="inline">xs.zipWithIndex</code></td></tr>
+        <tr><td>Aggregate</td><td><code class="inline">functools.reduce</code></td><td><code class="inline">xs.foldLeft(z)(f)</code> / <code class="inline">xs.reduce(f)</code></td></tr>
+        <tr><td>PySpark filter</td><td><code class="inline">df.filter(df.x &gt; 0)</code></td><td><code class="inline">df.filter($"x" &gt; 0)</code></td></tr>
+        <tr><td>Типизир. трансформ</td><td><i>(нет эквивалента)</i></td><td><code class="inline">ds.map(p =&gt; p.age): Dataset[Int]</code></td></tr>
+      </table>
+    </div>
+  </div></div>
+</section>
+
+<!-- ============ SELF QUIZ ============ -->
+<section id="quiz">
+  <div class="sec-head" onclick="toggleSec(this)"><span class="num">11</span><h2><span class="en">Flip-to-reveal self-quiz</span><span class="ru">Самопроверка: карточки-переворотки</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body"><div class="sec-inner">
+    <div class="card reveal">
+      <p class="muted en">Tap a card to flip. Answer out loud first.</p>
+      <p class="muted ru">Нажми карточку, чтобы перевернуть. Сначала ответь вслух.</p>
+      <div class="flip-wrap" id="flipwrap">
+        <!-- cards injected by JS for brevity + consistency -->
+      </div>
+    </div>
+  </div></div>
+</section>
+
+</main>
+
+<footer>
+  <span class="en">Scala for Big Data — Data Engineering interview prep · built for Amal Imangulov.</span>
+  <span class="ru">Scala для Big Data — подготовка к Data Engineering интервью · собрано для Amal Imangulov.</span>
+  <br><span class="en">Honesty rule: real production Scala/Spark at Front Tier (2018–19), actively refreshing. Lead with fundamentals + the "why".</span>
+  <span class="ru">Правило честности: реальный production Scala/Spark во Front Tier (2018–19), активно освежается. Лидируй с фундаментальных основ + «почему».</span>
+</footer>
+
+<script>
+  // ---- Combined theme + lang toggle (copied from kafka.html spec exactly) ----
+  (function(){
+    const THEME_KEY = 'de_cheat_theme';
+    const LANG_KEY  = 'de_cheat_lang';
+    let currentTheme = 'dark';
+    let currentLang  = 'en';
+    try {
+      currentTheme = localStorage.getItem(THEME_KEY) || 'dark';
+      currentLang  = localStorage.getItem(LANG_KEY)  || 'en';
+    } catch(e){}
+
+    function applyTheme(t){
+      document.documentElement.setAttribute('data-theme', t);
+      document.getElementById('themeBtn').textContent = (t === 'dark') ? '🌙 Dark' : '☀️ Light';
+      currentTheme = t;
+      try { localStorage.setItem(THEME_KEY, t); } catch(e){}
+    }
+    function applyLang(l){
+      document.documentElement.setAttribute('data-lang', l);
+      // Button shows language you switch TO
+      document.getElementById('langBtn').textContent = (l === 'en') ? '🌐 RU' : '🌐 EN';
+      currentLang = l;
+      try { localStorage.setItem(LANG_KEY, l); } catch(e){}
+    }
+    document.getElementById('themeBtn').onclick = () => {
+      applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    };
+    document.getElementById('langBtn').onclick = () => {
+      applyLang(currentLang === 'en' ? 'ru' : 'en');
+    };
+    applyTheme(currentTheme);
+    applyLang(currentLang);
+  })();
+
+  // ---- Collapsible sections ----
+  function setMax(sec){
+    const body = sec.querySelector('.sec-body');
+    if(sec.classList.contains('collapsed')){ body.style.maxHeight = '0px'; }
+    else { body.style.maxHeight = body.scrollHeight + 40 + 'px'; }
+  }
+  function toggleSec(head){
+    const sec = head.parentElement;
+    sec.classList.toggle('collapsed');
+    setMax(sec);
+  }
+  // init heights after layout
+  window.addEventListener('load', () => {
+    document.querySelectorAll('section').forEach(s => {
+      const body = s.querySelector('.sec-body');
+      if(body) body.style.maxHeight = body.scrollHeight + 40 + 'px';
+    });
+  });
+  // recompute on resize
+  let rt; window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      document.querySelectorAll('section:not(.collapsed) .sec-body').forEach(b => b.style.maxHeight = b.scrollHeight + 40 + 'px');
+    }, 150);
+  });
+
+  // ---- Scroll reveal ----
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ---- Flip cards (bilingual) ----
+  const cardsEN = [
+    ["val vs immutability?", "click for answer", "<span class='a'>val</span> fixes the <b>reference</b>, not the object's mutability. A val ArrayBuffer can still be mutated."],
+    ["Why reduceByKey over groupByKey?", "shuffle...", "<span class='a'>reduceByKey</span> does a map-side combine before the shuffle → far less network. groupByKey shuffles everything (OOM/skew risk)."],
+    ["What enables pattern matching on a case class?", "generated method...", "The auto-generated <span class='a'>unapply</span> extractor (plus equals/hashCode/copy/apply)."],
+    ["Why does typed Dataset.map cost more than a DataFrame column op?", "Catalyst...", "Lambdas are <span class='a'>opaque to Catalyst</span> (no pushdown/pruning) + object ser/de via the Encoder."],
+    ["What does import spark.implicits._ provide?", "two things...", "<span class='a'>Encoders</span> for case classes/primitives + the <b>$\"col\"</b> / .toDF / .toDS syntax."],
+    ["Task not serializable — cause &amp; fix?", "closures...", "A closure captures a non-serializable enclosing object. <span class='a'>Fix:</span> copy the field to a local val, or broadcast it."],
+    ["Transformation vs action in Spark?", "lazy?", "Transformations (map/filter/join) are <span class='a'>lazy</span> (build the DAG). Actions (count/collect/write) trigger execution."],
+    ["Option vs Either?", "reason?", "<span class='a'>Option</span> = present/absent. <span class='a'>Either</span>/Try = carries the failure reason (Right = success)."],
+    ["Convert a Java list to Scala &amp; wrap a null?", "imports...", "import scala.jdk.CollectionConverters._; <span class='a'>javaList.asScala</span>. Null → <span class='a'>Option(javaCall())</span>."],
+    ["What does sealed give you?", "compiler...", "Restricts subtypes to one file → compiler-checked <span class='a'>exhaustiveness</span> on match."],
+    ["RDD vs DataFrame vs Dataset — one-liner each?", "...", "RDD: typed, no Catalyst. DataFrame=Dataset[Row]: untyped, full Catalyst. <span class='a'>Dataset[T]</span>: typed + Catalyst (JVM only)."],
+    ["map vs flatMap?", "...", "map = 1:1. <span class='a'>flatMap</span> = 1:many then flatten; powers for-comprehensions + Spark tokenizing."]
+  ];
+  const cardsRU = [
+    ["val vs неизменяемость?", "нажми для ответа", "<span class='a'>val</span> фиксирует <b>ссылку</b>, а не неизменяемость объекта. val ArrayBuffer всё равно можно мутировать."],
+    ["Почему reduceByKey лучше groupByKey?", "shuffle...", "<span class='a'>reduceByKey</span> делает map-side combine перед shuffle → намного меньше сети. groupByKey шаффлит всё (риск OOM/skew)."],
+    ["Что позволяет pattern matching на case-классе?", "сгенерированный метод...", "Авто-сгенерированный <span class='a'>unapply</span> extractor (плюс equals/hashCode/copy/apply)."],
+    ["Почему типизированный Dataset.map дороже DataFrame column op?", "Catalyst...", "Лямбды <span class='a'>непрозрачны для Catalyst</span> (нет pushdown/pruning) + object ser/de через Encoder."],
+    ["Что даёт import spark.implicits._?", "две вещи...", "<span class='a'>Encoders</span> для case-классов/примитивов + синтаксис <b>$\"col\"</b> / .toDF / .toDS."],
+    ["Task not serializable — причина &amp; лечение?", "замыкания...", "Замыкание захватывает несериализуемый объемлющий объект. <span class='a'>Лечение:</span> скопируй поле в локальный val или broadcast."],
+    ["Transformation vs action в Spark?", "ленивый?", "Transformations (map/filter/join) <span class='a'>ленивые</span> (строят DAG). Actions (count/collect/write) запускают выполнение."],
+    ["Option vs Either?", "причина?", "<span class='a'>Option</span> = есть/нет. <span class='a'>Either</span>/Try = несёт причину сбоя (Right = успех)."],
+    ["Конвертировать Java-список в Scala &amp; обернуть null?", "импорты...", "import scala.jdk.CollectionConverters._; <span class='a'>javaList.asScala</span>. Null → <span class='a'>Option(javaCall())</span>."],
+    ["Что даёт sealed?", "компилятор...", "Ограничивает подтипы одним файлом → проверка <span class='a'>полноты</span> match на уровне компилятора."],
+    ["RDD vs DataFrame vs Dataset — по строчке?", "...", "RDD: типизирован, нет Catalyst. DataFrame=Dataset[Row]: нетипизирован, полный Catalyst. <span class='a'>Dataset[T]</span>: типизирован + Catalyst (только JVM)."],
+    ["map vs flatMap?", "...", "map = 1:1. <span class='a'>flatMap</span> = 1:много, затем flatten; движок for-comprehensions + Spark tokenizing."]
+  ];
+
+  const wrap = document.getElementById('flipwrap');
+  const html = document.documentElement;
+  function renderCards(){
+    const cards = (html.getAttribute('data-lang') === 'en') ? cardsEN : cardsRU;
+    wrap.innerHTML = '';
+    cards.forEach(c => {
+      const d = document.createElement('div');
+      d.className = 'flip';
+      d.onclick = () => d.classList.toggle('flipped');
+      d.innerHTML =
+        "<div class='flip-inner'>" +
+          "<div class='flip-face flip-front'><div class='q'>"+c[0]+"</div><div class='hint'>"+c[1]+"</div></div>" +
+          "<div class='flip-face flip-back'>"+c[2]+"</div>" +
+        "</div>";
+      wrap.appendChild(d);
+    });
+  }
+  // initial render
+  renderCards();
+  // re-render on lang switch
+  document.getElementById('langBtn').addEventListener('click', () => {
+    setTimeout(renderCards, 50); // after lang toggles
+  });
+</script>
+</body>
+</html>

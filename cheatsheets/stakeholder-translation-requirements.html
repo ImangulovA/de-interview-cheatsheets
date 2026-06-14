@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stakeholder Collaboration & Requirements Translation — Data Engineering Interview Cheatsheet</title>
+<style>
+:root{
+  --bg:#0a0e1a; --card:#151d30; --card2:#1b2540; --text:#e6ecf5; --muted:#92a0bd;
+  --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7;
+  --border:#243250; --code-bg:#0c1322; --shadow:rgba(0,0,0,.4);
+}
+[data-theme="light"]{
+  --bg:#f4f6fb; --card:#ffffff; --card2:#eef2fa; --text:#10182a;
+  --muted:#5b6884; --accent:#1877F2; --green:#0a9b78; --orange:#c2740a; --purple:#8b3fd6;
+  --border:#d6deec; --code-bg:#f0f3fa; --shadow:rgba(20,40,80,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.55;font-size:15px;transition:background .25s,color .25s}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code,pre,.mono{font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+
+/* ---- i18n language toggle ---- */
+[data-lang="en"] .ru { display: none !important; }
+[data-lang="ru"] .en { display: none !important; }
+
+/* NAV */
+nav{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+[data-theme="light"] nav{background:rgba(244,246,251,.92)}
+nav .brand{font-weight:700;color:var(--accent);white-space:nowrap;margin-right:6px}
+nav a.navlink{color:var(--muted);font-size:12.5px;padding:3px 8px;border-radius:6px}
+nav a.navlink:hover{color:var(--text);background:var(--card2);text-decoration:none}
+.toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+.toggle-btn {
+  background: var(--card2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+}
+.toggle-btn:hover { border-color: var(--accent); }
+
+.wrap{max-width:1080px;margin:0 auto;padding:24px 18px 80px}
+header.hero{padding:14px 0 8px}
+header.hero h1{font-size:26px;margin:0 0 6px;line-height:1.25}
+header.hero .sub{color:var(--muted);font-size:14px}
+.badges{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.badge{font-size:11.5px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card)}
+.badge.accent{border-color:var(--accent);color:var(--accent)}
+.badge.green{border-color:var(--green);color:var(--green)}
+.badge.orange{border-color:var(--orange);color:var(--orange)}
+.badge.purple{border-color:var(--purple);color:var(--purple)}
+
+section{margin-top:30px}
+h2.sec{font-size:19px;border-left:4px solid var(--accent);padding-left:10px;margin:0 0 14px;scroll-margin-top:60px}
+h3{font-size:15.5px;margin:18px 0 8px;color:var(--text)}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:12px 0;
+  box-shadow:0 1px 0 var(--shadow)}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s}
+.reveal.in{opacity:1;transform:none}
+
+/* collapsible */
+.collap > summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none;display:flex;align-items:center;gap:8px;
+  padding:4px 0}
+.collap > summary::-webkit-details-marker{display:none}
+.collap > summary::before{content:"▸";color:var(--accent);transition:transform .2s;display:inline-block}
+.collap[open] > summary::before{transform:rotate(90deg)}
+.collap{border:1px solid var(--border);border-radius:12px;background:var(--card);padding:12px 16px;margin:12px 0}
+
+ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.muted{color:var(--muted)}
+strong.k{color:var(--green)}
+.tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:5px;border:1px solid var(--border);margin-left:6px;vertical-align:middle}
+.tag.easy{color:var(--green);border-color:var(--green)}
+.tag.med{color:var(--orange);border-color:var(--orange)}
+.tag.hard{color:var(--purple);border-color:var(--purple)}
+.tag.likely{color:#ffd34d;border-color:#ffd34d}
+
+/* tables */
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--card2);color:var(--text);font-weight:600}
+tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+
+/* code */
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;overflow-x:auto;
+  font-size:12.5px;line-height:1.5}
+.kw{color:var(--purple)} .str{color:var(--green)} .cm{color:var(--muted);font-style:italic} .fn{color:var(--accent)} .num{color:var(--orange)}
+
+/* callout */
+.callout{border-left:4px solid var(--orange);background:linear-gradient(90deg,rgba(245,158,11,.10),transparent);
+  border-radius:0 8px 8px 0;padding:10px 14px;margin:12px 0;font-size:13.5px}
+.callout.probe{border-color:var(--purple);background:linear-gradient(90deg,rgba(168,85,247,.10),transparent)}
+.callout.good{border-color:var(--green);background:linear-gradient(90deg,rgba(2,226,172,.10),transparent)}
+.callout.gap{border-color:var(--accent);background:linear-gradient(90deg,rgba(24,119,242,.10),transparent)}
+.callout .lab{font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:3px}
+.callout.probe .lab{color:var(--purple)} .callout .lab{color:var(--orange)} .callout.good .lab{color:var(--green)} .callout.gap .lab{color:var(--accent)}
+
+/* flip cards */
+.flipgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:10px}
+.flip{perspective:1200px;height:200px;cursor:pointer}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .55s;transform-style:preserve-3d}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--border);border-radius:12px;
+  padding:14px;display:flex;flex-direction:column;justify-content:center;overflow:auto}
+.flip-front{background:var(--card2)}
+.flip-back{background:var(--card);transform:rotateY(180deg);font-size:13px}
+.flip-q{font-weight:600;font-size:14px}
+.flip-hint{color:var(--muted);font-size:11px;margin-top:10px}
+.flip-back ul{padding-left:18px;margin:2px 0}
+.flip-back li{font-size:12.5px;margin:3px 0}
+
+/* ascii diagram */
+.diagram{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:14px;
+  font-family:"SF Mono",Menlo,monospace;font-size:12px;white-space:pre;overflow-x:auto;color:var(--muted);line-height:1.45}
+.diagram b{color:var(--green)} .diagram .a{color:var(--accent)} .diagram .o{color:var(--orange)} .diagram .p{color:var(--purple)}
+
+.story-pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:6px;margin-right:6px}
+.sa{background:rgba(168,85,247,.18);color:var(--purple)}
+.sb{background:rgba(24,119,242,.18);color:var(--accent)}
+.sc{background:rgba(2,226,172,.18);color:var(--green)}
+.sd{background:rgba(245,158,11,.18);color:var(--orange)}
+
+footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+.kbd{font-size:11px;border:1px solid var(--border);border-radius:4px;padding:1px 5px;background:var(--card2)}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand"><span class="en">🤝 Stakeholders</span><span class="ru">🤝 Стейкхолдеры</span></span>
+  <a class="navlink" href="#frame"><span class="en">The Frame</span><span class="ru">Рамка</span></a>
+  <a class="navlink" href="#stories"><span class="en">5 Stories</span><span class="ru">5 историй</span></a>
+  <a class="navlink" href="#elicit"><span class="en">Elicit→Spec</span><span class="ru">Выявление→Спека</span></a>
+  <a class="navlink" href="#vendors"><span class="en">Vendors</span><span class="ru">Вендоры</span></a>
+  <a class="navlink" href="#domain"><span class="en">Domain experts</span><span class="ru">Эксперты домена</span></a>
+  <a class="navlink" href="#influence"><span class="en">Influence</span><span class="ru">Влияние</span></a>
+  <a class="navlink" href="#tradeoff"><span class="en">Trade-offs</span><span class="ru">Компромиссы</span></a>
+  <a class="navlink" href="#agile"><span class="en">Agile/JIRA</span><span class="ru">Agile/JIRA</span></a>
+  <a class="navlink" href="#gotchas"><span class="en">Gotchas</span><span class="ru">Подводные камни</span></a>
+  <a class="navlink" href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+  <a class="navlink" href="#ask"><span class="en">Ask Them</span><span class="ru">Вопросы им</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<div class="wrap">
+<header class="hero">
+  <h1>
+    <span class="en">Stakeholder Collaboration &amp; Requirements Translation — <span class="muted">DE Interview Prep</span></span>
+    <span class="ru">Работа со стейкхолдерами и перевод бизнес-требований — <span class="muted">Подготовка к DE-интервью</span></span>
+  </h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</span>
+  </div>
+  <div class="badges">
+    <span class="badge accent"><span class="en">Translate needs → requirements</span><span class="ru">Перевод нужд → требования</span></span>
+    <span class="badge green"><span class="en">Data-as-product</span><span class="ru">Данные как продукт</span></span>
+    <span class="badge orange"><span class="en">Vendors &amp; feeds</span><span class="ru">Вендоры и фиды</span></span>
+    <span class="badge purple"><span class="en">Influence w/o authority</span><span class="ru">Влияние без полномочий</span></span>
+    <span class="badge">Agile / backlog / JIRA</span>
+  </div>
+</header>
+
+<!-- ============ THE FRAME ============ -->
+<section id="frame" class="reveal">
+  <h2 class="sec"><span class="en">The frame: what this topic is really testing</span><span class="ru">Рамка: что на самом деле проверяет эта тема</span></h2>
+  <div class="card">
+    <p class="en">Senior Data Engineer interviews test your ability to be the bridge between people who own <strong>meaning</strong> and the systems that own <strong>mechanism</strong>. Land at least one of these per answer:</p>
+    <p class="ru">На интервью Senior Data Engineer проверяют твою способность быть мостом между теми, кто владеет <strong>смыслом</strong>, и системами, которые владеют <strong>механизмом</strong>. Поймай хотя бы один из этих сигналов в каждом ответе:</p>
+    <div class="diagram en"><span class="a">┌────────────────────────────────────────────────────────────┐</span>
+<span class="a">│</span>  STAKEHOLDER SIGNAL = at least ONE of these per answer       <span class="a">│</span>
+<span class="a">├────────────────────────────────────────────────────────────┤</span>
+<span class="a">│</span>  1. <b>Elicit + WRITE crisp requirements</b>  (decision-first)     <span class="a">│</span>
+<span class="a">│</span>  2. <b>Manage EXTERNAL deps</b>          (vendors / feeds / SLAs)  <span class="a">│</span>
+<span class="a">│</span>  3. <b>Align NON-engineers</b>           (domain experts / board)  <span class="a">│</span>
+<span class="a">│</span>  4. <b>Influence WITHOUT authority</b>   (siloed teams converge)   <span class="a">│</span>
+<span class="a">└────────────────────────────────────────────────────────────┘</span>
+   these four map 1:1 to collaboration in the job description
+</div>
+    <div class="diagram ru"><span class="a">┌────────────────────────────────────────────────────────────┐</span>
+<span class="a">│</span>  СИГНАЛ СТЕЙКХОЛДЕРОВ = минимум ОДИН из них в каждом ответе  <span class="a">│</span>
+<span class="a">├────────────────────────────────────────────────────────────┤</span>
+<span class="a">│</span>  1. <b>Выявление + ЗАПИСЬ чётких требований</b>  (decision-first)  <span class="a">│</span>
+<span class="a">│</span>  2. <b>Управление ВНЕШНИМИ зависимостями</b> (вендоры/фиды/SLA)  <span class="a">│</span>
+<span class="a">│</span>  3. <b>Согласование с НЕ-инженерами</b>     (домен-эксперты/совет)<span class="a">│</span>
+<span class="a">│</span>  4. <b>Влияние БЕЗ полномочий</b>          (силосированные команды)<span class="a">│</span>
+<span class="a">└────────────────────────────────────────────────────────────┘</span>
+   эти четыре соответствуют требованиям к коллаборации в JD
+</div>
+    <div class="callout good">
+      <span class="lab en">North star one-liner</span>
+      <span class="lab ru">Главный однострочник</span>
+      <p class="en">"I translate between <strong>meaning</strong> (owned by the domain expert / client) and <strong>mechanism</strong> (owned by me). I write the translation down so disagreements are cheap, and I treat the number that reaches the consumer as the product." Memorize this; it answers half the topic.</p>
+      <p class="ru">«Я перевожу между <strong>смыслом</strong> (которым владеет домен-эксперт / клиент) и <strong>механизмом</strong> (которым владею я). Я записываю перевод, чтобы разногласия стоили дёшево, и отношусь к числу, которое доходит до консьюмера, как к продукту». Запомни это; оно отвечает на половину темы.</p>
+    </div>
+    <div class="callout gap">
+      <span class="lab en">Mental model: meaning vs mechanism</span>
+      <span class="lab ru">Ментальная модель: смысл vs механизм</span>
+      <p class="en">The <em>domain expert</em> owns what a dataset <em>means</em> (what's a legitimate revision, what release calendar applies). <em>You</em> own how it's built (ingestion, validation, freshness). Most data products break at the handoff between the two — so make that handoff <strong>explicit and written</strong>.</p>
+      <p class="ru"><em>Эксперт домена</em> владеет тем, что <em>означает</em> датасет (что такое легитимная ревизия, какой календарь релизов применяется). <em>Ты</em> владеешь тем, как это построено (ingestion, валидация, свежесть). Большинство дата-продуктов ломается на передаче между двумя этими ролями — поэтому делай эту передачу <strong>явной и записанной</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE 5 STORIES ============ -->
+<section id="stories" class="reveal">
+  <h2 class="sec"><span class="en">The 5 signature stories for THIS topic</span><span class="ru">5 ключевых историй для ЭТОЙ темы</span></h2>
+  <p class="muted">
+    <span class="en">Each is reusable across many questions. Know the lead number cold.</span>
+    <span class="ru">Каждая переиспользуется в разных вопросах. Знай главную цифру наизусть.</span>
+  </p>
+
+  <details class="collap" open>
+    <summary><span class="story-pill sa">T1</span> <span class="en">Career.io board-level reporting — translating for non-technical stakeholders</span><span class="ru">Career.io отчётность на уровне совета — перевод для нетехнических стейкхолдеров</span></summary>
+    <ul class="en">
+      <li><strong class="k">S/T</strong> — Led an <strong>8-person</strong> analytics-eng team owning the warehouse + KPI infra for <strong>board-level financial reporting</strong> and marketing attribution across <strong>8 brands</strong>. Stakeholders = finance + board: care intensely whether a number is right, don't think in joins.</li>
+      <li><strong class="k">A</strong> — Spoke in their terms ("recognized revenue on the finance close calendar, deduplicated to one customer across brands"), made <strong>definitions a written shared artifact</strong> so a fight about a number became a fight about a definition we resolve once, and gave them drill-downs that reconcile to finance so trust was <em>earned</em>.</li>
+      <li><strong class="k">R</strong> — Trustworthy board reporting across all 8 brands; finance stopped re-deriving in spreadsheets.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">S/T</strong> — Руководил командой из <strong>8 человек</strong> (аналитика + инженерия), владевшей хранилищем + инфраструктурой KPI для <strong>финансовой отчётности на уровне совета</strong> и маркетинговой атрибуции по <strong>8 брендам</strong>. Стейкхолдеры = финансы + совет: очень важно, правильное ли число, но не думают в терминах JOIN-ов.</li>
+      <li><strong class="k">A</strong> — Говорил на их языке («признанная выручка по календарю финансового закрытия, дедуплицированная к одному клиенту по брендам»), сделал <strong>определения записанным общим артефактом</strong>, чтобы спор о числе стал спором об определении, который решается раз, и дал им drill-down-ы, которые сверяются с финансами, поэтому доверие было <em>заработано</em>.</li>
+      <li><strong class="k">R</strong> — Надёжная отчётность на уровне совета по всем 8 брендам; финансы перестали передерживать в таблицах.</li>
+    </ul>
+    <div class="callout good">
+      <span class="lab en">The line that wins</span>
+      <span class="lab ru">Фраза, которая выигрывает</span>
+      <p class="en">"The most expensive requirements bug is a definition disagreement found after launch. So I front-load definitions and write them down — what 'revenue' or 'active' means is a <em>decision</em>, not a default."</p>
+      <p class="ru">«Самый дорогой баг в требованиях — это разногласие в определениях, найденное после запуска. Поэтому я закладываю определения заранее и записываю их — что означает 'revenue' или 'active' — это <em>решение</em>, а не дефолт».</p>
+    </div>
+    <p class="muted">
+      <span class="en">Best for: non-technical stakeholders, definitions, data-as-product, "make the numbers reliable."</span>
+      <span class="ru">Лучше для: нетехнические стейкхолдеры, определения, данные как продукт, «сделать цифры надёжными».</span>
+    </p>
+  </details>
+
+  <details class="collap">
+    <summary><span class="story-pill sb">T2</span> <span class="en">McMakler self-service analytics — vague recurring ask → scalable product</span><span class="ru">McMakler селф-сервис аналитика — расплывчатый повторяющийся запрос → масштабируемый продукт</span></summary>
+    <ul class="en">
+      <li><strong class="k">S/T</strong> — <strong>200+ business users across 8 departments</strong> funneled every question through a small team. The "ask" was constant and vague: "can you pull me X." The real need was self-service.</li>
+      <li><strong class="k">A</strong> — Treated the recurring questions as the requirement; built stable, well-defined, reusable models on Snowflake + dbt, plus a proprietary <strong>Salesforce sync via Airflow</strong> so CRM data flowed dependably. Translated "pull me X" patterns into governed models non-engineers could self-serve.</li>
+      <li><strong class="k">R</strong> — Self-service serving <strong>200+ users / 8 depts</strong>; removed my team as the bottleneck.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">S/T</strong> — <strong>200+ бизнес-пользователей из 8 департаментов</strong> пропускали каждый вопрос через маленькую команду. «Запрос» был постоянным и расплывчатым: «можешь мне выгрузить X». Настоящая потребность — селф-сервис.</li>
+      <li><strong class="k">A</strong> — Отнёсся к повторяющимся вопросам как к требованиям; построил стабильные, чётко определённые, переиспользуемые модели на Snowflake + dbt, плюс проприетарный <strong>Salesforce-синк через Airflow</strong>, чтобы CRM-данные текли надёжно. Перевёл паттерны «выгрузи мне X» в управляемые модели, которые не-инженеры могли использовать сами.</li>
+      <li><strong class="k">R</strong> — Селф-сервис обслуживает <strong>200+ пользователей / 8 департаментов</strong>; убрал мою команду как узкое место.</li>
+    </ul>
+    <div class="callout good">
+      <span class="lab en">Senior tell</span>
+      <span class="lab ru">Сигнал Senior</span>
+      <p class="en">"The vague ask was never 'a query.' It was 'I need to answer my own questions without waiting.' I built for the underlying need, which is why it scaled instead of generating more tickets."</p>
+      <p class="ru">«Расплывчатый запрос никогда не был 'запросом'. Он был 'мне нужно отвечать на свои вопросы без ожидания'. Я строил под настоящую потребность, поэтому оно масштабировалось, а не генерировало новые тикеты».</p>
+    </div>
+    <p class="muted">
+      <span class="en">Best for: turning vague asks into delivered scalable solutions; data-as-product; serving many consumers.</span>
+      <span class="ru">Лучше для: превращение расплывчатых запросов в доставленные масштабируемые решения; данные как продукт; обслуживание многих консьюмеров.</span>
+    </p>
+  </details>
+
+  <details class="collap">
+    <summary><span class="story-pill sc">T3</span> <span class="en">Forcing convergence across 8 siloed brands — influence without authority</span><span class="ru">Принуждение к конвергенции по 8 силосированным брендам — влияние без полномочий</span></summary>
+    <ul class="en">
+      <li><strong class="k">S/T</strong> — Board reporting was unreliable because "customer" / "account" meant different things in each of <strong>8 siloed brand domains</strong>. I didn't manage those teams; they had no incentive to change.</li>
+      <li><strong class="k">A</strong> — Led with the <em>cost of the status quo</em> in the board's terms (numbers that don't add up), not "you should standardize." Built a strawman shared spine, showed each brand their numbers stayed right under it, <strong>co-designed the spine</strong> so it was "ours," and institutionalized dbt review so it held over time.</li>
+      <li><strong class="k">R</strong> — A consistent cross-brand customer/account spine; board reporting + attribution trustworthy across all 8.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">S/T</strong> — Отчётность на уровне совета была ненадёжной, потому что «клиент» / «аккаунт» означали разное в каждом из <strong>8 силосированных брендовых доменов</strong>. Я не управлял этими командами; у них не было стимула меняться.</li>
+      <li><strong class="k">A</strong> — Начал с <em>цены статус-кво</em> на языке совета (цифры не сходятся), а не с «вы должны стандартизировать». Построил черновой общий каркас (spine), показал каждому бренду, что их цифры остаются правильными под ним, <strong>со-спроектировал каркас</strong>, чтобы он был «наш», и институционализировал dbt-ревью, чтобы это держалось со временем.</li>
+      <li><strong class="k">R</strong> — Единообразный кросс-брендовый каркас клиента/аккаунта; отчётность на уровне совета + атрибуция надёжны по всем 8.</li>
+    </ul>
+    <div class="callout good">
+      <span class="lab en">The line that wins</span>
+      <span class="lab ru">Фраза, которая выигрывает</span>
+      <p class="en">"Influence without authority is mostly reframing the problem so the other team sees <em>their own</em> pain in it, then giving them a seat in the solution. People defend what they helped build."</p>
+      <p class="ru">«Влияние без полномочий — это в основном переформулировка проблемы так, чтобы другая команда видела в ней <em>свою собственную</em> боль, а затем давание им места в решении. Люди защищают то, что помогли построить».</p>
+    </div>
+    <p class="muted">
+      <span class="en">Best for: influence w/o authority, conflict, cross-functional alignment, canonical definitions.</span>
+      <span class="ru">Лучше для: влияние без полномочий, конфликт, кросс-функциональное согласование, канонические определения.</span>
+    </p>
+  </details>
+
+  <details class="collap">
+    <summary><span class="story-pill sd">T4</span> <span class="en">McKinsey — translating business goals into analytics deliverables</span><span class="ru">McKinsey — перевод бизнес-целей в аналитические результаты</span></summary>
+    <ul class="en">
+      <li><strong class="k">S/T</strong> — Russian telco + European transport authority needed data to move real metrics; stakeholders spoke business, not SQL.</li>
+      <li><strong class="k">A</strong> — Built segmentation, ran <strong>40+ campaigns</strong>, measured uplift rigorously; framed everything in the metric the business owned.</li>
+      <li><strong class="k">R</strong> — <strong>+20% ARPU</strong> at the telco; <strong>+10% customer satisfaction</strong> at the transport authority.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">S/T</strong> — Российский телеком + европейское транспортное агентство нуждались в данных для движения реальных метрик; стейкхолдеры говорили на бизнесе, а не на SQL.</li>
+      <li><strong class="k">A</strong> — Построил сегментацию, запустил <strong>40+ кампаний</strong>, жёстко измерил uplift; обрамлял всё в метрику, которой владел бизнес.</li>
+      <li><strong class="k">R</strong> — <strong>+20% ARPU</strong> в телекоме; <strong>+10% удовлетворённость клиентов</strong> в транспортном агентстве.</li>
+    </ul>
+    <p class="muted">
+      <span class="en">Best for: translating business → analytics, speaking the stakeholder's language, two years of consulting reps.</span>
+      <span class="ru">Лучше для: перевод бизнес → аналитика, разговор на языке стейкхолдера, два года консалтинговых реп.</span>
+    </p>
+  </details>
+
+  <details class="collap">
+    <summary><span class="story-pill sb">T5</span> <span class="en">Meta 10-system consolidation — requirements via consumer-mapping</span><span class="ru">Meta консолидация 10 систем — требования через маппинг консьюмеров</span></summary>
+    <ul class="en">
+      <li><strong class="k">S/T</strong> — 10 fragmented logging systems, <strong>~3.6B events/day</strong>, blocking cross-surface analytics. Many internal stakeholders depended on the old shapes.</li>
+      <li><strong class="k">A</strong> — <strong>Mapped every downstream consumer before changing anything</strong>; designed one unified model that served all of them; eliminated <strong>47% redundant volume</strong>.</li>
+      <li><strong class="k">R</strong> — One coherent model serving all consumers; cross-surface analytics unblocked.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">S/T</strong> — 10 фрагментированных систем логирования, <strong>~3.6B событий/день</strong>, блокирующие кросс-поверхностную аналитику. Многие внутренние стейкхолдеры зависели от старых форм.</li>
+      <li><strong class="k">A</strong> — <strong>Смапил каждого downstream-консьюмера до изменения чего-либо</strong>; спроектировал одну унифицированную модель, которая обслуживала всех; устранил <strong>47% избыточного объёма</strong>.</li>
+      <li><strong class="k">R</strong> — Одна связная модель, обслуживающая всех консьюмеров; кросс-поверхностная аналитика разблокирована.</li>
+    </ul>
+    <div class="callout good">
+      <span class="lab en">Senior tell</span>
+      <span class="lab ru">Сигнал Senior</span>
+      <p class="en">"I treat downstream consumers as first-class: I map who depends on what before I touch the model. Same muscle as serving multiple products from one canonical source."</p>
+      <p class="ru">«Я отношусь к downstream-консьюмерам как к первоклассным: я маплю, кто от чего зависит, прежде чем трогать модель. Тот же навык, что обслуживать несколько продуктов из одного канонического источника».</p>
+    </div>
+    <p class="muted">
+      <span class="en">Best for: requirements from many consumers, serving multiple products, managing internal stakeholders in a redesign.</span>
+      <span class="ru">Лучше для: требования от многих консьюмеров, обслуживание множества продуктов, управление внутренними стейкхолдерами при редизайне.</span>
+    </p>
+  </details>
+</section>
+
+<!-- ============ ELICIT → SPEC ============ -->
+<section id="elicit" class="reveal">
+  <h2 class="sec"><span class="en">Eliciting requirements &amp; writing a spec (the core skill)</span><span class="ru">Выявление требований и запись спеки (ключевой навык)</span></h2>
+  <div class="card">
+    <h3><span class="en">The decision-first elicitation loop</span><span class="ru">Цикл выявления decision-first</span></h3>
+    <div class="diagram en"><span class="o">1.</span> Elicit the DECISION, not the ask   <span class="p">"churn dashboard" → "retention lead</span>
+                                       <span class="p">picks weekly save-campaign targets"</span>
+<span class="o">2.</span> Pin the NON-NEGOTIABLES           grain · freshness · definitions ·
+                                       accuracy tolerance · source of truth
+<span class="o">3.</span> WRITE the spec                    a shape an engineer can build from
+<span class="o">4.</span> Negotiate the TRADE-OFF out loud   timeliness vs accuracy vs cost
+<span class="o">5.</span> Acceptance criteria STAKEHOLDER    "done" is objective + signed off
+            signs off
+</div>
+    <div class="diagram ru"><span class="o">1.</span> Выяви РЕШЕНИЕ, а не запрос         <span class="p">"дашборд оттока" → "retention-лид</span>
+                                       <span class="p">выбирает недельные save-таргеты"</span>
+<span class="o">2.</span> Зафиксируй НЕ-ТОРГУЕМОЕ            grain · свежесть · определения ·
+                                       толерантность точности · source of truth
+<span class="o">3.</span> ЗАПИШИ спеку                       форму, по которой инженер может строить
+<span class="o">4.</span> Обсуди КОМПРОМИСС вслух             своевременность vs точность vs цена
+<span class="o">5.</span> Критерии приёмки СТЕЙКХОЛДЕР       "готово" объективно + подписано
+            подписывает
+</div>
+    <h3><span class="en">What goes in the spec (the contract)</span><span class="ru">Что входит в спеку (контракт)</span></h3>
+    <pre class="en"><span class="cm"># requirement spec — the shape I hand an engineer</span>
+<span class="kw">consumer</span>:        retention lead (+ the decision it drives)
+<span class="kw">grain</span>:           one row per account per week
+<span class="kw">metrics</span>:         churn_rate  <span class="cm"># EXACT def: no activity 28d, excl. refunds</span>
+<span class="kw">dimensions</span>:      segment, region, plan_tier, cohort_window
+<span class="kw">freshness_sla</span>:   by 09:00 Mon, data through prev Sun
+<span class="kw">source</span>:          billing (SoT) + product events; owner named
+<span class="kw">accept</span>:          reconciles to finance MRR ±0.5%; stakeholder sign-off
+<span class="kw">out_of_scope</span>:    real-time; per-user PII; forecasting</pre>
+    <pre class="ru"><span class="cm"># спека требований — форма, которую я передаю инженеру</span>
+<span class="kw">консьюмер</span>:       retention-лид (+ решение, которое он принимает)
+<span class="kw">grain</span>:           одна строка на аккаунт на неделю
+<span class="kw">метрики</span>:         churn_rate  <span class="cm"># ТОЧНОЕ опр.: нет активности 28д, искл. рефанды</span>
+<span class="kw">измерения</span>:       segment, region, plan_tier, cohort_window
+<span class="kw">freshness_sla</span>:   к 09:00 пн, данные до предыдущего вс
+<span class="kw">источник</span>:        billing (SoT) + product events; владелец назван
+<span class="kw">приёмка</span>:         сверяется с finance MRR ±0.5%; sign-off стейкхолдера
+<span class="kw">вне_скоупа</span>:      real-time; per-user PII; forecasting</pre>
+    <div class="callout">
+      <span class="lab en">Gotcha</span>
+      <span class="lab ru">Подводный камень</span>
+      <p class="en">Definitions are the highest-leverage line. "Active user," "revenue," "a churned account," "a legitimate revision" are <em>decisions</em>. Unwritten, they cause the worst post-launch fights. Write them; confirm them back in the stakeholder's words.</p>
+      <p class="ru">Определения — это строка с наибольшим leverage. «Активный пользователь», «выручка», «отток аккаунта», «легитимная ревизия» — это <em>решения</em>. Незаписанные, они вызывают худшие споры после запуска. Запиши их; подтверди их словами стейкхолдера.</p>
+    </div>
+    <div class="callout probe">
+      <span class="lab en">Interviewer will probe</span>
+      <span class="lab ru">О чём спросит интервьюер</span>
+      <p class="en">"What if the stakeholder doesn't know what they want?" → Propose a <strong>strawman</strong> (a mock table / sketch dashboard / sample rows). People edit far better than they author. Also watch what they <em>do today</em> — the hand-maintained spreadsheet IS the real requirement.</p>
+      <p class="ru">«Что если стейкхолдер не знает, что хочет?» → Предложи <strong>черновик (strawman)</strong> (мок-таблицу / эскиз дашборда / примерные строки). Люди редактируют намного лучше, чем пишут с нуля. Также смотри, что они <em>делают сегодня</em> — вручную поддерживаемая таблица И ЕСТЬ настоящее требование.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VENDORS ============ -->
+<section id="vendors" class="reveal">
+  <h2 class="sec"><span class="en">Vendors &amp; feed issues</span><span class="ru">Вендоры и проблемы с фидами</span></h2>
+  <div class="card">
+    <div class="callout gap">
+      <span class="lab en">Honest gap statement (rehearse verbatim)</span>
+      <span class="lab ru">Честное заявление о гэпе (отрепетируй дословно)</span>
+      <p class="en">No named "vendor SLA management" on the CV. Lean on the <strong>Salesforce sync layer</strong> (an external system you took a hard dependency on and engineered around) and the <strong>10 heterogeneous source consolidation</strong> at Meta. Then speak the vendor-feed playbook fluently to show you know the <em>shape</em> of the problem.</p>
+      <p class="ru">В CV нет «управления SLA вендоров». Опирайся на <strong>Salesforce sync-слой</strong> (внешняя система, от которой ты взял жёсткую зависимость и инженерил вокруг) и <strong>консолидацию 10 гетерогенных источников</strong> в Meta. Затем бегло говори на плейбуке vendor-feed, чтобы показать, что знаешь <em>форму</em> проблемы.</p>
+    </div>
+    <h3><span class="en">The vendor-feed playbook</span><span class="ru">Плейбук vendor-feed</span></h3>
+    <div class="diagram en">  vendor wire ──▶ <b>LANDING ZONE</b> ──▶ contract tests ──▶ transforms ──▶ consumers
+                  (buffered,         (schema / volume /      (read landing,
+                   idempotent)        range / null /          NEVER the wire)
+                                      reconcile vs last
+                                      known-good)
+        <span class="o">│</span>                                  <span class="o">│</span>
+   late feed = <b>delayed freshness</b>          bad feed = <b>QUARANTINE</b>,
+   (recoverable, alert)                   do not flow downstream
+</div>
+    <div class="diagram ru">  вендорский wire ──▶ <b>LANDING ZONE</b> ──▶ contract tests ──▶ transforms ──▶ консьюмеры
+                  (буферизован,      (схема / объём /        (читай landing,
+                   идемпотентен)      диапазон / null /       НИКОГДА wire)
+                                      сверка с последним
+                                      known-good)
+        <span class="o">│</span>                                  <span class="o">│</span>
+   поздний фид = <b>отложенная свежесть</b>      плохой фид = <b>КАРАНТИН</b>,
+   (обратимо, алерт)                      не течь вниз
+</div>
+    <ul class="en">
+      <li><strong class="k">Decouple your reliability from theirs.</strong> A flaky upstream feed must never crash or corrupt downstream. A late feed delays freshness; it does not break the warehouse.</li>
+      <li><strong class="k">Contract-test on arrival.</strong> Schema, volume sanity, range/null checks, reconcile vs last known-good. The feed proves it's healthy <em>before</em> it flows. Quarantine on failure.</li>
+      <li><strong class="k">Make "late" and "wrong" observable + routed.</strong> Freshness SLA per feed → alert if the release window passes empty. A vendor schema change should <em>page</em> someone, not silently null a column. Each feed: an owner + a runbook.</li>
+      <li><strong class="k">Manage the relationship, not just the file.</strong> Documented contract: schedule (release calendar), schema, known revision behavior, escalation contact. Bring the vendor <em>evidence</em> (which records, which field, vs which prior snapshot) — fast fix, collaborative not adversarial.</li>
+      <li><strong class="k">Reconcile multi-vendor disagreement.</strong> Two vendors, two values for one series → pipeline flags the divergence; the domain expert sets the precedence rule; you encode it.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">Отвяжи свою надёжность от их.</strong> Нестабильный upstream-фид никогда не должен крашить или корраптить downstream. Поздний фид откладывает свежесть; он не ломает хранилище.</li>
+      <li><strong class="k">Contract-тест при прибытии.</strong> Схема, адекватность объёма, проверки диапазона/null, сверка с последним known-good. Фид доказывает, что он здоров, <em>прежде чем</em> течь. Карантин при провале.</li>
+      <li><strong class="k">Сделай «поздний» и «неправильный» наблюдаемыми + маршрутизированными.</strong> Freshness SLA на фид → алерт, если release-окно прошло пустым. Изменение схемы вендором должно <em>будить</em> кого-то, а не молча nullить колонку. Каждый фид: владелец + runbook.</li>
+      <li><strong class="k">Управляй отношениями, а не только файлом.</strong> Документированный контракт: расписание (release calendar), схема, известное поведение ревизий, контакт для эскалации. Приноси вендору <em>доказательства</em> (какие записи, какое поле, vs какой прошлый снапшот) — быстрый фикс, коллаборативно, а не конфронтационно.</li>
+      <li><strong class="k">Сверяй разногласие между вендорами.</strong> Два вендора, два значения для одной серии → пайплайн флагает расхождение; эксперт домена устанавливает правило приоритета; ты его кодируешь.</li>
+    </ul>
+    <div class="callout good">
+      <span class="lab en">Senior tell</span>
+      <span class="lab ru">Сигнал Senior</span>
+      <p class="en">"I assume every external feed will eventually be late, malformed, or silently changed. The engineering job is to make that a <em>handled, visible event</em> instead of a downstream surprise — and the relationship job is to make the vendor want to fix it fast."</p>
+      <p class="ru">«Я исходю из того, что каждый внешний фид рано или поздно будет поздним, сломанным или молча изменённым. Инженерная работа — сделать это <em>обработанным, видимым событием</em> вместо downstream-сюрприза — а работа по отношениям — сделать так, чтобы вендор хотел фиксить это быстро».</p>
+    </div>
+    <div class="callout probe">
+      <span class="lab en">Interviewer will probe</span>
+      <span class="lab ru">О чём спросит интервьюер</span>
+      <p class="en">"Vendor insists nothing's wrong, but your numbers look off." → Bring a reproducible record-level diff vs the prior <em>vintage</em>; separate <strong>revision from defect</strong>; escalate with data while the quarantine protects consumers in the meantime.</p>
+      <p class="ru">«Вендор настаивает, что всё в порядке, но твои цифры выглядят странно». → Принеси воспроизводимый record-level diff vs прошлую <em>vintage</em>; разделяй <strong>ревизию от дефекта</strong>; эскалируй с данными, пока карантин защищает консьюмеров тем временем.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DOMAIN / EXPERTS ============ -->
+<section id="domain" class="reveal">
+  <h2 class="sec"><span class="en">Aligning with domain experts (non-engineers)</span><span class="ru">Согласование с экспертами домена (не-инженеры)</span></h2>
+  <div class="card">
+    <table class="en">
+      <tr><th style="width:34%">Who owns what</th><th>How it works</th></tr>
+      <tr><td><strong class="k">Domain expert owns MEANING</strong></td><td>What's a legitimate revision vs a defect; which release calendar applies; seasonal adjustment; survey vs administrative source; what makes a dataset "fit for clients."</td></tr>
+      <tr><td><strong class="k">You own MECHANISM</strong></td><td>Ingestion, validation, freshness, schema handling, backfills, monitoring — turning their judgment into reliable, observable pipeline controls.</td></tr>
+      <tr><td><strong class="k">The handoff (written)</strong></td><td>"A revision within this band is normal; outside it, flag." You extract the rule from the domain expert and <em>encode</em> it as a control. The handoff is where products break, so make it explicit.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th style="width:34%">Кто чем владеет</th><th>Как это работает</th></tr>
+      <tr><td><strong class="k">Эксперт домена владеет СМЫСЛОМ</strong></td><td>Что такое легитимная ревизия vs дефект; какой release calendar применяется; сезонная корректировка; survey vs административный источник; что делает датасет «годным для клиентов».</td></tr>
+      <tr><td><strong class="k">Ты владеешь МЕХАНИЗМОМ</strong></td><td>Ingestion, валидация, свежесть, обработка схемы, backfills, мониторинг — превращение их суждения в надёжные, наблюдаемые контроли пайплайна.</td></tr>
+      <tr><td><strong class="k">Передача (записанная)</strong></td><td>«Ревизия в этом диапазоне нормальна; за пределами — флаг». Ты извлекаешь правило у эксперта домена и <em>кодируешь</em> его как контроль. Передача — это место, где продукты ломаются, поэтому делай её явной.</td></tr>
+    </table>
+    <div class="callout good">
+      <span class="lab en">The line that wins</span>
+      <span class="lab ru">Фраза, которая выигрывает</span>
+      <p class="en">"I don't need to be the domain expert. I need to be the engineer the domain expert trusts to faithfully encode their judgment into a reliable system."</p>
+      <p class="ru">«Мне не нужно быть экспертом домена. Мне нужно быть инженером, которому эксперт домена доверяет точно закодировать его суждение в надёжную систему».</p>
+    </div>
+    <div class="callout">
+      <span class="lab en">When the domain expert thinks the data is wrong (and it isn't)</span>
+      <span class="lab ru">Когда эксперт домена думает, что данные неправильны (а это не так)</span>
+      <p class="en">Don't argue — <strong>show</strong>. Pull the actual records + the prior vintage, walk through it together, distinguish revision from defect. If it recurs, the fix is engineering: surface revision flags + "as-of" timestamps so the data self-explains.</p>
+      <p class="ru">Не спорь — <strong>покажи</strong>. Вытащи реальные записи + прошлую vintage, пройди по ним вместе, различай ревизию от дефекта. Если это повторяется, фикс — это инженерия: показывай флаги ревизий + «as-of»-timestamps, чтобы данные объясняли сами себя.</p>
+    </div>
+    <div class="callout gap">
+      <span class="lab en">Domain terms to drop unprompted</span>
+      <span class="lab ru">Термины домена, чтобы упомянуть без подсказки</span>
+      <p class="en">revisions / vintages · point-in-time correctness · release calendars · irregular frequencies (monthly/quarterly with gaps) · multi-vendor reconciliation. These signal you did the homework on a domain you haven't formally worked.</p>
+      <p class="ru">ревизии / vintages · point-in-time correctness · release calendars · нерегулярные частоты (месячные/квартальные с гэпами) · multi-vendor сверка. Эти термины сигналят, что ты сделал домашку по домену, в котором формально не работал.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INFLUENCE ============ -->
+<section id="influence" class="reveal">
+  <h2 class="sec"><span class="en">Influence without authority &amp; cross-functional partnership</span><span class="ru">Влияние без полномочий и кросс-функциональное партнёрство</span></h2>
+  <div class="card">
+    <h3><span class="en">Recipe: converge siloed teams you don't manage</span><span class="ru">Рецепт: сведи силосированные команды, которыми ты не управляешь</span></h3>
+    <div class="diagram en"><span class="o">1.</span> Lead with COST of status quo   not authority — board numbers
+                                  that don't reconcile, finance redoing by hand
+<span class="o">2.</span> Build a STRAWMAN              shared spine; show each team their
+                                  numbers stay right under it
+<span class="o">3.</span> CO-OWN the model             design it WITH the owners → it's "ours"
+<span class="o">4.</span> Make it STICK                dbt review so convergence doesn't drift back
+<span class="o">5.</span> Ship for the WILLING first    the holdout becomes the visible outlier
+</div>
+    <div class="diagram ru"><span class="o">1.</span> Начни с ЦЕНЫ статус-кво       не с полномочий — цифры совета,
+                                  которые не сходятся, финансы передерживают вручную
+<span class="o">2.</span> Построй ЧЕРНОВИК              общий spine; покажи каждой команде, что их
+                                  цифры остаются правильными под ним
+<span class="o">3.</span> СО-ВЛАДЕЙ моделью             спроектируй её ВМЕСТЕ с владельцами → она "наша"
+<span class="o">4.</span> Сделай чтобы ДЕРЖАЛОСЬ         dbt review, чтобы конвергенция не съехала назад
+<span class="o">5.</span> Доставь сначала для СОГЛАСНЫХ  отказник станет видимым исключением
+</div>
+    <ul class="en">
+      <li><strong class="k">Partner with SWE as a peer.</strong> Bring the requirement + constraint (freshness SLA, volume, failure modes), not a pre-baked solution. Speak idempotency / schema evolution / backfill cost / observability so it's design-together, not "data requests a feature."</li>
+      <li><strong class="k">Disagree &amp; commit.</strong> State the disagreement once in <em>consumer-risk</em> terms with evidence; if overruled, commit fully and document the trade-off so a later problem is a known decision, not blame.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">Партнёрься с SWE как равный.</strong> Принеси требование + ограничение (freshness SLA, объём, режимы сбоя), а не готовое решение. Говори идемпотентность / schema evolution / backfill cost / observability, чтобы это был design-together, а не «дата просит фичу».</li>
+      <li><strong class="k">Disagree &amp; commit.</strong> Заяви разногласие раз в терминах <em>consumer-risk</em> с доказательствами; если перебит, полностью коммитнись и документируй компромисс, чтобы позже проблема была известным решением, а не виной.</li>
+    </ul>
+    <div class="callout good">
+      <span class="lab en">Disagree &amp; commit</span>
+      <span class="lab ru">Disagree &amp; commit</span>
+      <p class="en">"I argue hard for the right answer, then I support the decision and document the trade-off. Ego-strength and collaboration aren't opposites."</p>
+      <p class="ru">«Я жёстко спорю за правильный ответ, затем поддерживаю решение и документирую компромисс. Сила эго и коллаборация — не противоположности».</p>
+    </div>
+    <div class="callout probe">
+      <span class="lab en">Interviewer will probe</span>
+      <span class="lab ru">О чём спросит интервьюер</span>
+      <p class="en">"What if a team still refused after the data?" → Escalate calmly as a <em>business risk</em> for leadership to decide (numbers can't reconcile), never as a personal turf win.</p>
+      <p class="ru">«Что если команда всё равно отказалась после данных?» → Эскалируй спокойно как <em>бизнес-риск</em> для лидерства (цифры не сходятся), никогда как личную победу на территории.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRADE-OFFS ============ -->
+<section id="tradeoff" class="reveal">
+  <h2 class="sec"><span class="en">The timeliness vs accuracy vs cost conversation</span><span class="ru">Разговор своевременность vs точность vs цена</span></h2>
+  <div class="card">
+    <div class="diagram en">          <b>TIMELINESS</b>
+              <span class="a">/\</span>
+             <span class="a">/</span>  <span class="a">\</span>          for HIGH-STAKES data:
+            <span class="a">/</span>    <span class="a">\</span>         <span class="o">never trade away correctness SILENTLY.</span>
+           <span class="a">/</span> data  <span class="a">\</span>        a LATE number is recoverable;
+          <span class="a">/</span> product <span class="a">\</span>       a WRONG number already out is not.
+   <b>ACCURACY</b> <span class="a">────────</span> <b>COST</b>
+                            answer: <b>provisional + flagged → reconcile → final</b>
+                            (vintages let you be first AND right-as-of-now)
+</div>
+    <div class="diagram ru">          <b>СВОЕВРЕМЕННОСТЬ</b>
+              <span class="a">/\</span>
+             <span class="a">/</span>  <span class="a">\</span>          для данных с ВЫСОКИМИ СТАВКАМИ:
+            <span class="a">/</span>    <span class="a">\</span>         <span class="o">никогда не жертвуй правильностью МОЛЧА.</span>
+           <span class="a">/</span> дата  <span class="a">\</span>        ПОЗДНЕЕ число обратимо;
+          <span class="a">/</span> продукт<span class="a">\</span>        НЕПРАВИЛЬНОЕ число, уже вышедшее, — нет.
+   <b>ТОЧНОСТЬ</b> <span class="a">────────</span> <b>ЦЕНА</b>
+                            ответ: <b>provisional + флаг → сверка → финал</b>
+                            (vintages дают быть первым И правым на данный момент)
+</div>
+    <ul class="en">
+      <li><strong class="k">It's a stakeholder decision — but I frame it.</strong> Make the trade-off explicit + quantified ("here's the cost and risk of each option") so the right owner decides with eyes open.</li>
+      <li><strong class="k">Tiered freshness.</strong> Not everything needs the same SLA. Separate "must be right within the release window" from "nice to refresh hourly"; spend cost where the stakes are.</li>
+      <li><strong class="k">Cost is a first-class requirement.</strong> At McMakler I cut <strong>€1M+</strong> and 100s of K/yr licensing because cost was in the requirements, not an afterthought.</li>
+      <li><strong class="k">Make it visible to the consumer.</strong> Provisional vs final, revision flags, freshness timestamps. They should never guess how fresh or final a number is.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">Это решение стейкхолдера — но я его обрамляю.</strong> Сделай компромисс явным + количественным («вот цена и риск каждого варианта»), чтобы правильный владелец решал с открытыми глазами.</li>
+      <li><strong class="k">Ярусная свежесть.</strong> Не всё требует одинакового SLA. Разделяй «должно быть правильным в release-окне» от «хорошо бы обновлять почасово»; трать цену там, где ставки высоки.</li>
+      <li><strong class="k">Цена — первоклассное требование.</strong> В McMakler я сократил <strong>€1M+</strong> и сотни K/год лицензий, потому что цена была в требованиях, а не в afterthought.</li>
+      <li><strong class="k">Сделай это видимым консьюмеру.</strong> Provisional vs final, флаги ревизий, freshness timestamps. Они никогда не должны гадать, насколько свежее или финальное число.</li>
+    </ul>
+    <div class="callout good">
+      <span class="lab en">The line that wins</span>
+      <span class="lab ru">Фраза, которая выигрывает</span>
+      <p class="en">"Speed and accuracy aren't opposites if you design for vintages: you can be first <em>and</em> correct-as-of-now, as long as you make 'as of now' explicit and finalize on the calendar."</p>
+      <p class="ru">«Скорость и точность — не противоположности, если проектируешь для vintages: ты можешь быть первым <em>и</em> правильным на данный момент, если делаешь 'на данный момент' явным и финализируешь по календарю».</p>
+    </div>
+    <div class="callout probe">
+      <span class="lab en">Interviewer will probe</span>
+      <span class="lab ru">О чём спросит интервьюер</span>
+      <p class="en">"Product wants it 2h faster; DQ says no. You decide." → Quantify both sides, offer the provisional+final split as the third option, and if forced, protect correctness for the high-stakes consumer + document the risk.</p>
+      <p class="ru">«Продукт хочет на 2ч быстрее; DQ говорит нет. Ты решаешь». → Количественно оцени обе стороны, предложи split provisional+final как третий вариант, и если вынужден, защити правильность для high-stakes консьюмера + документируй риск.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AGILE / JIRA ============ -->
+<section id="agile" class="reveal">
+  <h2 class="sec"><span class="en">Agile delivery, backlog &amp; JIRA</span><span class="ru">Agile-доставка, backlog и JIRA</span></h2>
+  <div class="card">
+    <div class="callout gap">
+      <span class="lab en">Honest gap statement (rehearse verbatim)</span>
+      <span class="lab ru">Честное заявление о гэпе (отрепетируй дословно)</span>
+      <p class="en">Not explicit on the CV, but leading teams (8 at Career.io, 2→7 at McMakler, 2 at IU Group) implies backlog + sprint ownership. Describe your delivery cadence naturally. Don't invent a certification you don't hold.</p>
+      <p class="ru">Не явно в CV, но руководство командами (8 в Career.io, 2→7 в McMakler, 2 в IU Group) подразумевает backlog + владение спринтами. Описывай свой delivery-ритм естественно. Не выдумывай сертификаты, которых нет.</p>
+    </div>
+    <ul class="en">
+      <li><strong class="k">Backlog with a "why now."</strong> Every item has a consumer + a reason. Stakeholder requests become tickets with acceptance criteria, not Slack messages that vanish.</li>
+      <li><strong class="k">Protect reliability capacity.</strong> For a data team I explicitly carve sprint capacity for tech-debt / monitoring work, or the platform rots under feature requests.</li>
+      <li><strong class="k">Prioritize</strong> by stakeholder impact × stakes × effort, with reliability work protected; backlog visible so prioritization is a transparent shared conversation, not private lobbying.</li>
+      <li><strong class="k">Releases &amp; incidents differ.</strong> A late feed before a data release is an <em>incident</em>, not a backlog item: triage late-vs-wrong, communicate early ("delayed, expected by Y"), then the prevention earns a backlog slot.</li>
+      <li><strong class="k">Across timezones:</strong> async-first — written specs, decisions, status in tickets/docs; protect the small overlap window for alignment, conflict, design debates.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong class="k">Backlog с "почему сейчас".</strong> У каждого элемента есть консьюмер + причина. Запросы стейкхолдеров становятся тикетами с критериями приёмки, а не Slack-сообщениями, которые исчезают.</li>
+      <li><strong class="k">Защити capacity для надёжности.</strong> Для дата-команды я явно вырезаю спринтовый capacity для tech-debt / мониторинговой работы, иначе платформа гниёт под запросами фич.</li>
+      <li><strong class="k">Приоритизируй</strong> по стейкхолдер-impact × ставки × усилие, с защищённой работой по надёжности; backlog видимый, поэтому приоритизация — прозрачный общий разговор, а не частное лоббирование.</li>
+      <li><strong class="k">Релизы и инциденты различаются.</strong> Поздний фид перед дата-релизом — это <em>инцидент</em>, а не backlog-элемент: триажируй поздний-vs-неправильный, коммуникируй рано («отложен, ожидается к Y»), затем предотвращение заслуживает слот в backlog.</li>
+      <li><strong class="k">Через таймзоны:</strong> async-first — записанные спеки, решения, статус в тикетах/доках; защищай малое overlap-окно для согласования, конфликтов, design-дебатов.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ GOTCHAS ============ -->
+<section id="gotchas" class="reveal">
+  <h2 class="sec"><span class="en">Gotchas &amp; landmines</span><span class="ru">Подводные камни и мины</span></h2>
+  <div class="card">
+    <table class="en">
+      <tr><th>Trap</th><th>Do this instead</th></tr>
+      <tr><td>Describing requirements work as "I just ask them what they want"</td><td>Give a <em>repeatable process</em>: decision-first → non-negotiables → written spec → trade-off → signed acceptance criteria.</td></tr>
+      <tr><td>Over-claiming vendor / Agile experience</td><td>Lean on Salesforce-sync + heterogeneous source consolidation for vendors; describe real delivery cadence for Agile. Honesty + the right playbook reads as senior.</td></tr>
+      <tr><td>Talking to stakeholders only in pipeline terms</td><td>Translate to <em>their</em> terms (revenue on the close calendar; the decision they'll make). Mechanism is your problem, not theirs.</td></tr>
+      <tr><td>Treating a revision as a bug (domain literacy fail)</td><td>Distinguish <strong>legitimate revision</strong> from <strong>defect</strong> explicitly. This single distinction signals domain seriousness.</td></tr>
+      <tr><td>"Influence" story where you actually had authority</td><td>Use T3 (8 brands you didn't manage). Win = reframing their pain + co-ownership, not being right on a whiteboard.</td></tr>
+      <tr><td>Letting a flaky feed take down consumers</td><td>Landing zone + contract tests + quarantine. Late ≠ wrong ≠ broken.</td></tr>
+      <tr><td>No numbers</td><td>8 brands · 8-person team · 200+ users / 8 depts · 10→1 systems · 3.6B/day · 47% · €1M+ · +20% ARPU · +10% CSAT.</td></tr>
+      <tr><td>Saying "we" through the whole story</td><td>"I" for actions, credit the team in the result.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Ловушка</th><th>Делай это вместо этого</th></tr>
+      <tr><td>Описание работы с требованиями как «я просто спрашиваю, что они хотят»</td><td>Дай <em>повторяемый процесс</em>: decision-first → не-торгуемое → записанная спека → компромисс → подписанные критерии приёмки.</td></tr>
+      <tr><td>Преувеличение опыта вендоров / Agile</td><td>Опирайся на Salesforce-sync + консолидацию гетерогенных источников для вендоров; описывай реальный delivery-ритм для Agile. Честность + правильный плейбук читается как senior.</td></tr>
+      <tr><td>Разговор со стейкхолдерами только в терминах пайплайна</td><td>Переводи на <em>их</em> термины (выручка по календарю закрытия; решение, которое они примут). Механизм — твоя проблема, не их.</td></tr>
+      <tr><td>Отношение к ревизии как к багу (провал доменной грамотности)</td><td>Различай <strong>легитимную ревизию</strong> от <strong>дефекта</strong> явно. Это единственное различие сигналит серьёзность домена.</td></tr>
+      <tr><td>История «влияния», где у тебя на самом деле были полномочия</td><td>Используй T3 (8 брендов, которыми ты не управлял). Выигрыш = переформулировка их боли + со-владение, а не правота на доске.</td></tr>
+      <tr><td>Позволение нестабильному фиду уронить консьюмеров</td><td>Landing zone + contract tests + карантин. Поздний ≠ неправильный ≠ сломанный.</td></tr>
+      <tr><td>Нет цифр</td><td>8 брендов · команда из 8 человек · 200+ пользователей / 8 департаментов · 10→1 системы · 3.6B/день · 47% · €1M+ · +20% ARPU · +10% CSAT.</td></tr>
+      <tr><td>Говорить «мы» через всю историю</td><td>«Я» для действий, благодари команду в результате.</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ SELF QUIZ ============ -->
+<section id="quiz" class="reveal">
+  <h2 class="sec"><span class="en">Self-quiz — flip to reveal</span><span class="ru">Самопроверка — перверни, чтобы увидеть</span> <span class="muted" style="font-size:13px"><span class="en">(tap a card)</span><span class="ru">(тапни карточку)</span></span></h2>
+  <div class="flipgrid" id="flipgrid"></div>
+</section>
+
+<!-- ============ TOP QUESTIONS ============ -->
+<section id="topq" class="reveal">
+  <h2 class="sec"><span class="en">Top likely questions</span><span class="ru">Наиболее вероятные вопросы</span></h2>
+  <div class="card">
+    <ul class="en">
+      <li>⭐ Walk me through turning a vague business ask into an engineering-ready requirement. <span class="tag med">Medium</span><span class="tag likely">Likely</span> → Elicit→Spec / T1</li>
+      <li>⭐ Working with non-technical stakeholders / domain experts? <span class="tag med">Medium</span><span class="tag likely">Likely</span> → T1 + domain bridge</li>
+      <li>⭐ Managing vendor relationships / a feed that breaks or is late? <span class="tag hard">Hard</span><span class="tag likely">Likely</span> → vendor playbook + Salesforce</li>
+      <li>⭐ Aligning teams who disagree, without authority? <span class="tag hard">Hard</span><span class="tag likely">Likely</span> → T3</li>
+      <li>⭐ Trade-off between timeliness, accuracy, cost? <span class="tag med">Medium</span><span class="tag likely">Likely</span> → vintages / provisional+final</li>
+      <li>Turning a vague ask into a delivered, scalable solution? <span class="tag med">Medium</span> → T2</li>
+      <li>What does a good spec look like / how do you elicit? <span class="tag med">Medium</span></li>
+      <li>How do you say no to a stakeholder? <span class="tag hard">Hard</span></li>
+      <li>How do you run a backlog / Agile for a data team? <span class="tag med">Medium</span></li>
+      <li>Partnering with SWE on architecture? Disagree &amp; commit? <span class="tag med">Medium</span></li>
+      <li>Stakeholder sure the data's wrong but it's a revision? <span class="tag hard">Hard</span></li>
+    </ul>
+    <ul class="ru">
+      <li>⭐ Проведи меня через превращение расплывчатого бизнес-запроса в инженерно-готовое требование. <span class="tag med">Medium</span><span class="tag likely">Likely</span> → Elicit→Spec / T1</li>
+      <li>⭐ Работа с нетехническими стейкхолдерами / экспертами домена? <span class="tag med">Medium</span><span class="tag likely">Likely</span> → T1 + доменный мост</li>
+      <li>⭐ Управление отношениями с вендорами / фид, который ломается или опаздывает? <span class="tag hard">Hard</span><span class="tag likely">Likely</span> → vendor playbook + Salesforce</li>
+      <li>⭐ Согласование команд, которые не согласны, без полномочий? <span class="tag hard">Hard</span><span class="tag likely">Likely</span> → T3</li>
+      <li>⭐ Компромисс между своевременностью, точностью, ценой? <span class="tag med">Medium</span><span class="tag likely">Likely</span> → vintages / provisional+final</li>
+      <li>Превращение расплывчатого запроса в доставленное, масштабируемое решение? <span class="tag med">Medium</span> → T2</li>
+      <li>Как выглядит хорошая спека / как выявлять? <span class="tag med">Medium</span></li>
+      <li>Как сказать нет стейкхолдеру? <span class="tag hard">Hard</span></li>
+      <li>Как ты управляешь backlog / Agile для дата-команды? <span class="tag med">Medium</span></li>
+      <li>Партнёрство с SWE по архитектуре? Disagree &amp; commit? <span class="tag med">Medium</span></li>
+      <li>Стейкхолдер уверен, что данные неправильны, но это ревизия? <span class="tag hard">Hard</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ ASK THEM ============ -->
+<section id="ask" class="reveal">
+  <h2 class="sec"><span class="en">Questions to ask the interviewer (pick 2–3)</span><span class="ru">Вопросы интервьюеру (выбери 2–3)</span></h2>
+  <div class="card">
+    <h3><span class="en">On stakeholders &amp; domain experts</span><span class="ru">По стейкхолдерам и экспертам домена</span> <span class="muted"><span class="en">(highest signal for this topic)</span><span class="ru">(самый сильный сигнал для этой темы)</span></span></h3>
+    <ul class="en">
+      <li>"How does the team work with domain experts day-to-day — are they writing requirements, or is part of the role extracting domain rules from them and encoding them?"</li>
+      <li>"How are dataset definitions and 'fit-for-client' rules captured today — in docs, in code, in people's heads?"</li>
+      <li>"How do you handle a stakeholder who's convinced a number is wrong when it's actually a legitimate revision?"</li>
+    </ul>
+    <ul class="ru">
+      <li>«Как команда работает с экспертами домена день-в-день — они пишут требования, или часть роли — извлекать доменные правила из них и кодировать?»</li>
+      <li>«Как определения датасетов и правила 'годности для клиента' фиксируются сегодня — в доках, в коде, в головах людей?»</li>
+      <li>«Как вы справляетесь со стейкхолдером, который уверен, что число неправильно, когда это на самом деле легитимная ревизия?»</li>
+    </ul>
+    <h3><span class="en">On vendors &amp; feeds</span><span class="ru">По вендорам и фидам</span></h3>
+    <ul class="en">
+      <li>"How are vendor feeds managed today — formal SLAs, contract tests on ingest, or is that part of the modernization charter?"</li>
+      <li>"When two vendors disagree on a series, who decides precedence and how is it encoded?"</li>
+    </ul>
+    <ul class="ru">
+      <li>«Как управляются фиды вендоров сегодня — формальные SLA, contract tests на ingestion, или это часть чартера модернизации?»</li>
+      <li>«Когда два вендора не сходятся по серии, кто решает приоритет и как он кодируется?»</li>
+    </ul>
+    <h3><span class="en">On delivery</span><span class="ru">По доставке</span></h3>
+    <ul class="en">
+      <li>"How does the team run delivery — sprints, backlog, JIRA — and how do you balance new requests against reliability/tech-debt work?"</li>
+      <li>"What would 'this hire was a great decision' look like at 6 and 12 months for the stakeholder-facing part of the role?"</li>
+    </ul>
+    <ul class="ru">
+      <li>«Как команда ведёт доставку — спринты, backlog, JIRA — и как вы балансируете новые запросы против работы по надёжности/tech-debt?»</li>
+      <li>«Как выглядело бы 'этот наём был отличным решением' на 6 и 12 месяцев для стейкхолдер-фейсящей части роли?»</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <p class="en">Self-contained cheatsheet · no CDN, no external fonts. Theme + language persist via <span class="kbd">localStorage</span>.</p>
+  <p class="ru">Самодостаточная шпаргалка · без CDN, без внешних шрифтов. Тема + язык сохраняются через <span class="kbd">localStorage</span>.</p>
+  <p class="muted">
+    <span class="en">Numbers on the tip of your tongue: 8 brands · 8-person team · 200+ users / 8 depts · 10→1 systems · 3.6B events/day · 47% redundancy cut · €1M+ saved · +20% ARPU · +10% CSAT.</span>
+    <span class="ru">Цифры на кончике языка: 8 брендов · команда из 8 человек · 200+ пользователей / 8 департаментов · 10→1 системы · 3.6B событий/день · 47% избыточности вырезано · €1M+ сэкономлено · +20% ARPU · +10% CSAT.</span>
+  </p>
+</footer>
+</div>
+
+<script>
+// ---- combined theme + lang IIFE (SHARED localStorage keys) ----
+(function(){
+  var root=document.documentElement,
+      themeBtn=document.getElementById('themeBtn'),
+      langBtn=document.getElementById('langBtn');
+  var savedTheme=localStorage.getItem('de_cheat_theme') || 'dark';
+  var savedLang=localStorage.getItem('de_cheat_lang') || 'en';
+  root.setAttribute('data-theme', savedTheme);
+  root.setAttribute('data-lang', savedLang);
+  function syncTheme(){
+    var t=root.getAttribute('data-theme');
+    themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light';
+  }
+  function syncLang(){
+    var l=root.getAttribute('data-lang');
+    langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN';
+  }
+  syncTheme(); syncLang();
+  themeBtn.addEventListener('click',function(){
+    var t=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',t);localStorage.setItem('de_cheat_theme',t);syncTheme();
+  });
+  langBtn.addEventListener('click',function(){
+    var l=root.getAttribute('data-lang')==='en'?'ru':'en';
+    root.setAttribute('data-lang',l);localStorage.setItem('de_cheat_lang',l);syncLang();
+  });
+})();
+
+// ---- scroll reveal ----
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return;}
+  var io=new IntersectionObserver(function(ents){
+    ents.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});
+  },{threshold:.08});
+  els.forEach(function(e){io.observe(e)});
+})();
+
+// ---- flip cards (bilingual) ----
+(function(){
+  var cards=[
+    {q:{en:"Turning a vague ask into a requirement — the process?",
+        ru:"Превращение расплывчатого запроса в требование — процесс?"},
+     a:{en:["Decision-first: 'what decision does this drive, who acts on it?'","Pin non-negotiables: grain, freshness, definitions, accuracy tolerance, source of truth.","WRITE the spec → negotiate trade-off → stakeholder-signed acceptance criteria."],
+        ru:["Decision-first: 'какое решение это принимает, кто действует?'","Зафиксируй не-торгуемое: grain, свежесть, определения, толерантность точности, source of truth.","ЗАПИШИ спеку → обсуди компромисс → критерии приёмки с подписью стейкхолдера."]}},
+    {q:{en:"Non-technical / domain expert stakeholder — your model?",
+        ru:"Нетехнический стейкхолдер / эксперт домена — твоя модель?"},
+     a:{en:["Domain expert owns MEANING; I own MECHANISM; handoff is explicit + written.","'I don't need to be the domain expert — I need to be the engineer the domain expert trusts to encode their judgment.'","Best story: T1 board reporting across 8 brands."],
+        ru:["Эксперт домена владеет СМЫСЛОМ; я владею МЕХАНИЗМОМ; передача явна + записана.","'Мне не нужно быть экспертом домена — мне нужно быть инженером, которому эксперт доверяет закодировать его суждение.'","Лучшая история: T1 отчётность на уровне совета по 8 брендам."]}},
+    {q:{en:"Vendor feed breaks or is late — playbook?",
+        ru:"Фид вендора ломается или опаздывает — плейбук?"},
+     a:{en:["Landing zone (buffered, idempotent) + contract tests on arrival; quarantine bad feeds.","Decouple your reliability from theirs: late = delayed freshness, not corruption.","Bring the vendor record-level evidence vs prior snapshot. Bridge: Salesforce sync via Airflow."],
+        ru:["Landing zone (буферизован, идемпотентен) + contract tests при прибытии; карантин плохих фидов.","Отвяжи свою надёжность от их: поздний = отложенная свежесть, не коррапция.","Принеси вендору record-level доказательства vs прошлый snapshot. Мост: Salesforce sync через Airflow."]}},
+    {q:{en:"Influence without authority — recipe?",
+        ru:"Влияние без полномочий — рецепт?"},
+     a:{en:["Lead with cost of status quo in THEIR terms, not authority.","Strawman → show their numbers stay right → CO-OWN the model → make it stick (dbt review).","Story T3: shared spine across 8 siloed brands. 'People defend what they helped build.'"],
+        ru:["Начни с цены статус-кво на ИХ языке, а не с полномочий.","Черновик → покажи, что их цифры правильны → СО-ВЛАДЕЙ моделью → сделай чтобы держалось (dbt review).","История T3: общий spine по 8 силосированным брендам. 'Люди защищают то, что помогли построить.'"]}},
+    {q:{en:"Timeliness vs accuracy vs cost — your line?",
+        ru:"Своевременность vs точность vs цена — твоя фраза?"},
+     a:{en:["For high-stakes data: never trade away correctness silently.","Provisional + flagged → reconcile → final. Vintages let you be first AND right-as-of-now.","Make trade-off explicit + quantified so the right owner decides. Cost is a first-class requirement (€1M+ at McMakler)."],
+        ru:["Для данных с высокими ставками: никогда не жертвуй правильностью молча.","Provisional + флаг → сверка → финал. Vintages дают быть первым И правым на данный момент.","Сделай компромисс явным + количественным, чтобы правильный владелец решал. Цена — первоклассное требование (€1M+ в McMakler)."]}},
+    {q:{en:"What goes in a good spec?",
+        ru:"Что входит в хорошую спеку?"},
+     a:{en:["consumer + decision · grain · metrics w/ EXACT definitions · dimensions · freshness SLA · source/owner · acceptance criteria · out-of-scope.","Definitions are highest-leverage — they're decisions, not defaults.","'A spec is a contract that makes a future disagreement cheap to resolve.'"],
+        ru:["консьюмер + решение · grain · метрики с ТОЧНЫМИ определениями · измерения · freshness SLA · источник/владелец · критерии приёмки · вне_скоупа.","Определения — наибольший leverage — это решения, а не дефолты.","'Спека — это контракт, который делает будущее разногласие дешёвым в решении.'"]}},
+    {q:{en:"Stakeholder doesn't know what they want?",
+        ru:"Стейкхолдер не знает, что хочет?"},
+     a:{en:["Propose a STRAWMAN (mock table / sketch dashboard / sample rows). People edit better than they author.","Ask about the decision + action, not the artifact.","Watch what they do today — the hand-built spreadsheet IS the requirement."],
+        ru:["Предложи ЧЕРНОВИК (мок-таблицу / эскиз дашборда / примерные строки). Люди редактируют лучше, чем пишут с нуля.","Спроси про решение + действие, а не про артефакт.","Смотри, что они делают сегодня — вручную поддерживаемая таблица И ЕСТЬ требование."]}},
+    {q:{en:"How do you say no to a stakeholder?",
+        ru:"Как сказать нет стейкхолдеру?"},
+     a:{en:["Rarely flat 'no' — 'yes, and here's the cost' or 'not now, here's why + when.'","Anchor in their priorities or in risk; offer a cheaper alternative.","For correctness: firm + explained — 'a wrong number published is worse than late.'"],
+        ru:["Редко плоское 'нет' — 'да, и вот цена' или 'не сейчас, вот почему + когда.'","Якорь в их приоритетах или в риске; предложи дешёвую альтернативу.","Для правильности: твёрдо + объяснённо — 'опубликованное неправильное число хуже, чем позднее.'"]}},
+    {q:{en:"Stakeholder sure the data's wrong, but it's a revision?",
+        ru:"Стейкхолдер уверен, что данные неправильны, но это ревизия?"},
+     a:{en:["Don't argue — SHOW: pull records + prior vintage, walk through together.","Distinguish legitimate REVISION from DEFECT explicitly (domain literacy).","If recurring, fix is engineering: surface revision flags + as-of timestamps."],
+        ru:["Не спорь — ПОКАЖИ: вытащи записи + прошлую vintage, пройди вместе.","Различай легитимную РЕВИЗИЮ от ДЕФЕКТА явно (доменная грамотность).","Если повторяется, фикс — инженерия: показывай флаги ревизий + as-of timestamps."]}},
+    {q:{en:"Agile / backlog for a data team?",
+        ru:"Agile / backlog для дата-команды?"},
+     a:{en:["Backlog items have a consumer + 'why now'; requests become tickets w/ acceptance criteria.","Protect sprint capacity for reliability/tech-debt or the platform rots.","Late feed before a release = INCIDENT, not a backlog item: triage late-vs-wrong, communicate early."],
+        ru:["Backlog-элементы имеют консьюмера + 'почему сейчас'; запросы становятся тикетами с критериями приёмки.","Защити спринтовый capacity для надёжности/tech-debt, иначе платформа гниёт.","Поздний фид перед релизом = ИНЦИДЕНТ, а не backlog-элемент: триажируй поздний-vs-неправильный, коммуникируй рано."]}},
+    {q:{en:"Partner with SWE on architecture — how?",
+        ru:"Партнёрство с SWE по архитектуре — как?"},
+     a:{en:["Bring requirement + constraint (SLA, volume, failure modes), not a pre-baked solution.","Speak idempotency / schema evolution / backfill cost so it's peer design.","Disagree & commit: state once in consumer-risk terms, then commit + document trade-off."],
+        ru:["Принеси требование + ограничение (SLA, объём, режимы сбоя), а не готовое решение.","Говори идемпотентность / schema evolution / backfill cost, чтобы это был peer design.","Disagree & commit: заяви раз в терминах consumer-risk, затем коммитнись + документируй компромисс."]}},
+    {q:{en:"Vague ask → scalable delivered solution — best story?",
+        ru:"Расплывчатый запрос → масштабируемое доставленное решение — лучшая история?"},
+     a:{en:["T2: McMakler self-service for 200+ users / 8 depts.","The ask was never 'a query' — it was 'answer my own questions without waiting.'","Built governed reusable models so it scaled instead of generating tickets."],
+        ru:["T2: McMakler селф-сервис для 200+ пользователей / 8 департаментов.","Запрос никогда не был 'запросом' — он был 'отвечать на свои вопросы без ожидания.'","Построил управляемые переиспользуемые модели, поэтому оно масштабировалось, а не генерировало тикеты."]}}
+  ];
+  var grid=document.getElementById('flipgrid');
+  var lang=document.documentElement.getAttribute('data-lang');
+  cards.forEach(function(c){
+    var d=document.createElement('div');d.className='flip';
+    var inner=document.createElement('div');inner.className='flip-inner';
+    var f=document.createElement('div');f.className='flip-face flip-front';
+    f.innerHTML='<div class="flip-q en">'+c.q.en+'</div><div class="flip-q ru">'+c.q.ru+'</div><div class="flip-hint en">tap to reveal ▸</div><div class="flip-hint ru">тапни чтобы увидеть ▸</div>';
+    var b=document.createElement('div');b.className='flip-face flip-back';
+    var enList = '<ul class="en">'+c.a.en.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>';
+    var ruList = '<ul class="ru">'+c.a.ru.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>';
+    b.innerHTML=enList+ruList;
+    inner.appendChild(f);inner.appendChild(b);d.appendChild(inner);
+    d.addEventListener('click',function(){d.classList.toggle('flipped')});
+    grid.appendChild(d);
+  });
+})();
+
+// ---- active nav highlight ----
+(function(){
+  var links=[].slice.call(document.querySelectorAll('nav a.navlink'));
+  var secs=links.map(function(l){return document.querySelector(l.getAttribute('href'))}).filter(Boolean);
+  window.addEventListener('scroll',function(){
+    var y=window.scrollY+80,cur=null;
+    secs.forEach(function(s){if(s.offsetTop<=y)cur=s.id;});
+    links.forEach(function(l){l.style.color = l.getAttribute('href')==='#'+cur ? 'var(--text)':'';});
+  });
+})();
+</script>
+</body>
+</html>

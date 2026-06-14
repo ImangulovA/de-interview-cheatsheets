@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Iceberg &amp; Data Warehousing — Data Engineering Interview Cheatsheet</title>
+<style>
+:root{
+  --bg:#0a0e1a; --card:#151d30; --card2:#1b2540; --text:#e6ecf7; --muted:#8b97b3;
+  --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7;
+  --border:#243049; --code-bg:#0d1424; --shadow:rgba(0,0,0,.4);
+  --kw:#a855f7; --str:#02e2ac; --com:#8b97b3; --num:#f59e0b; --fn:#1877F2;
+}
+[data-theme="light"]{
+  --bg:#f4f6fb; --card:#ffffff; --card2:#eef2fa; --text:#16203a; --muted:#5a6a88;
+  --accent:#1877F2; --green:#089e7c; --orange:#c97a06; --purple:#8b3fd6;
+  --border:#d6deec; --code-bg:#f0f3fa; --shadow:rgba(20,40,80,.08);
+  --kw:#8b3fd6; --str:#089e7c; --com:#7a88a3; --num:#c97a06; --fn:#1877F2;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.55; font-size:15px; transition:background .3s,color .3s;
+}
+code,pre,.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;}
+
+/* ---- i18n language toggle ---- */
+[data-lang="en"] .ru { display: none !important; }
+[data-lang="ru"] .en { display: none !important; }
+
+/* nav */
+nav{
+  position:sticky; top:0; z-index:50; background:rgba(10,14,26,.85);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:8px; padding:10px 16px; flex-wrap:wrap;
+}
+[data-theme="light"] nav{background:rgba(244,246,251,.9);}
+nav .brand{font-weight:700; color:var(--accent); margin-right:auto; font-size:15px; white-space:nowrap;}
+nav a{color:var(--muted); text-decoration:none; font-size:12.5px; padding:4px 8px; border-radius:6px; white-space:nowrap;}
+nav a:hover{color:var(--text); background:var(--card2);}
+.toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+.toggle-btn{
+  background:var(--card2); color:var(--text); border:1px solid var(--border);
+  border-radius:8px; padding:6px 12px; cursor:pointer; font-size:13px; font-weight:600;
+}
+.toggle-btn:hover{border-color:var(--accent);}
+
+/* layout */
+header.hero{max-width:1000px; margin:0 auto; padding:36px 20px 10px;}
+header.hero h1{font-size:28px; margin:0 0 6px; line-height:1.2;}
+header.hero h1 .ice{color:var(--green);}
+header.hero .sub{color:var(--muted); font-size:14px;}
+header.hero .tag{display:inline-block; background:var(--purple); color:#fff; font-size:11px; font-weight:700;
+  padding:3px 9px; border-radius:20px; margin-top:10px; letter-spacing:.3px;}
+main{max-width:1000px; margin:0 auto; padding:10px 20px 80px;}
+
+section{margin:26px 0;}
+section h2{font-size:20px; border-left:4px solid var(--accent); padding-left:10px; margin:0 0 4px;}
+section h2 .em{color:var(--green);}
+
+.card{
+  background:var(--card); border:1px solid var(--border); border-radius:14px;
+  padding:16px 18px; margin:12px 0; box-shadow:0 2px 14px var(--shadow);
+}
+.card h3{margin:0 0 8px; font-size:16px; color:var(--text);}
+.card p{margin:6px 0;}
+.muted{color:var(--muted);}
+ul{margin:6px 0 6px; padding-left:20px;} li{margin:3px 0;}
+b,strong{color:var(--text);}
+.accent{color:var(--accent);} .green{color:var(--green);} .orange{color:var(--orange);} .purple{color:var(--purple);}
+
+/* collapsible */
+details{border:1px solid var(--border); border-radius:12px; margin:10px 0; background:var(--card); overflow:hidden;}
+details summary{
+  cursor:pointer; padding:13px 16px; font-weight:600; font-size:15.5px; list-style:none;
+  display:flex; align-items:center; gap:10px; user-select:none;
+}
+details summary::-webkit-details-marker{display:none;}
+details summary::before{content:"▸"; color:var(--accent); transition:transform .2s; font-size:13px;}
+details[open] summary::before{transform:rotate(90deg);}
+details summary:hover{background:var(--card2);}
+details .body{padding:2px 16px 16px;}
+
+/* code */
+pre{
+  background:var(--code-bg); border:1px solid var(--border); border-radius:10px;
+  padding:13px 14px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0;
+}
+pre .kw{color:var(--kw); font-weight:600;}
+pre .str{color:var(--str);}
+pre .com{color:var(--com); font-style:italic;}
+pre .num{color:var(--num);}
+pre .fn{color:var(--fn);}
+code.inline{background:var(--code-bg); border:1px solid var(--border); padding:1px 6px; border-radius:5px; font-size:13px; color:var(--green);}
+
+/* ascii diagram */
+.ascii{
+  background:var(--code-bg); border:1px solid var(--border); border-radius:10px;
+  padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.4; color:var(--text);
+  white-space:pre;
+}
+.ascii .lbl{color:var(--accent); font-weight:700;}
+.ascii .g{color:var(--green);} .ascii .o{color:var(--orange);} .ascii .p{color:var(--purple);} .ascii .m{color:var(--muted);}
+
+/* tables */
+.tbl-wrap{overflow-x:auto; margin:10px 0;}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:520px;}
+th,td{border:1px solid var(--border); padding:8px 10px; text-align:left; vertical-align:top;}
+th{background:var(--card2); color:var(--text); font-weight:700;}
+tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+[data-theme="light"] tr:nth-child(even) td{background:rgba(20,40,80,.02);}
+
+/* callouts */
+.callout{border-radius:10px; padding:11px 14px; margin:10px 0; font-size:14px; border:1px solid;}
+.callout.probe{background:rgba(168,85,247,.08); border-color:var(--purple);}
+.callout.gotcha{background:rgba(245,158,11,.08); border-color:var(--orange);}
+.callout.anchor{background:rgba(2,226,172,.07); border-color:var(--green);}
+.callout .ct{font-weight:700; text-transform:uppercase; font-size:11px; letter-spacing:.6px; display:block; margin-bottom:3px;}
+.callout.probe .ct{color:var(--purple);}
+.callout.gotcha .ct{color:var(--orange);}
+.callout.anchor .ct{color:var(--green);}
+
+/* flip cards */
+.flip-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; margin:12px 0;}
+.flip{perspective:1200px; height:170px; cursor:pointer;}
+.flip-inner{position:relative; width:100%; height:100%; transition:transform .55s; transform-style:preserve-3d;}
+.flip.flipped .flip-inner{transform:rotateY(180deg);}
+.flip-face{
+  position:absolute; inset:0; backface-visibility:hidden; border-radius:12px;
+  border:1px solid var(--border); padding:14px; display:flex; flex-direction:column;
+  justify-content:center; overflow:auto;
+}
+.flip-front{background:var(--card2);}
+.flip-front .q{font-weight:700; font-size:14.5px;}
+.flip-front .hint{color:var(--muted); font-size:11.5px; margin-top:auto;}
+.flip-back{background:linear-gradient(160deg,var(--card),var(--card2)); transform:rotateY(180deg); font-size:13px;}
+.flip-back .a{color:var(--green); font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px;}
+
+.pill{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px; margin-left:6px; vertical-align:middle;}
+.pill.easy{background:rgba(2,226,172,.16); color:var(--green);}
+.pill.med{background:rgba(245,158,11,.16); color:var(--orange);}
+.pill.hard{background:rgba(168,85,247,.16); color:var(--purple);}
+.pill.top{background:var(--accent); color:#fff;}
+
+/* scroll reveal */
+.reveal{opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s;}
+.reveal.in{opacity:1; transform:none;}
+
+footer{max-width:1000px; margin:0 auto; padding:0 20px 60px; color:var(--muted); font-size:12.5px;}
+hr{border:none; border-top:1px solid var(--border); margin:18px 0;}
+.kbd{font-size:11px; background:var(--card2); border:1px solid var(--border); border-radius:5px; padding:1px 6px;}
+@media(max-width:600px){
+  header.hero h1{font-size:22px;}
+  nav .brand{font-size:13px;}
+  .flip{height:185px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🧊 <span class="en">Iceberg &amp; Warehousing</span><span class="ru">Iceberg и хранилища</span></span>
+  <a href="#tldr">TL;DR</a>
+  <a href="#format"><span class="en">Table fmt</span><span class="ru">Формат таблицы</span></a>
+  <a href="#layers"><span class="en">Metadata</span><span class="ru">Метаданные</span></a>
+  <a href="#evolution"><span class="en">Evolution</span><span class="ru">Эволюция</span></a>
+  <a href="#snapshots"><span class="en">Snapshots</span><span class="ru">Снапшоты</span></a>
+  <a href="#write">CoW/MoR</a>
+  <a href="#compare"><span class="en">vs Delta/Hudi/Hive</span><span class="ru">vs Delta/Hudi/Hive</span></a>
+  <a href="#files">Parquet/ORC</a>
+  <a href="#lakehouse">Lakehouse</a>
+  <a href="#quiz"><span class="en">Self-quiz</span><span class="ru">Самопроверка</span></a>
+  <a href="#gotchas">Gotchas</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="ice">Apache Iceberg</span> &amp; <span class="en">Data Warehousing</span><span class="ru">хранилища данных</span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</span>
+  </div>
+  <span class="tag"><span class="en">DE INTERVIEW PREP</span><span class="ru">ПОДГОТОВКА К DE-ИНТЕРВЬЮ</span></span>
+  <div class="muted" style="margin-top:12px; font-size:13px;">
+    <span class="en">Honesty line to lead with: <span class="green">"I've run Hive, Snowflake and BigQuery as the table/warehouse layer in production — not Iceberg itself — but I understand its design and the exact problems it solves."</span> Then show the depth below so the gap reads as "new tool, same fundamentals."</span>
+    <span class="ru">Честно начинать с: <span class="green">«Я работал с Hive, Snowflake и BigQuery как с табличным слоем/хранилищем в проде — сам Iceberg не использовал — но понимаю его устройство и какие именно проблемы он решает.»</span> Потом показать глубину ниже, чтобы пробел читался как «новый инструмент, те же основы».</span>
+  </div>
+</header>
+
+<main>
+
+<!-- TLDR -->
+<section id="tldr" class="reveal">
+  <h2>TL;DR <span class="em"><span class="en">— the 12 lines</span><span class="ru">— 12 строк</span></span></h2>
+  <div class="card">
+    <ul class="en">
+      <li><b>Table format</b> = metadata + ACID over data files. NOT a file format, NOT a storage engine.</li>
+      <li>Layers: <span class="accent">catalog → metadata.json → manifest list → manifests → data files</span>.</li>
+      <li>Atomicity = <b>catalog compare-and-swap pointer</b>; isolation = <b>snapshot isolation</b>; writers = <b>optimistic concurrency</b>.</li>
+      <li>Schema evolution = <b>by field ID</b> (add/drop/rename/reorder/widen, metadata-only, no rewrite).</li>
+      <li><b>Hidden partitioning</b>: query the raw column, Iceberg prunes via a stored transform. No derived date column footgun.</li>
+      <li><b>Partition evolution</b>: change the spec without rewriting old data.</li>
+      <li>Snapshots → <b>time travel + rollback</b>; <code class="inline">expire_snapshots</code> to reclaim space &amp; truly delete.</li>
+      <li><b>CoW</b> (read-fast / write-heavy) vs <b>MoR</b> (write-fast / read-merge) + <b>compaction</b> (<code class="inline">rewrite_data_files</code>).</li>
+      <li>Planning = metadata pruning (manifest-list → manifest stats → Parquet footers). <b>No object-store LIST.</b></li>
+      <li><b>Iceberg</b> (neutral, partition evolution) vs <b>Delta</b> (Spark/Databricks, txn log) vs <b>Hudi</b> (upsert/CDC).</li>
+      <li><b>Lakehouse</b> = warehouse guarantees + lake economics + engine neutrality.</li>
+      <li>Why at scale: billions of events/day, many engines (Spark/Flink/Trino), one open copy of data.</li>
+    </ul>
+    <ul class="ru">
+      <li><b>Табличный формат</b> = метаданные + ACID поверх файлов данных. НЕ формат файла, НЕ движок хранения.</li>
+      <li>Слои: <span class="accent">catalog → metadata.json → manifest list → manifests → data files</span>.</li>
+      <li>Атомарность = <b>compare-and-swap указателя в каталоге</b>; изоляция = <b>snapshot isolation</b>; писатели = <b>оптимистичная конкуренция</b>.</li>
+      <li>Эволюция схемы = <b>по field ID</b> (add/drop/rename/reorder/widen, только метаданные, без перезаписи).</li>
+      <li><b>Скрытое партиционирование</b>: запрос идёт по исходному столбцу, Iceberg прунит через сохранённое преобразование. Никаких производных date-столбцов с ошибками.</li>
+      <li><b>Эволюция партиционирования</b>: изменить спецификацию без перезаписи старых данных.</li>
+      <li>Снапшоты → <b>time travel + rollback</b>; <code class="inline">expire_snapshots</code> для освобождения места и настоящего удаления.</li>
+      <li><b>CoW</b> (быстрое чтение / тяжёлая запись) vs <b>MoR</b> (быстрая запись / чтение с мёржем) + <b>компакция</b> (<code class="inline">rewrite_data_files</code>).</li>
+      <li>Планирование = прунинг метаданных (manifest-list → статистики manifest → footers Parquet). <b>Никакого LIST в объектном хранилище.</b></li>
+      <li><b>Iceberg</b> (нейтральный, эволюция партиций) vs <b>Delta</b> (Spark/Databricks, txn log) vs <b>Hudi</b> (upsert/CDC).</li>
+      <li><b>Lakehouse</b> = гарантии хранилища + экономика озера + нейтральность движков.</li>
+      <li>Зачем на масштабе: миллиарды событий/день, множество движков (Spark/Flink/Trino), одна открытая копия данных.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- TABLE FORMAT -->
+<section id="format" class="reveal">
+  <h2><span class="en">What is a table format <span class="em">(and why)</span></span><span class="ru">Что такое табличный формат <span class="em">(и зачем)</span></span></h2>
+  <div class="card">
+    <p class="en">A <b>table format</b> is a spec + metadata layer that turns a pile of files in object storage into a real, transactional <i>table</i>: schema, snapshots, partitioning, ACID commits.</p>
+    <p class="ru"><b>Табличный формат</b> — это спецификация + метаданные, превращающие кучу файлов в объектном хранилище в настоящую транзакционную <i>таблицу</i>: схема, снапшоты, партиционирование, ACID-коммиты.</p>
+    <div class="tbl-wrap"><table class="en">
+      <tr><th>Layer</th><th>Example</th><th>Responsibility</th></tr>
+      <tr><td><b>Query engine</b></td><td>Spark, Flink, Trino, Snowflake</td><td>Plan &amp; execute SQL</td></tr>
+      <tr><td><b class="accent">Table format</b></td><td><b>Iceberg</b>, Delta, Hudi</td><td>Schema, snapshots, ACID, partitioning, metadata</td></tr>
+      <tr><td><b>File format</b></td><td>Parquet, ORC, Avro</td><td>Bytes inside one file (encoding, stats)</td></tr>
+      <tr><td><b>Object storage</b></td><td>S3, GCS, HDFS</td><td>Durable bytes</td></tr>
+    </table></div>
+    <div class="tbl-wrap"><table class="ru">
+      <tr><th>Слой</th><th>Пример</th><th>Ответственность</th></tr>
+      <tr><td><b>Движок запросов</b></td><td>Spark, Flink, Trino, Snowflake</td><td>Планирование и выполнение SQL</td></tr>
+      <tr><td><b class="accent">Табличный формат</b></td><td><b>Iceberg</b>, Delta, Hudi</td><td>Схема, снапшоты, ACID, партиционирование, метаданные</td></tr>
+      <tr><td><b>Формат файла</b></td><td>Parquet, ORC, Avro</td><td>Байты внутри одного файла (кодирование, статистики)</td></tr>
+      <tr><td><b>Объектное хранилище</b></td><td>S3, GCS, HDFS</td><td>Надёжные байты</td></tr>
+    </table></div>
+    <p class="muted en">It exists to fix the <b>Hive table problem</b>: a "table" was just a directory of files with partition info in a metastore — no atomic commits, expensive <code class="inline">LIST</code> on object stores, unsafe concurrent writes, fragile schema/partition changes.</p>
+    <p class="muted ru">Существует, чтобы решить <b>проблему таблиц Hive</b>: «таблица» была просто папкой файлов с информацией о партициях в метасторе — никаких атомарных коммитов, дорогой <code class="inline">LIST</code> в объектных хранилищах, небезопасные параллельные записи, хрупкие изменения схемы/партиций.</p>
+    <div class="callout anchor en"><span class="ct">Anchor — Amal</span> "I've lived the Hive pain: directory partitioning, metastore drift, slow listings on object stores. Iceberg is the metadata layer that makes those tables behave like a warehouse — the open-format version of what Snowflake/BigQuery gave me as managed engines."</div>
+    <div class="callout anchor ru"><span class="ct">Якорь — Amal</span> «Я знаю боль Hive: партиционирование по папкам, рассинхрон метастора, медленные листинги в объектных хранилищах. Iceberg — это метаданные, которые заставляют таблицы вести себя как хранилище — open-source версия того, что дали мне Snowflake/BigQuery как управляемые движки.»</div>
+  </div>
+</section>
+
+<!-- METADATA LAYERS -->
+<section id="layers" class="reveal">
+  <h2><span class="en">Metadata layers <span class="em">— read &amp; write path</span></span><span class="ru">Слои метаданных <span class="em">— путь чтения и записи</span></span></h2>
+  <div class="card">
+<div class="ascii en"><span class="lbl">CATALOG</span>  (Hive / Glue / JDBC / REST / Nessie)  — atomic pointer + compare-and-swap
+   │  points to current
+   ▼
+<span class="o">metadata.json (vN)</span>   schema(s) · partition spec(s) · sort orders · snapshot list · current snapshot
+   │
+   ▼  (one per snapshot)
+<span class="p">manifest list</span>        lists manifests + per-manifest PARTITION RANGE summaries  ──┐ prune whole manifests
+   │                                                                       │
+   ▼                                                                       ▼
+<span class="g">manifest files</span>       list DATA files + per-file COLUMN STATS (min/max/nulls)   ── prune individual files
+   │
+   ▼
+<span class="m">data files</span>           Parquet / ORC / Avro   (Parquet footers → row-group skipping)
+</div>
+<div class="ascii ru"><span class="lbl">CATALOG</span>  (Hive / Glue / JDBC / REST / Nessie)  — атомарный указатель + compare-and-swap
+   │  указывает на текущий
+   ▼
+<span class="o">metadata.json (vN)</span>   схема(ы) · спецификация партиций · порядок сортировки · список снапшотов · текущий снапшот
+   │
+   ▼  (один на снапшот)
+<span class="p">manifest list</span>        перечисляет манифесты + сводки ДИАПАЗОНОВ ПАРТИЦИЙ по манифестам  ──┐ прунит целые манифесты
+   │                                                                                     │
+   ▼                                                                                     ▼
+<span class="g">manifest files</span>       перечисляют ФАЙЛЫ ДАННЫХ + СТАТИСТИКИ СТОЛБЦОВ на файл (min/max/nulls)   ── прунит отдельные файлы
+   │
+   ▼
+<span class="m">data files</span>           Parquet / ORC / Avro   (футеры Parquet → пропуск row-group)
+</div>
+    <p style="margin-top:12px;" class="en"><b>On read:</b> catalog → current metadata → pick snapshot → manifest-list prune → manifest stats prune → Parquet row-group prune. <span class="green">No directory LIST</span>; planning scales to millions of files.</p>
+    <p style="margin-top:12px;" class="ru"><b>При чтении:</b> catalog → текущие метаданные → выбрать снапшот → прунить manifest-list → прунить статистики manifest → прунить row-group Parquet. <span class="green">Никакого LIST папок</span>; планирование масштабируется на миллионы файлов.</p>
+    <p class="en"><b>On write (commit):</b> write new data files + manifests + manifest list + new metadata.json, then <b>atomically swap the catalog pointer</b> using optimistic concurrency (retry if someone committed first).</p>
+    <p class="ru"><b>При записи (коммит):</b> записать новые файлы данных + манифесты + manifest list + новый metadata.json, затем <b>атомарно заменить указатель в каталоге</b> через оптимистичную конкуренцию (ретрай, если кто-то закоммитил первым).</p>
+    <div class="callout probe en"><span class="ct">Interviewer will probe</span> "How is a commit atomic on S3, which has no atomic rename?" → Atomicity lives in the <b>catalog's compare-and-swap on the metadata pointer</b>, not in file renames. (Delta does it differently — an ordered transaction log of JSON files.)</div>
+    <div class="callout probe ru"><span class="ct">О чём спросит интервьюер</span> «Как коммит атомарен на S3, где нет атомарного rename?» → Атомарность живёт в <b>compare-and-swap каталога для указателя метаданных</b>, а не в переименованиях файлов. (Delta делает иначе — упорядоченный транзакционный лог из JSON-файлов.)</div>
+  </div>
+</section>
+
+<!-- EVOLUTION -->
+<section id="evolution" class="reveal">
+  <h2><span class="en">Schema &amp; partition evolution <span class="em">+ hidden partitioning</span></span><span class="ru">Эволюция схемы и партиционирования <span class="em">+ скрытое партиционирование</span></span></h2>
+
+  <details open>
+    <summary><span class="en">Schema evolution — by field ID</span><span class="ru">Эволюция схемы — по field ID</span></summary>
+    <div class="body">
+      <p class="en">Iceberg tracks every column by a <b>unique field ID</b>, not by name or position. So you can <b class="green">add, drop, rename, reorder, widen</b> columns as a <b>metadata-only</b> change — no data rewrite.</p>
+      <p class="ru">Iceberg отслеживает каждый столбец по <b>уникальному field ID</b>, а не по имени или позиции. Поэтому можно <b class="green">добавлять, удалять, переименовывать, переупорядочивать, расширять</b> столбцы как изменение <b>только метаданных</b> — без перезаписи данных.</p>
+      <ul class="en">
+        <li><b>Add</b> → old files return NULL for the new column.</li>
+        <li><b>Rename</b> → ID unchanged, only the name mapping changes (safe).</li>
+        <li><b>Drop</b> → ID no longer projected.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Добавление</b> → старые файлы возвращают NULL для нового столбца.</li>
+        <li><b>Переименование</b> → ID не меняется, меняется только маппинг имени (безопасно).</li>
+        <li><b>Удаление</b> → ID больше не проецируется.</li>
+      </ul>
+      <div class="callout gotcha en"><span class="ct">Gotcha</span> Hive/plain-Parquet resolve columns by position or name → a rename/reorder can silently read the <b>wrong column</b>. Field IDs make Iceberg correct. Also: drop-then-re-add the same name = a <b>new</b> ID; old data won't resurface.</div>
+      <div class="callout gotcha ru"><span class="ct">Подвох</span> Hive/обычный Parquet разрешают столбцы по позиции или имени → переименование/переупорядочивание может молча читать <b>не тот столбец</b>. Field ID делают Iceberg корректным. Также: удалить-потом-вернуть то же имя = <b>новый</b> ID; старые данные не всплывут.</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="en">Hidden partitioning — the footgun killer</span><span class="ru">Скрытое партиционирование — убийца ошибок</span></summary>
+    <div class="body">
+      <p class="en">You declare a partition <b>transform</b> on a real column; Iceberg derives and stores the partition value. Users query the <b>raw column</b> and pruning happens automatically.</p>
+      <p class="ru">Вы объявляете партиционное <b>преобразование</b> на реальный столбец; Iceberg вычисляет и сохраняет значение партиции. Пользователи запрашивают <b>исходный столбец</b>, а прунинг происходит автоматически.</p>
+<pre class="en"><span class="kw">CREATE TABLE</span> events (
+  event_time <span class="kw">timestamp</span>, user_id <span class="kw">bigint</span>, payload <span class="kw">string</span>
+) <span class="kw">PARTITIONED BY</span> (<span class="fn">days</span>(event_time), <span class="fn">bucket</span>(<span class="num">16</span>, user_id));
+
+<span class="com">-- analyst queries the RAW column; Iceberg prunes partitions for them:</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> events <span class="kw">WHERE</span> event_time &gt;= <span class="str">'2026-06-01'</span>;
+</pre>
+<pre class="ru"><span class="kw">CREATE TABLE</span> events (
+  event_time <span class="kw">timestamp</span>, user_id <span class="kw">bigint</span>, payload <span class="kw">string</span>
+) <span class="kw">PARTITIONED BY</span> (<span class="fn">days</span>(event_time), <span class="fn">bucket</span>(<span class="num">16</span>, user_id));
+
+<span class="com">-- аналитик запрашивает ИСХОДНЫЙ столбец; Iceberg прунит партиции за него:</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> events <span class="kw">WHERE</span> event_time &gt;= <span class="str">'2026-06-01'</span>;
+</pre>
+      <p class="muted"><span class="en">Transforms:</span><span class="ru">Преобразования:</span> <code class="inline">years/months/days/hours</code>, <code class="inline">bucket(N,col)</code>, <code class="inline">truncate(N,col)</code>, <code class="inline">identity</code>.</p>
+      <div class="callout anchor en"><span class="ct">Anchor — Amal</span> "In Hive/Snowflake/BigQuery I had to maintain a derived date column and teach analysts to filter on it. Hidden partitioning removes that whole class of mistakes."</div>
+      <div class="callout anchor ru"><span class="ct">Якорь — Amal</span> «В Hive/Snowflake/BigQuery мне приходилось поддерживать производный date-столбец и учить аналитиков фильтровать по нему. Скрытое партиционирование убирает весь этот класс ошибок.»</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="en">Partition evolution — change granularity, no rewrite</span><span class="ru">Эволюция партиций — смена гранулярности без перезаписи</span></summary>
+    <div class="body">
+      <p class="en">Change the partition spec over time (e.g. <code class="inline">days(ts)</code> → <code class="inline">hours(ts)</code>) <b>without rewriting old data</b>. Old files keep their old spec; new files use the new one; manifests record which spec each file used, so planning handles the mix.</p>
+      <p class="ru">Изменить спецификацию партиций со временем (напр., <code class="inline">days(ts)</code> → <code class="inline">hours(ts)</code>) <b>без перезаписи старых данных</b>. Старые файлы сохраняют старую спецификацию; новые используют новую; манифесты записывают, какую спецификацию использовал каждый файл, так что планировщик обрабатывает смесь.</p>
+      <div class="callout gotcha en"><span class="ct">Gotcha</span> Hive partition = a physical directory column → repartitioning means a <b>full table rewrite</b>, and queries must filter on the derived column or do a full scan.</div>
+      <div class="callout gotcha ru"><span class="ct">Подвох</span> Партиция Hive = физический столбец-папка → перепартиционирование означает <b>полную перезапись таблицы</b>, а запросы должны фильтровать по производному столбцу или делать full scan.</div>
+    </div>
+  </details>
+</section>
+
+<!-- SNAPSHOTS -->
+<section id="snapshots" class="reveal">
+  <h2><span class="en">Snapshots, time travel &amp; ACID</span><span class="ru">Снапшоты, time travel и ACID</span></h2>
+  <div class="card">
+    <p class="en">Every write creates an immutable <b>snapshot</b> (a manifest list + reachable data files). History is kept in metadata.json.</p>
+    <p class="ru">Каждая запись создаёт неизменный <b>снапшот</b> (manifest list + достижимые файлы данных). История хранится в metadata.json.</p>
+<pre class="en"><span class="com">-- time travel</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> t <span class="kw">FOR SYSTEM_VERSION AS OF</span> <span class="num">8675309</span>;     <span class="com">-- snapshot id</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> t <span class="kw">FOR SYSTEM_TIME AS OF</span> <span class="str">'2026-06-10 00:00:00'</span>;
+
+<span class="com">-- rollback = your incident button (metadata-only, cheap)</span>
+<span class="kw">CALL</span> catalog.system.<span class="fn">rollback_to_snapshot</span>(<span class="str">'db.t'</span>, <span class="num">8675309</span>);
+
+<span class="com">-- reclaim storage + truly delete old data</span>
+<span class="kw">CALL</span> catalog.system.<span class="fn">expire_snapshots</span>(<span class="str">'db.t'</span>, <span class="kw">TIMESTAMP</span> <span class="str">'2026-06-01 00:00:00'</span>);
+</pre>
+<pre class="ru"><span class="com">-- time travel</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> t <span class="kw">FOR SYSTEM_VERSION AS OF</span> <span class="num">8675309</span>;     <span class="com">-- snapshot id</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> t <span class="kw">FOR SYSTEM_TIME AS OF</span> <span class="str">'2026-06-10 00:00:00'</span>;
+
+<span class="com">-- rollback = кнопка инцидента (только метаданные, дёшево)</span>
+<span class="kw">CALL</span> catalog.system.<span class="fn">rollback_to_snapshot</span>(<span class="str">'db.t'</span>, <span class="num">8675309</span>);
+
+<span class="com">-- освободить хранилище + действительно удалить старые данные</span>
+<span class="kw">CALL</span> catalog.system.<span class="fn">expire_snapshots</span>(<span class="str">'db.t'</span>, <span class="kw">TIMESTAMP</span> <span class="str">'2026-06-01 00:00:00'</span>);
+</pre>
+    <div class="tbl-wrap"><table class="en">
+      <tr><th>ACID property</th><th>How Iceberg delivers it</th></tr>
+      <tr><td><b>Atomicity</b></td><td>One commit = one atomic catalog pointer swap; all-or-nothing.</td></tr>
+      <tr><td><b>Consistency</b></td><td>Readers always see a complete snapshot, never half-written files.</td></tr>
+      <tr><td><b>Isolation</b></td><td><b>Snapshot isolation</b>: reader pinned to snap N unaffected by writer making N+1. Writers use optimistic concurrency.</td></tr>
+      <tr><td><b>Durability</b></td><td>Files + metadata persisted in object storage.</td></tr>
+    </table></div>
+    <div class="tbl-wrap"><table class="ru">
+      <tr><th>Свойство ACID</th><th>Как Iceberg его обеспечивает</th></tr>
+      <tr><td><b>Атомарность</b></td><td>Один коммит = одна атомарная замена указателя каталога; всё или ничего.</td></tr>
+      <tr><td><b>Согласованность</b></td><td>Читатели всегда видят полный снапшот, никогда не наполовину записанные файлы.</td></tr>
+      <tr><td><b>Изоляция</b></td><td><b>Изоляция снапшотами</b>: читатель, прикреплённый к снапшоту N, не затрагивается писателем, создающим N+1. Писатели используют оптимистичную конкуренцию.</td></tr>
+      <tr><td><b>Надёжность</b></td><td>Файлы + метаданные сохранены в объектном хранилище.</td></tr>
+    </table></div>
+    <div class="callout probe en"><span class="ct">Interviewer will probe</span> "Two jobs write concurrently?" → Both stage files; first to commit wins; the second sees the pointer moved and re-validates / retries. Appends are usually conflict-free; overwrites/deletes on the same partitions can genuinely conflict.</div>
+    <div class="callout probe ru"><span class="ct">О чём спросит интервьюер</span> «Две джобы пишут одновременно?» → Обе готовят файлы; первая, кто закоммитит, выигрывает; вторая видит сдвинутый указатель и переподтверждает / делает ретрай. Дозаписи обычно бесконфликтны; перезаписи/удаления в одних и тех же партициях могут реально конфликтовать.</div>
+    <div class="callout gotcha en"><span class="ct">GDPR gotcha</span> A DELETE removes rows from <i>current</i> reads, but the bytes survive in old <b>snapshots</b> until <code class="inline">expire_snapshots</code> + <code class="inline">remove_orphan_files</code>. True erasure needs snapshot expiry, not just the DELETE.</div>
+    <div class="callout gotcha ru"><span class="ct">Подвох GDPR</span> DELETE удаляет строки из <i>текущих</i> чтений, но байты выживают в старых <b>снапшотах</b>, пока не запустить <code class="inline">expire_snapshots</code> + <code class="inline">remove_orphan_files</code>. Настоящее стирание требует истечения снапшотов, а не только DELETE.</div>
+  </div>
+</section>
+
+<!-- COW / MOR -->
+<section id="write" class="reveal">
+  <h2><span class="en">Copy-on-write vs Merge-on-read <span class="em">+ compaction</span></span><span class="ru">Copy-on-write vs Merge-on-read <span class="em">+ компакция</span></span></h2>
+  <div class="card">
+    <div class="tbl-wrap"><table class="en">
+      <tr><th></th><th class="green">Copy-on-write (CoW)</th><th class="orange">Merge-on-read (MoR)</th></tr>
+      <tr><td><b>Update/delete</b></td><td>Rewrite affected data files entirely</td><td>Write small <b>delete files</b> (position / equality)</td></tr>
+      <tr><td><b>Write cost</b></td><td>High</td><td>Low</td></tr>
+      <tr><td><b>Read cost</b></td><td>Low (no merge)</td><td>Higher (merge data + delete files)</td></tr>
+      <tr><td><b>Best for</b></td><td>Read-heavy, infrequent updates</td><td>Streaming upserts / frequent CDC</td></tr>
+    </table></div>
+    <div class="tbl-wrap"><table class="ru">
+      <tr><th></th><th class="green">Copy-on-write (CoW)</th><th class="orange">Merge-on-read (MoR)</th></tr>
+      <tr><td><b>Update/delete</b></td><td>Перезапись затронутых файлов данных целиком</td><td>Запись маленьких <b>delete files</b> (position / equality)</td></tr>
+      <tr><td><b>Цена записи</b></td><td>Высокая</td><td>Низкая</td></tr>
+      <tr><td><b>Цена чтения</b></td><td>Низкая (нет мёржа)</td><td>Выше (мёрж данных + delete files)</td></tr>
+      <tr><td><b>Лучше для</b></td><td>Read-heavy, редкие обновления</td><td>Потоковые upsert / частый CDC</td></tr>
+    </table></div>
+    <p class="en"><b>Delete file types (MoR):</b> <b>position deletes</b> = "row X in file Y is gone"; <b>equality deletes</b> = "rows where id=123 are gone".</p>
+    <p class="ru"><b>Типы delete files (MoR):</b> <b>position deletes</b> = «строка X в файле Y удалена»; <b>equality deletes</b> = «строки, где id=123, удалены».</p>
+    <p class="en"><b>Compaction</b> (<code class="inline">rewrite_data_files</code>) merges small files into ~128–512 MB files, applies MoR deletes, and can re-sort/cluster for tighter stats. It runs as its own atomic commit; readers keep using the old snapshot until it lands.</p>
+    <p class="ru"><b>Компакция</b> (<code class="inline">rewrite_data_files</code>) мержит мелкие файлы в ~128–512 MB файлы, применяет MoR-удаления, может пересортировать/кластеризовать для более точных статистик. Запускается как собственный атомарный коммит; читатели продолжают использовать старый снапшот, пока не приземлится.</p>
+    <p class="muted"><span class="en">Companion maintenance:</span><span class="ru">Сопутствующее обслуживание:</span> <code class="inline">rewrite_manifests</code> <span class="en">(compact metadata)</span><span class="ru">(компакция метаданных)</span>, <code class="inline">expire_snapshots</code>, <code class="inline">remove_orphan_files</code>. <span class="en">Schedule them off the hot write path (e.g. Airflow).</span><span class="ru">Запускать вне горячего write path (напр., Airflow).</span></p>
+    <div class="callout anchor en"><span class="ct">Anchor — Amal</span> "The small-files problem is one I know cold from Spark/Hive output — same pathology, and compaction is the same fix, now formalized as an Iceberg maintenance action."</div>
+    <div class="callout anchor ru"><span class="ct">Якорь — Amal</span> «Проблему мелких файлов я знаю досконально по выводу Spark/Hive — та же патология, и компакция — то же самое лечение, теперь формализованное как действие обслуживания Iceberg.»</div>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section id="compare" class="reveal">
+  <h2>Iceberg vs Delta vs Hudi vs Hive</h2>
+  <div class="card">
+    <div class="tbl-wrap"><table class="en">
+      <tr><th>Dimension</th><th class="accent">Iceberg</th><th>Delta Lake</th><th>Hudi</th></tr>
+      <tr><td>Origin</td><td>Netflix → Apache</td><td>Databricks</td><td>Uber → Apache</td></tr>
+      <tr><td>Metadata model</td><td>Snapshot tree (metadata → manifest list → manifests)</td><td>Transaction log (<code class="inline">_delta_log</code> JSON + checkpoints)</td><td>Timeline of commits + indexed file groups</td></tr>
+      <tr><td>Engine neutrality</td><td><b class="green">Strongest</b> (Spark/Flink/Trino/Snowflake/BigQuery)</td><td>Best on Spark/Databricks</td><td>Spark-centric (+Flink)</td></tr>
+      <tr><td>Partition evolution</td><td><b class="green">Native</b></td><td>Limited (liquid clustering)</td><td>Limited</td></tr>
+      <tr><td>Hidden partitioning</td><td><b class="green">Yes</b></td><td>No</td><td>No</td></tr>
+      <tr><td>Update model</td><td>CoW + MoR (v2)</td><td>CoW + deletion vectors</td><td><b>CoW &amp; MoR</b> first-class</td></tr>
+      <tr><td>Sweet spot</td><td>Multi-engine, evolving large tables</td><td>Spark/Databricks BI+ML</td><td>Upsert / CDC-heavy ingestion</td></tr>
+    </table></div>
+    <div class="tbl-wrap"><table class="ru">
+      <tr><th>Измерение</th><th class="accent">Iceberg</th><th>Delta Lake</th><th>Hudi</th></tr>
+      <tr><td>Происхождение</td><td>Netflix → Apache</td><td>Databricks</td><td>Uber → Apache</td></tr>
+      <tr><td>Модель метаданных</td><td>Дерево снапшотов (metadata → manifest list → manifests)</td><td>Транзакционный лог (<code class="inline">_delta_log</code> JSON + checkpoints)</td><td>Timeline коммитов + индексированные группы файлов</td></tr>
+      <tr><td>Нейтральность движков</td><td><b class="green">Сильнейшая</b> (Spark/Flink/Trino/Snowflake/BigQuery)</td><td>Лучше на Spark/Databricks</td><td>Spark-центричный (+Flink)</td></tr>
+      <tr><td>Эволюция партиций</td><td><b class="green">Встроенная</b></td><td>Ограниченная (liquid clustering)</td><td>Ограниченная</td></tr>
+      <tr><td>Скрытое партиционирование</td><td><b class="green">Да</b></td><td>Нет</td><td>Нет</td></tr>
+      <tr><td>Модель обновления</td><td>CoW + MoR (v2)</td><td>CoW + deletion vectors</td><td><b>CoW &amp; MoR</b> первого класса</td></tr>
+      <tr><td>Сильная сторона</td><td>Мульти-движки, эволюционирующие большие таблицы</td><td>Spark/Databricks BI+ML</td><td>Upsert / тяжёлый CDC ingestion</td></tr>
+    </table></div>
+    <p class="en"><b>One-liners:</b> <span class="accent">Iceberg</span> for neutrality + clean evolution at scale. <b>Delta</b> if all-in on Spark/Databricks. <b>Hudi</b> for record-level upserts / incremental CDC.</p>
+    <p class="ru"><b>Одной строкой:</b> <span class="accent">Iceberg</span> для нейтральности + чистая эволюция на масштабе. <b>Delta</b>, если all-in на Spark/Databricks. <b>Hudi</b> для upsert на уровне записей / инкрементальный CDC.</p>
+    <hr>
+    <h3><span class="en">Iceberg vs plain Hive tables — the concrete wins</span><span class="ru">Iceberg vs обычные таблицы Hive — конкретные победы</span></h3>
+    <ul class="en">
+      <li>Atomic commits + snapshot isolation (Hive: none, dirty reads possible).</li>
+      <li>Metadata planning (Hive: expensive directory LIST).</li>
+      <li>Schema evolution by field ID (Hive: positional/name pitfalls).</li>
+      <li>Hidden partitioning + partition evolution (Hive: physical dirs, full rewrite to change).</li>
+      <li>Time travel + rollback (Hive: none).</li>
+      <li>Engine-neutral spec (Hive metastore is its own coupling).</li>
+    </ul>
+    <ul class="ru">
+      <li>Атомарные коммиты + изоляция снапшотами (Hive: нет, возможны грязные чтения).</li>
+      <li>Планирование по метаданным (Hive: дорогой LIST папок).</li>
+      <li>Эволюция схемы по field ID (Hive: подводные камни позиции/имени).</li>
+      <li>Скрытое партиционирование + эволюция партиций (Hive: физические папки, полная перезапись для изменения).</li>
+      <li>Time travel + rollback (Hive: нет).</li>
+      <li>Нейтральная к движкам спецификация (метастор Hive — собственная связанность).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- FILES -->
+<section id="files" class="reveal">
+  <h2><span class="en">File formats <span class="em">— Parquet / ORC / Avro</span></span><span class="ru">Форматы файлов <span class="em">— Parquet / ORC / Avro</span></span></h2>
+  <div class="card">
+    <div class="tbl-wrap"><table class="en">
+      <tr><th>Format</th><th>Layout</th><th>Best for</th><th>Notes</th></tr>
+      <tr><td><b class="green">Parquet</b></td><td>Columnar</td><td>Analytics (the default)</td><td>Row groups → column chunks → pages; broadest ecosystem; rich nested types</td></tr>
+      <tr><td><b>ORC</b></td><td>Columnar</td><td>Hive/Tez world</td><td>Stripes + lightweight indexes + bloom filters; slightly better compression sometimes</td></tr>
+      <tr><td><b class="orange">Avro</b></td><td>Row-based</td><td>Streaming / serialization</td><td>Iceberg uses it for its own manifest files; bad for wide scans</td></tr>
+    </table></div>
+    <div class="tbl-wrap"><table class="ru">
+      <tr><th>Формат</th><th>Раскладка</th><th>Лучше для</th><th>Заметки</th></tr>
+      <tr><td><b class="green">Parquet</b></td><td>Столбцовый</td><td>Аналитика (по умолчанию)</td><td>Row groups → column chunks → pages; широчайшая экосистема; богатые вложенные типы</td></tr>
+      <tr><td><b>ORC</b></td><td>Столбцовый</td><td>Мир Hive/Tez</td><td>Stripes + лёгкие индексы + bloom filters; иногда чуть лучше сжатие</td></tr>
+      <tr><td><b class="orange">Avro</b></td><td>Строковый</td><td>Стриминг / сериализация</td><td>Iceberg использует его для собственных manifest files; плох для широких сканов</td></tr>
+    </table></div>
+    <p class="en"><b>Columnar</b> = read only needed columns, compress better (similar values adjacent), embed stats for pushdown. <span class="muted">Columnar-vs-row (Parquet vs Avro) matters far more than Parquet-vs-ORC for analytics.</span> For new Iceberg tables: Parquet is the safe default.</p>
+    <p class="ru"><b>Столбцовый</b> = читать только нужные столбцы, лучше сжимается (похожие значения рядом), встроенные статистики для pushdown. <span class="muted">Столбцовый-vs-строковый (Parquet vs Avro) важнее, чем Parquet-vs-ORC, для аналитики.</span> Для новых таблиц Iceberg: Parquet — безопасный дефолт.</p>
+    <h3 style="margin-top:14px;"><span class="en">Predicate pushdown end-to-end</span><span class="ru">Predicate pushdown от конца до конца</span></h3>
+<div class="ascii en">predicate ─▶ <span class="p">partition prune</span> (manifest list)
+          ─▶ <span class="g">file prune</span> (manifest min/max/nulls)
+          ─▶ <span class="o">row-group skip</span> (Parquet footer stats)
+          ─▶ page skip / dictionary filter
+each layer reads strictly less than the one above</div>
+<div class="ascii ru">предикат ─▶ <span class="p">прунинг партиций</span> (manifest list)
+         ─▶ <span class="g">прунинг файлов</span> (manifest min/max/nulls)
+         ─▶ <span class="o">пропуск row-group</span> (статистики футера Parquet)
+         ─▶ пропуск страниц / фильтр словаря
+каждый слой читает строго меньше, чем верхний</div>
+  </div>
+</section>
+
+<!-- LAKEHOUSE -->
+<section id="lakehouse" class="reveal">
+  <h2><span class="en">Lakehouse architecture</span><span class="ru">Архитектура Lakehouse</span></h2>
+  <div class="card">
+    <div class="tbl-wrap"><table class="en">
+      <tr><th></th><th>Data lake</th><th>Data warehouse</th><th class="green">Lakehouse</th></tr>
+      <tr><td>Storage</td><td>Open files, object store</td><td>Proprietary, coupled</td><td>Open files + table format on object store</td></tr>
+      <tr><td>ACID / schema</td><td>Weak</td><td>Strong</td><td><b>Strong</b></td></tr>
+      <tr><td>Cost</td><td>Low</td><td>High</td><td><b>Low (lake economics)</b></td></tr>
+      <tr><td>Engine access</td><td>Many</td><td>One (vendor)</td><td><b>Many, neutral</b></td></tr>
+      <tr><td>Risk</td><td>"Data swamp"</td><td>Lock-in</td><td>Needs maintenance discipline</td></tr>
+    </table></div>
+    <div class="tbl-wrap"><table class="ru">
+      <tr><th></th><th>Data lake</th><th>Data warehouse</th><th class="green">Lakehouse</th></tr>
+      <tr><td>Хранение</td><td>Открытые файлы, объектное хранилище</td><td>Проприетарное, связанное</td><td>Открытые файлы + табличный формат на объектном хранилище</td></tr>
+      <tr><td>ACID / схема</td><td>Слабые</td><td>Сильные</td><td><b>Сильные</b></td></tr>
+      <tr><td>Стоимость</td><td>Низкая</td><td>Высокая</td><td><b>Низкая (экономика озера)</b></td></tr>
+      <tr><td>Доступ движков</td><td>Много</td><td>Один (вендор)</td><td><b>Много, нейтрально</b></td></tr>
+      <tr><td>Риск</td><td>«Data swamp»</td><td>Привязка</td><td>Нужна дисциплина обслуживания</td></tr>
+    </table></div>
+    <p class="en"><b>Lakehouse</b> = warehouse guarantees (ACID, schema, time travel) + lake economics + engine neutrality. One copy of data, many engines, no storage lock-in.</p>
+    <p class="ru"><b>Lakehouse</b> = гарантии хранилища (ACID, схема, time travel) + экономика озера + нейтральность движков. Одна копия данных, множество движков, нет привязки к хранилищу.</p>
+    <h3 style="margin-top:12px;"><span class="en">Reference pipeline (the design-round answer)</span><span class="ru">Эталонный пайплайн (ответ на design-раунде)</span></h3>
+<div class="ascii en"><span class="lbl">Kafka</span> ─▶ <span class="lbl">Flink</span> (dedup/enrich, exactly-once via checkpoints↔commits)
+        │
+        ▼  Flink Iceberg sink (MoR, hidden-partitioned by hours(event_time))
+   <span class="g">Iceberg tables on S3/GCS</span>
+        │                         ▲
+        ├─▶ <span class="lbl">Trino/Presto</span> interactive  │  <span class="o">Airflow maintenance</span>:
+        ├─▶ <span class="lbl">Spark</span> batch / dbt models   │   rewrite_data_files (compaction)
+        └─▶ <span class="lbl">Snowflake/BigQuery</span> ext.    │   expire_snapshots / rewrite_manifests
+                                          │   remove_orphan_files</div>
+<div class="ascii ru"><span class="lbl">Kafka</span> ─▶ <span class="lbl">Flink</span> (дедуп/обогащение, exactly-once через checkpoints↔коммиты)
+        │
+        ▼  Flink Iceberg sink (MoR, скрыто партиционирован по hours(event_time))
+   <span class="g">Таблицы Iceberg на S3/GCS</span>
+        │                         ▲
+        ├─▶ <span class="lbl">Trino/Presto</span> интерактив   │  <span class="o">Обслуживание Airflow</span>:
+        ├─▶ <span class="lbl">Spark</span> batch / dbt models   │   rewrite_data_files (компакция)
+        └─▶ <span class="lbl">Snowflake/BigQuery</span> внеш.   │   expire_snapshots / rewrite_manifests
+                                          │   remove_orphan_files</div>
+    <div class="callout probe en"><span class="ct">Failure modes to volunteer</span> Kafka lag → backpressure + scale consumers · duplicate delivery → idempotent keys + snapshot-level exactly-once · bad batch → rollback to prior snapshot · small files → compaction · late events → watermarks + late-tolerant partitioning.</div>
+    <div class="callout probe ru"><span class="ct">Режимы сбоев (рассказать добровольно)</span> Лаг Kafka → backpressure + масштабировать консьюмеры · дублированная доставка → идемпотентные ключи + exactly-once на уровне снапшота · плохой батч → rollback к предыдущему снапшоту · мелкие файлы → компакция · поздние события → watermarks + партиционирование, терпимое к опозданиям.</div>
+    <div class="callout anchor en"><span class="ct">Anchor — Amal</span> "I built Kafka ingestion at university scale (IU Group), a Scala/Spark pipeline on Hadoop (Front Tier), and migrated orchestration to Airflow (McMakler). This is the same shape — I'd land it in Iceberg with Flink exactly-once and scheduled compaction."</div>
+    <div class="callout anchor ru"><span class="ct">Якорь — Amal</span> «Я строил Kafka ingestion в университетском масштабе (IU Group), Scala/Spark пайплайн на Hadoop (Front Tier), мигрировал оркестрацию на Airflow (McMakler). Это та же форма — я бы высадил это в Iceberg с Flink exactly-once и запланированной компакцией.»</div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" class="reveal">
+  <h2><span class="en">Self-quiz <span class="em">— tap a card to flip</span></span><span class="ru">Самопроверка <span class="em">— тап для переворота</span></span></h2>
+  <div class="flip-grid">
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q"><span class="en">Where does Iceberg's commit atomicity actually live?</span><span class="ru">Где реально живёт атомарность коммита Iceberg?</span></div>
+          <div class="hint"><span class="en">tap to reveal</span><span class="ru">тап чтобы показать</span></div>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a"><span class="en">answer</span><span class="ru">ответ</span></div>
+          <span class="en">In the <b>catalog's compare-and-swap</b> on the metadata pointer — not in file renames. That's how it's atomic even on S3.</span>
+          <span class="ru">В <b>compare-and-swap каталога</b> для указателя метаданных — не в переименованиях файлов. Поэтому атомарность есть даже на S3.</span>
+        </div>
+      </div>
+    </div>
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q"><span class="en">Why can Iceberg rename a column with no data rewrite?</span><span class="ru">Почему Iceberg может переименовать столбец без перезаписи данных?</span></div>
+          <div class="hint"><span class="en">tap to reveal</span><span class="ru">тап чтобы показать</span></div>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a"><span class="en">answer</span><span class="ru">ответ</span></div>
+          <span class="en">Columns are tracked by a <b>unique field ID</b>, not name/position. Rename only changes the name→ID mapping; data files are untouched.</span>
+          <span class="ru">Столбцы отслеживаются по <b>уникальному field ID</b>, а не по имени/позиции. Переименование меняет только маппинг имя→ID; файлы данных не трогаются.</span>
+        </div>
+      </div>
+    </div>
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q"><span class="en">CoW vs MoR — which is write-cheap, which is read-cheap?</span><span class="ru">CoW vs MoR — что дёшево для записи, что для чтения?</span></div>
+          <div class="hint"><span class="en">tap to reveal</span><span class="ru">тап чтобы показать</span></div>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a"><span class="en">answer</span><span class="ru">ответ</span></div>
+          <span class="en"><b>MoR</b> = cheap writes (delete files), costlier reads (merge). <b>CoW</b> = cheap reads, costly writes (rewrite files). Compaction restores MoR read speed.</span>
+          <span class="ru"><b>MoR</b> = дешёвая запись (delete files), дороже чтение (мёрж). <b>CoW</b> = дешёвое чтение, дорогая запись (перезапись файлов). Компакция восстанавливает скорость чтения MoR.</span>
+        </div>
+      </div>
+    </div>
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q"><span class="en">How does planning avoid listing millions of files?</span><span class="ru">Как планирование избегает листинга миллионов файлов?</span></div>
+          <div class="hint"><span class="en">tap to reveal</span><span class="ru">тап чтобы показать</span></div>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a"><span class="en">answer</span><span class="ru">ответ</span></div>
+          <span class="en">Two-level metadata pruning: manifest-list partition ranges skip whole manifests, then manifest column stats (min/max/null) skip individual files. Then Parquet footers skip row groups. <b>No LIST.</b></span>
+          <span class="ru">Двухуровневый прунинг метаданных: диапазоны партиций manifest-list пропускают целые манифесты, затем статистики столбцов manifest (min/max/null) пропускают отдельные файлы. Затем футеры Parquet пропускают row groups. <b>Никакого LIST.</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q"><span class="en">What's hidden partitioning in one sentence?</span><span class="ru">Что такое скрытое партиционирование одним предложением?</span></div>
+          <div class="hint"><span class="en">tap to reveal</span><span class="ru">тап чтобы показать</span></div>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a"><span class="en">answer</span><span class="ru">ответ</span></div>
+          <span class="en">You declare a transform (e.g. <code class="inline">days(ts)</code>); Iceberg stores the derived partition value so analysts query the <b>raw column</b> and still get pruning — no derived date column.</span>
+          <span class="ru">Вы объявляете преобразование (напр., <code class="inline">days(ts)</code>); Iceberg сохраняет производное значение партиции, чтобы аналитики запрашивали <b>исходный столбец</b> и всё равно получали прунинг — никакого производного date-столбца.</span>
+        </div>
+      </div>
+    </div>
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q"><span class="en">When Iceberg vs Delta vs Hudi?</span><span class="ru">Когда Iceberg vs Delta vs Hudi?</span></div>
+          <div class="hint"><span class="en">tap to reveal</span><span class="ru">тап чтобы показать</span></div>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a"><span class="en">answer</span><span class="ru">ответ</span></div>
+          <span class="en"><b>Iceberg</b>: engine-neutral, partition evolution, large evolving tables. <b>Delta</b>: Spark/Databricks shops. <b>Hudi</b>: upsert/CDC-heavy ingestion.</span>
+          <span class="ru"><b>Iceberg</b>: нейтральность движков, эволюция партиций, большие эволюционирующие таблицы. <b>Delta</b>: магазины Spark/Databricks. <b>Hudi</b>: тяжёлый upsert/CDC ingestion.</span>
+        </div>
+      </div>
+    </div>
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q"><span class="en">Why doesn't a DELETE satisfy GDPR erasure on its own?</span><span class="ru">Почему DELETE сам по себе не удовлетворяет требованиям стирания GDPR?</span></div>
+          <div class="hint"><span class="en">tap to reveal</span><span class="ru">тап чтобы показать</span></div>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a"><span class="en">answer</span><span class="ru">ответ</span></div>
+          <span class="en">Bytes persist in old <b>snapshots</b>. You must <code class="inline">expire_snapshots</code> + <code class="inline">remove_orphan_files</code> for true physical erasure.</span>
+          <span class="ru">Байты выживают в старых <b>снапшотах</b>. Нужно <code class="inline">expire_snapshots</code> + <code class="inline">remove_orphan_files</code> для настоящего физического стирания.</span>
+        </div>
+      </div>
+    </div>
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q"><span class="en">Table format vs file format?</span><span class="ru">Табличный формат vs формат файла?</span></div>
+          <div class="hint"><span class="en">tap to reveal</span><span class="ru">тап чтобы показать</span></div>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a"><span class="en">answer</span><span class="ru">ответ</span></div>
+          <span class="en"><b>File format</b> (Parquet) = bytes in one file. <b>Table format</b> (Iceberg) = many files → one transactional table (schema, snapshots, ACID).</span>
+          <span class="ru"><b>Формат файла</b> (Parquet) = байты в одном файле. <b>Табличный формат</b> (Iceberg) = много файлов → одна транзакционная таблица (схема, снапшоты, ACID).</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GOTCHAS -->
+<section id="gotchas" class="reveal">
+  <h2><span class="en">Operational gotchas <span class="em">— the depth probes</span></span><span class="ru">Операционные подвохи <span class="em">— глубинные вопросы</span></span></h2>
+  <div class="card">
+    <ul class="en">
+      <li><b>No snapshot expiration</b> → unbounded metadata + storage growth, slower planning. Schedule <code class="inline">expire_snapshots</code>.</li>
+      <li><b>No compaction</b> on streaming tables → small-file explosion → slow reads.</li>
+      <li><b>Catalog choice</b> matters — atomicity depends on the catalog's CAS; a naive file/HDFS catalog can break it under concurrency. Prefer REST/Glue/Nessie.</li>
+      <li><b>Wrong partition transform</b> → tiny partitions or skew. Use <code class="inline">bucket()</code> for high-cardinality keys, <code class="inline">days/hours</code> for time.</li>
+      <li><b>MoR read amplification</b> if delete files accumulate without compaction.</li>
+      <li><b>Orphan files</b> after failed writes → <code class="inline">remove_orphan_files</code> (respect in-flight writers).</li>
+      <li><b>Field-ID reuse</b> — drop-then-re-add a name = new ID; old data won't reappear.</li>
+    </ul>
+    <ul class="ru">
+      <li><b>Нет истечения снапшотов</b> → неограниченный рост метаданных + хранилища, медленнее планирование. Запланировать <code class="inline">expire_snapshots</code>.</li>
+      <li><b>Нет компакции</b> на потоковых таблицах → взрыв мелких файлов → медленное чтение.</li>
+      <li><b>Выбор каталога</b> важен — атомарность зависит от CAS каталога; наивный file/HDFS каталог может сломать её при конкуренции. Предпочесть REST/Glue/Nessie.</li>
+      <li><b>Неправильное преобразование партиций</b> → крошечные партиции или скос. Использовать <code class="inline">bucket()</code> для высококардинальных ключей, <code class="inline">days/hours</code> для времени.</li>
+      <li><b>Усиление чтения MoR</b>, если delete files накапливаются без компакции.</li>
+      <li><b>Orphan files</b> после упавших записей → <code class="inline">remove_orphan_files</code> (уважать активных писателей).</li>
+      <li><b>Переиспользование field-ID</b> — удалить-потом-вернуть имя = новый ID; старые данные не всплывут.</li>
+    </ul>
+    <hr>
+    <h3><span class="en">Bonus depth: branching / write-audit-publish</span><span class="ru">Бонусная глубина: ветвление / write-audit-publish</span></h3>
+    <p class="en">Iceberg supports <b>branches</b> (independent snapshot lines) and <b>tags</b> (immutable snapshot refs). <b>WAP</b>: write to a branch → run DQ checks → fast-forward <code class="inline">main</code>. Tag a snapshot for reproducible ML training or audit.</p>
+    <p class="ru">Iceberg поддерживает <b>ветки</b> (независимые линии снапшотов) и <b>теги</b> (неизменяемые ссылки на снапшот). <b>WAP</b>: записать в ветку → запустить DQ-проверки → fast-forward <code class="inline">main</code>. Тегировать снапшот для воспроизводимого ML-обучения или аудита.</p>
+    <div class="callout anchor en"><span class="ct">Anchor — Amal</span> "WAP is the formalized version of my DQ-monitor + validate-against-loaders discipline at Meta — testing built into the commit lifecycle."</div>
+    <div class="callout anchor ru"><span class="ct">Якорь — Amal</span> «WAP — это формализованная версия моей дисциплины DQ-мониторинга + валидации против загрузчиков в Meta — тестирование, встроенное в жизненный цикл коммита.»</div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <hr>
+  <p class="en">Self-contained · no CDN · theme + flip state via inline JS. <span class="kbd">tap nav</span> to jump · <span class="kbd">tap cards</span> to flip · <span class="kbd">☀️/🌙</span> to switch theme · <span class="kbd">🌐</span> to switch language.</p>
+  <p class="ru">Самодостаточный · без CDN · тема + состояние карточек через inline JS. <span class="kbd">тап по nav</span> для перехода · <span class="kbd">тап по карточкам</span> для переворота · <span class="kbd">☀️/🌙</span> для смены темы · <span class="kbd">🌐</span> для смены языка.</p>
+  <p class="en">Built for Amal Imangulov — Data Engineering interview prep.</p>
+  <p class="ru">Собрано для Amal Imangulov — подготовка к Data Engineering интервью.</p>
+</footer>
+
+<script>
+// ---- Combined theme + lang toggle (shared localStorage keys) ----
+(function(){
+  const THEME_KEY = 'de_cheat_theme';
+  const LANG_KEY = 'de_cheat_lang';
+  const html = document.documentElement;
+
+  // Load saved or defaults
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  const savedLang = localStorage.getItem(LANG_KEY) || 'en';
+  html.setAttribute('data-theme', savedTheme);
+  html.setAttribute('data-lang', savedLang);
+
+  // Update button labels
+  function updateButtons() {
+    const theme = html.getAttribute('data-theme');
+    const lang = html.getAttribute('data-lang');
+    document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+    document.getElementById('langBtn').textContent = lang === 'en' ? '🌐 RU' : '🌐 EN';
+  }
+  updateButtons();
+
+  // Theme toggle
+  window.toggleTheme = function() {
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem(THEME_KEY, next);
+    updateButtons();
+  };
+  document.getElementById('themeBtn').onclick = toggleTheme;
+
+  // Lang toggle
+  window.toggleLang = function() {
+    const next = html.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+    html.setAttribute('data-lang', next);
+    localStorage.setItem(LANG_KEY, next);
+    updateButtons();
+  };
+  document.getElementById('langBtn').onclick = toggleLang;
+})();
+
+// scroll reveal
+const io=new IntersectionObserver((es)=>{
+  es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+},{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

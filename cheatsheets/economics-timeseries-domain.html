@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Economics & Time-Series Domain — Data Engineering Interview Cheatsheet</title>
+<style>
+:root{
+  --bg:#0a0e1a; --card:#151d30; --card2:#1b2740; --txt:#e6ecf5; --muted:#8b9bb4;
+  --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7;
+  --border:#243049; --code-bg:#0d1424; --shadow:rgba(0,0,0,.45);
+}
+html[data-theme="light"]{
+  --bg:#f4f7fb; --card:#ffffff; --card2:#eef3fa; --txt:#0f1b2d; --muted:#5a6b85;
+  --accent:#1366d6; --green:#06a07a; --orange:#c77a07; --purple:#8a3fd1;
+  --border:#d6e0ee; --code-bg:#eef3fa; --shadow:rgba(20,40,80,.12);
+}
+*{box-sizing:border-box}
+html { scroll-behavior: smooth; }
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--txt);line-height:1.55;font-size:15px;transition:background .25s,color .25s}
+a{color:var(--accent);text-decoration:none}
+code,pre,.mono{font-family:"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+
+/* ---- i18n language toggle ---- */
+[data-lang="en"] .ru { display: none !important; }
+[data-lang="ru"] .en { display: none !important; }
+
+header.hero{padding:34px 22px 26px;max-width:1100px;margin:0 auto}
+.hero h1{font-size:1.7rem;margin:0 0 6px;line-height:1.25}
+.hero .sub{color:var(--muted);font-size:.95rem}
+.badge{display:inline-block;background:var(--card2);border:1px solid var(--border);color:var(--muted);
+  border-radius:999px;padding:2px 11px;font-size:.74rem;margin:6px 6px 0 0}
+nav.sticky{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border)}
+html[data-theme="light"] nav.sticky{background:rgba(244,247,251,.92)}
+nav .inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 16px}
+nav a{color:var(--muted);font-size:.8rem;padding:5px 9px;border-radius:7px;white-space:nowrap}
+nav a:hover{color:var(--txt);background:var(--card2)}
+.spacer{flex:1}
+.toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+.toggle-btn {
+  background: var(--card2); color: var(--txt);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 6px 12px; cursor: pointer; font-size: .8rem; font-weight:600;
+}
+.toggle-btn:hover { border-color: var(--accent); }
+
+main{max-width:1100px;margin:0 auto;padding:10px 16px 80px}
+section{margin:26px 0;opacity:0;transform:translateY(16px);transition:opacity .5s,transform .5s}
+section.reveal{opacity:1;transform:none}
+h2.sec{font-size:1.28rem;border-left:4px solid var(--accent);padding-left:11px;margin:0 0 14px;scroll-margin-top:64px}
+h3{font-size:1.04rem;margin:18px 0 8px;color:var(--green)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px 18px;margin:12px 0;
+  box-shadow:0 3px 14px var(--shadow)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}.hero h1{font-size:1.35rem}}
+p{margin:8px 0}
+ul{margin:8px 0;padding-left:20px}
+li{margin:4px 0}
+strong{color:var(--txt)}
+.k{color:var(--green);font-weight:600}
+.o{color:var(--orange);font-weight:600}
+.pp{color:var(--purple);font-weight:600}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--card2);color:var(--txt);font-weight:600}
+td .mono{font-size:.83rem;color:var(--green)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:13px 14px;overflow-x:auto;
+  font-size:.82rem;line-height:1.5}
+pre .cm{color:var(--muted)}
+pre .kw{color:var(--purple)}
+pre .fn{color:var(--accent)}
+pre .st{color:var(--green)}
+pre .nm{color:var(--orange)}
+.callout{border-left:4px solid var(--orange);background:var(--card2);border-radius:0 10px 10px 0;padding:11px 14px;margin:12px 0}
+.callout.probe{border-color:var(--purple)}
+.callout.gotcha{border-color:var(--orange)}
+.callout.anchor{border-color:var(--green)}
+.callout.gap{border-color:var(--accent)}
+.callout b{color:var(--orange)}
+.callout.probe b{color:var(--purple)}
+.callout.anchor b{color:var(--green)}
+.callout.gap b{color:var(--accent)}
+.callout .tag{font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700;display:block;margin-bottom:3px}
+details{background:var(--card);border:1px solid var(--border);border-radius:11px;margin:10px 0;overflow:hidden}
+details summary{cursor:pointer;padding:13px 16px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:"+";color:var(--accent);font-size:1.2rem;font-weight:700}
+details[open] summary::after{content:"–"}
+details .body{padding:0 16px 14px}
+.flipwrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+@media(max-width:760px){.flipwrap{grid-template-columns:1fr}}
+.flip{background:transparent;perspective:1200px;height:185px;cursor:pointer}
+.flip .in{position:relative;width:100%;height:100%;transition:transform .55s;transform-style:preserve-3d}
+.flip.flipped .in{transform:rotateY(180deg)}
+.flip .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;border:1px solid var(--border);
+  padding:14px;display:flex;flex-direction:column;justify-content:center;overflow:auto}
+.flip .front{background:var(--card2)}
+.flip .back{background:var(--card);transform:rotateY(180deg);border-color:var(--green)}
+.flip .q{font-weight:600;font-size:.95rem}
+.flip .hint{color:var(--muted);font-size:.74rem;margin-top:8px}
+.flip .a{font-size:.83rem}
+.diag{font-size:.78rem;line-height:1.35;white-space:pre;overflow-x:auto;color:var(--muted)}
+.pill{display:inline-block;font-size:.68rem;font-weight:700;padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.pill.e{background:rgba(2,226,172,.15);color:var(--green)}
+.pill.m{background:rgba(245,158,11,.15);color:var(--orange)}
+.pill.h{background:rgba(168,85,247,.16);color:var(--purple)}
+footer{max-width:1100px;margin:0 auto;padding:20px 16px;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border)}
+.tl{color:var(--muted);font-size:.8rem}
+.bridge{border-left:4px solid var(--green);background:var(--card2);border-radius:0 10px 10px 0;padding:10px 14px;margin:10px 0}
+.bridge b{color:var(--green)}
+</style>
+</head>
+<body>
+<nav class="sticky"><div class="inner">
+  <a href="#prime"><span class="en">Primer</span><span class="ru">Основы</span></a>
+  <a href="#indicators"><span class="en">Indicators</span><span class="ru">Индикаторы</span></a>
+  <a href="#vintage"><span class="en">Vintages/PIT</span><span class="ru">Версии/PIT</span></a>
+  <a href="#bitemporal"><span class="en">Bitemporal</span><span class="ru">Битемпоральное</span></a>
+  <a href="#sa"><span class="en">Seasonality</span><span class="ru">Сезонность</span></a>
+  <a href="#periods"><span class="en">Periods</span><span class="ru">Периоды</span></a>
+  <a href="#survey"><span class="en">Survey/Forecast</span><span class="ru">Опросы/Прогнозы</span></a>
+  <a href="#vendor"><span class="en">Vendor quirks</span><span class="ru">Вендоры</span></a>
+  <a href="#timeliness"><span class="en">Timeliness</span><span class="ru">Своевременность</span></a>
+  <a href="#dq"><span class="en">Quality</span><span class="ru">Качество</span></a>
+  <a href="#model"><span class="en">Modelling</span><span class="ru">Моделирование</span></a>
+  <a href="#gap"><span class="en">Gap script</span><span class="ru">Скрипт пробела</span></a>
+  <a href="#quiz"><span class="en">Self-quiz</span><span class="ru">Самопроверка</span></a>
+  <span class="spacer"></span>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</div></nav>
+
+<header class="hero">
+  <h1><span class="en">Economics &amp; Time-Series Domain — <span style="color:var(--accent)">DE Interview Prep</span></span><span class="ru">Экономика и временны́е ряды — <span style="color:var(--accent)">Подготовка к DE-интервью</span></span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead Data Engineer.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead Data Engineer.</span>
+  </div>
+  <div>
+    <span class="badge"><span class="en">Macro · Government · Survey · Forecast</span><span class="ru">Макро · Госданные · Опросы · Прогнозы</span></span>
+    <span class="badge"><span class="en">Vintages &amp; Point-in-Time</span><span class="ru">Версии и точка-во-времени</span></span>
+    <span class="badge"><span class="en">Enterprise data</span><span class="ru">Корпоративные данные</span></span>
+    <span class="badge"><span class="en">GAP topic — front-load</span><span class="ru">Тема-пробел — в начало</span></span>
+  </div>
+</header>
+
+<main>
+
+<section id="prime"><h2 class="sec"><span class="en">1 · 60-second primer: what is economics/time-series data?</span><span class="ru">1 · Вводная за 60 сек: что такое данные экономики и временны́е ряды?</span></h2>
+<div class="card">
+  <p class="en">A macro series is a <strong>labelled stream of observations over time</strong>, plus a heavy metadata stack. The <span class="k">data engineering twist</span> that makes econ data different from your event/log work at Meta: <strong>the same period gets multiple values over time</strong> (revisions), and users need to ask "what did we know <em>then</em>?" not just "what's true now?"</p>
+  <p class="ru">Макроэкономический ряд — это <strong>помеченный поток наблюдений во времени</strong> плюс тяжёлый стек метаданных. <span class="k">Инженерный поворот</span>, который отличает эконом-данные от работы с событиями/логами в Meta: <strong>один и тот же период получает несколько значений во времени</strong> (ревизии), и пользователям нужно спросить «что мы знали <em>тогда</em>?», а не только «что верно сейчас?»</p>
+  <div class="diag en">
+  series  = (series_id, indicator, geography, unit, frequency, SA-flag, source, currency, base-year)
+  obs     = (series_id, observation_period, value, release_date, vintage_id, status)
+                       ^ what it describes      ^ when published  ^ which snapshot
+  </div>
+  <div class="diag ru">
+  series  = (series_id, indicator, geography, unit, frequency, SA-flag, source, currency, base-year)
+  obs     = (series_id, observation_period, value, release_date, vintage_id, status)
+                       ^ что описывает         ^ когда опубликовано  ^ какой снэпшот
+  </div>
+  <p class="en">If you remember one thing: the natural grain of an observation is <span class="o">NOT</span> <span class="mono">(series_id, period)</span> — it is <span class="k">(series_id, period, release_date/vintage)</span>. That single fact signals you "get" the domain.</p>
+  <p class="ru">Если запомнить одно: естественная гранулярность наблюдения — это <span class="o">НЕ</span> <span class="mono">(series_id, period)</span>, а <span class="k">(series_id, period, release_date/vintage)</span>. Этот единственный факт даёт понять, что ты «въехал» в домен.</p>
+</div>
+<div class="callout probe en"><span class="tag">Interviewer will probe</span><b>"What does a macro dataset actually look like?"</b> Answer with the two-table model above, then immediately volunteer the vintage grain. Use CPI as your worked example.</div>
+<div class="callout probe ru"><span class="tag">О чём спросит интервьюер</span><b>«Как выглядит макроэкономический датасет?»</b> Ответь с двухтабличной моделью выше, затем сразу скажи про гранулярность по версии. Используй CPI как рабочий пример.</div>
+</section>
+
+<section id="indicators"><h2 class="sec"><span class="en">2 · The indicators you must be able to name</span><span class="ru">2 · Индикаторы, которые ты должен знать</span></h2>
+<div class="card">
+<table class="en">
+<tr><th>Indicator</th><th>Measures</th><th>Freq / lag</th><th>Revision &amp; notes</th></tr>
+<tr><td><span class="k">CPI</span> (inflation)</td><td>Consumer price changes / cost of living. Core = ex food &amp; energy.</td><td>Monthly, ~2wk lag</td><td>Lightly revised. PCE = Fed's preferred US gauge; PPI = producer prices.</td></tr>
+<tr><td><span class="k">GDP</span></td><td>Total economic output → the business-cycle headline.</td><td>Quarterly, advance ~1mo</td><td><span class="o">Heavily revised</span>: advance→2nd→3rd→benchmark. Classic vintage example.</td></tr>
+<tr><td><span class="k">Unemployment / NFP</span></td><td>Labour slack / monthly job creation (non-farm payrolls).</td><td>Monthly, timely</td><td>NFP = one of the biggest market-movers.</td></tr>
+<tr><td><span class="k">PMI</span></td><td>Survey diffusion index. &gt;50 expansion, &lt;50 contraction.</td><td>Monthly, very timely</td><td>Leading indicator; <em>survey</em> data structurally.</td></tr>
+<tr><td><span class="k">Policy rates</span></td><td>Fed funds / ECB / BoE base rate — the price of money.</td><td>Event-driven (meetings)</td><td>Step-function / effective-dated, not periodic.</td></tr>
+<tr><td><span class="tl">Also</span></td><td colspan="3">Retail sales, industrial production, consumer confidence/sentiment, trade balance, housing starts, yields/curve.</td></tr>
+</table>
+<table class="ru">
+<tr><th>Индикатор</th><th>Что измеряет</th><th>Частота / лаг</th><th>Ревизии и заметки</th></tr>
+<tr><td><span class="k">CPI</span> (инфляция)</td><td>Изменения потребительских цен / стоимость жизни. Core = без еды и энергии.</td><td>Месячный, ~2 недели лаг</td><td>Слабо ревизируется. PCE = приоритетная метрика для Fed; PPI = цены производителей.</td></tr>
+<tr><td><span class="k">GDP</span></td><td>Общий объём экономики → главный заголовок бизнес-цикла.</td><td>Квартальный, advance ~1мес</td><td><span class="o">Сильно ревизируется</span>: advance→2nd→3rd→benchmark. Классический пример версий.</td></tr>
+<tr><td><span class="k">Unemployment / NFP</span></td><td>Безработица / месячное создание рабочих мест (non-farm payrolls).</td><td>Месячный, своевременно</td><td>NFP = один из самых сильных двигателей рынка.</td></tr>
+<tr><td><span class="k">PMI</span></td><td>Индекс диффузии из опросов. &gt;50 расширение, &lt;50 сжатие.</td><td>Месячный, очень своевременно</td><td>Опережающий индикатор; структурно данные из <em>опросов</em>.</td></tr>
+<tr><td><span class="k">Policy rates</span></td><td>Fed funds / ECB / BoE ставка — цена денег.</td><td>Event-driven (заседания)</td><td>Ступенчатая функция / эффективная дата, не периодический.</td></tr>
+<tr><td><span class="tl">Также</span></td><td colspan="3">Розничные продажи, промышленное производство, уверенность/настроения потребителей, торговый баланс, начало строительства жилья, доходности/кривая.</td></tr>
+</table>
+</div>
+<div class="callout gotcha en"><span class="tag">Gotcha</span><b>Real vs nominal, level vs change, index vs rate.</b> Nominal=current prices, real=inflation-adjusted (needs deflator + base year). Store the <em>level</em>; derive MoM/YoY with explicit transforms. Index(base=100) ≠ rate(%) ≠ count — they aggregate differently. Encode as unit metadata and validate.</div>
+<div class="callout gotcha ru"><span class="tag">Подвох</span><b>Real vs nominal, level vs change, index vs rate.</b> Nominal=текущие цены, real=скорректировано на инфляцию (нужен дефлятор + базовый год). Хранить <em>level</em>; выводить MoM/YoY явными преобразованиями. Index(base=100) ≠ rate(%) ≠ count — они агрегируются по-разному. Кодируй как метаданные unit и валидируй.</div>
+</section>
+
+<section id="vintage"><h2 class="sec"><span class="en">3 · Vintages, revisions &amp; point-in-time <span class="pill h">core</span></span><span class="ru">3 · Версии, ревизии и точка-во-времени <span class="pill h">ядро</span></span></h2>
+<div class="grid2">
+<div class="card">
+  <h3 class="en">Definitions</h3>
+  <h3 class="ru">Определения</h3>
+  <ul class="en">
+    <li><span class="k">Vintage</span>: the snapshot of a series as it existed at a point in time.</li>
+    <li><span class="k">Revision</span>: a later release changes a value for a past period.</li>
+    <li><span class="k">Point-in-time (PIT) / as-of</span>: "what did we know on date X?"</li>
+    <li><span class="o">Latest</span>: "what is our best current estimate?"</li>
+  </ul>
+  <ul class="ru">
+    <li><span class="k">Vintage (Версия)</span>: снэпшот серии, каким он существовал в точке времени.</li>
+    <li><span class="k">Revision (Ревизия)</span>: поздний релиз меняет значение прошлого периода.</li>
+    <li><span class="k">Point-in-time (PIT) / as-of</span>: «что мы знали на дату X?»</li>
+    <li><span class="o">Latest</span>: «каково наше лучшее текущее оценочное значение?»</li>
+  </ul>
+  <p class="en">GDP for Q1 might read 2.1% (advance) → 2.4% (2nd) → 2.3% (3rd) → restated years later at benchmark revision. Each is a vintage.</p>
+  <p class="ru">GDP за Q1 может быть 2.1% (advance) → 2.4% (2nd) → 2.3% (3rd) → переоценён годами позже при benchmark-ревизии. Каждый — версия.</p>
+</div>
+<div class="card">
+  <h3 class="en">Why it matters</h3>
+  <h3 class="ru">Почему важно</h3>
+  <ul class="en">
+    <li>Overwriting destroys reproducibility &amp; audit.</li>
+    <li>A model trained "as of 2024" must see the <em>2024 vintage</em> — else <span class="o">look-ahead bias</span>.</li>
+    <li>Quant backtests, nowcasting, regulators all need PIT.</li>
+  </ul>
+  <ul class="ru">
+    <li>Перезапись уничтожает воспроизводимость и аудит.</li>
+    <li>Модель, обученная «as of 2024», должна видеть <em>версию 2024</em> — иначе <span class="o">look-ahead bias</span>.</li>
+    <li>Квантовый бэктест, nowcasting, регуляторы — всем нужен PIT.</li>
+  </ul>
+  <div class="bridge en"><b>Your bridge:</b> the bank factoring/default model lived on PIT correctness — you can't train on info unavailable at decision time. Same discipline, new axis.</div>
+  <div class="bridge ru"><b>Твой мост:</b> банковская модель факторинга/дефолта жила на корректности PIT — нельзя обучать на информации, недоступной в момент решения. Та же дисциплина, новая ось.</div>
+</div>
+</div>
+<div class="card">
+<h3 class="en">Storage patterns</h3>
+<h3 class="ru">Паттерны хранения</h3>
+<table class="en">
+<tr><th>Pattern</th><th>How</th><th>"Latest" =</th><th>Trade-off</th></tr>
+<tr><td><span class="k">Append-only + vintage key</span></td><td>Never UPDATE; insert keyed by (series, period, release_date)</td><td>window: max(release_date) per period</td><td>Clean, auditable; larger volume</td></tr>
+<tr><td><span class="k">Bitemporal (SCD2)</span></td><td>valid_from/to + system_from/to</td><td>filter both time axes</td><td>Full correction-of-correction audit; complex queries</td></tr>
+<tr><td><span class="k">Vintage / real-time DB</span></td><td>Store each vintage explicitly (ALFRED-style triangle)</td><td>pick vintage column</td><td>Reconstruct any snapshot; storage explodes</td></tr>
+</table>
+<table class="ru">
+<tr><th>Паттерн</th><th>Как</th><th>«Latest» =</th><th>Компромисс</th></tr>
+<tr><td><span class="k">Append-only + vintage key</span></td><td>Никогда не UPDATE; insert с ключом (series, period, release_date)</td><td>window: max(release_date) на период</td><td>Чисто, аудируемо; больше объём</td></tr>
+<tr><td><span class="k">Bitemporal (SCD2)</span></td><td>valid_from/to + system_from/to</td><td>фильтруй обе оси времени</td><td>Полный аудит исправлений; сложные запросы</td></tr>
+<tr><td><span class="k">Vintage / real-time DB</span></td><td>Хранить каждую версию явно (ALFRED-style треугольник)</td><td>выбрать столбец версии</td><td>Восстанавливает любой снэпшот; хранилище взрывается</td></tr>
+</table>
+<p class="tl en">Pragmatic shops keep full vintages for revision-prone series (GDP, payrolls), latest-only or compressed for stable ones.</p>
+<p class="tl ru">Прагматичные команды хранят полные версии для склонных к ревизиям серий (GDP, payrolls), latest-only или сжатые для стабильных.</p>
+</div>
+<div class="callout probe en"><span class="tag">Interviewer will probe</span><b>"How would you store revisions without breaking downstream?"</b> Never overwrite → new vintage row; expose two layers: a <em>latest</em> view and an <em>as-of(date)</em> interface; communicate via lineage; version the series definition when base year/units change.</div>
+<div class="callout probe ru"><span class="tag">О чём спросит интервьюер</span><b>«Как хранить ревизии, не ломая downstream?»</b> Никогда не перезаписывать → новая строка версии; выставить два слоя: <em>latest</em>-вьюха и <em>as-of(date)</em>-интерфейс; коммуницировать через lineage; версионировать определение серии при изменении base year/units.</div>
+</section>
+
+<section id="bitemporal"><h2 class="sec"><span class="en">4 · Bitemporal modelling, precisely <span class="pill h">senior</span></span><span class="ru">4 · Битемпоральное моделирование, точно <span class="pill h">senior</span></span></h2>
+<div class="grid2">
+<div class="card">
+<p class="en">Two independent time axes:</p>
+<p class="ru">Две независимые оси времени:</p>
+<ul class="en">
+<li><span class="k">Valid time</span> (effective/application): when the fact is true in the real world — the observation period.</li>
+<li><span class="pp">Transaction / system time</span>: when <em>your system</em> recorded the row.</li>
+</ul>
+<ul class="ru">
+<li><span class="k">Valid time</span> (effective/application): когда факт верен в реальном мире — период наблюдения.</li>
+<li><span class="pp">Transaction / system time</span>: когда <em>твоя система</em> записала строку.</li>
+</ul>
+<p class="en">Revisions create multiple system-time versions of one valid-time fact. Corrections create versions of versions. Bitemporal answers both "true now" and "what we thought then."</p>
+<p class="ru">Ревизии создают несколько system-time версий одного valid-time факта. Исправления создают версии версий. Битемпоральное отвечает и на «верно сейчас», и на «что мы думали тогда».</p>
+</div>
+<div class="card">
+<div class="diag en">
+ As-of query: "Q1 GDP as we believed on Mar 1?"
+
+  valid_time   ──┤Q1├──────────────
+  system_time  ───────┤Mar1 inside├──
+                      ↑ pick the row whose
+                        system interval contains Mar 1
+                        AND valid interval covers Q1
+</div>
+<div class="diag ru">
+ As-of запрос: "Q1 GDP как мы верили на 1 марта?"
+
+  valid_time   ──┤Q1├──────────────
+  system_time  ───────┤Mar1 inside├──
+                      ↑ выбрать строку, чей
+                        system interval содержит Mar 1
+                        И valid interval покрывает Q1
+</div>
+<p class="tl en">Many teams approximate full SQL:2011 bitemporal with append-only + a single explicit <span class="mono">release_date</span> axis. Know the trade-off: simpler/queryable vs full correction auditing.</p>
+<p class="tl ru">Многие команды приближают полный SQL:2011 битемпоральный с append-only + единственной явной осью <span class="mono">release_date</span>. Знай компромисс: проще/запросимо vs полный аудит исправлений.</p>
+</div>
+</div>
+</section>
+
+<section id="sa"><h2 class="sec"><span class="en">5 · Seasonality &amp; seasonal adjustment</span><span class="ru">5 · Сезонность и сезонная корректировка</span></h2>
+<div class="card">
+<p class="en">Many series have predictable intra-year patterns (Dec retail spike, summer hiring). <span class="k">Seasonal adjustment</span> removes that recurring component to expose the trend/cycle. Methods: <span class="mono">X-13ARIMA-SEATS</span>, <span class="mono">TRAMO/SEATS</span>.</p>
+<p class="ru">Многие серии имеют предсказуемые внутригодовые паттерны (всплеск розницы в декабре, летний наём). <span class="k">Сезонная корректировка</span> убирает этот повторяющийся компонент, чтобы обнажить тренд/цикл. Методы: <span class="mono">X-13ARIMA-SEATS</span>, <span class="mono">TRAMO/SEATS</span>.</p>
+<table class="en">
+<tr><th></th><th>SA (seasonally adjusted)</th><th>NSA (not adjusted)</th></tr>
+<tr><td>Read for</td><td>Trend, MoM moves</td><td>YoY, raw print, contracts</td></tr>
+<tr><td>Keep because</td><td colspan="2">Store <strong>both</strong>: users need each, some series publish only one way.</td></tr>
+</table>
+<table class="ru">
+<tr><th></th><th>SA (seasonally adjusted)</th><th>NSA (not adjusted)</th></tr>
+<tr><td>Читать для</td><td>Тренд, MoM-движения</td><td>YoY, сырое значение, контракты</td></tr>
+<tr><td>Хранить потому что</td><td colspan="2">Хранить <strong>оба</strong>: пользователям нужны оба, некоторые серии публикуют только один способ.</td></tr>
+</table>
+<div class="callout gotcha en"><span class="tag">Gotcha — subtle revision source</span><b>SA factors get re-estimated annually.</b> The seasonally-adjusted history can revise even when the raw data did not change. Don't assume "raw unchanged" ⇒ "series unchanged."</div>
+<div class="callout gotcha ru"><span class="tag">Подвох — тонкий источник ревизий</span><b>SA-факторы переоцениваются ежегодно.</b> Сезонно-скорректированная история может ревизироваться, даже когда сырые данные не менялись. Не предполагай «сырые не изменились» ⇒ «серия не изменилась».</div>
+</div>
+</section>
+
+<section id="periods"><h2 class="sec"><span class="en">6 · Observation vs release date · fiscal vs calendar · frequency</span><span class="ru">6 · Дата наблюдения vs дата релиза · фискальный vs календарный · частота</span></h2>
+<div class="grid2">
+<div class="card">
+<h3 class="en">Observation vs release date</h3>
+<h3 class="ru">Дата наблюдения vs дата релиза</h3>
+<ul class="en">
+<li><span class="k">Observation/reference period</span>: what the number describes (CPI for <em>May 2026</em>).</li>
+<li><span class="o">Release/publication date</span>: when published (<em>12 Jun 2026</em>).</li>
+<li>Differ by the <strong>publication lag</strong>. PIT logic keys off release_date.</li>
+</ul>
+<ul class="ru">
+<li><span class="k">Observation/reference period</span>: что описывает число (CPI за <em>май 2026</em>).</li>
+<li><span class="o">Release/publication date</span>: когда опубликовано (<em>12 июн 2026</em>).</li>
+<li>Различаются на <strong>publication lag</strong>. PIT-логика ключуется по release_date.</li>
+</ul>
+</div>
+<div class="card">
+<h3 class="en">Fiscal vs calendar</h3>
+<h3 class="ru">Фискальный vs календарный</h3>
+<ul class="en">
+<li>US federal FY = Oct 1–Sep 30; UK = Apr 6; companies vary.</li>
+<li>Store actual calendar start/end dates + a <span class="mono">period_type</span> + fiscal convention as metadata.</li>
+<li><span class="o">Never compute period math off the label string.</span></li>
+</ul>
+<ul class="ru">
+<li>US федеральный FY = 1 окт–30 сен; UK = 6 апр; компании варьируются.</li>
+<li>Хранить фактические календарные даты start/end + <span class="mono">period_type</span> + фискальную конвенцию как метаданные.</li>
+<li><span class="o">Никогда не вычислять период-математику из строки метки.</span></li>
+</ul>
+</div>
+</div>
+<div class="card">
+<h3 class="en">Mixed frequency (daily / weekly / monthly / quarterly)</h3>
+<h3 class="ru">Смешанная частота (дневная / недельная / месячная / квартальная)</h3>
+<ul class="en">
+<li>Store frequency as explicit metadata — don't infer from row spacing.</li>
+<li><span class="k">Mixed-frequency alignment</span>: up/down-sample (aggregate vs interpolate) is a <em>transform decision</em> — keep native frequency, resample at serving.</li>
+<li>Period semantics differ: end-of-period vs period-average vs flow vs stock — store the semantic.</li>
+<li>Calendar edges: week-numbering, partial periods, holidays, business-day counts.</li>
+</ul>
+<ul class="ru">
+<li>Хранить частоту как явные метаданные — не выводить из интервала между строками.</li>
+<li><span class="k">Выравнивание смешанной частоты</span>: up/down-sample (агрегация vs интерполяция) — это <em>решение преобразования</em> — хранить родную частоту, передискретизировать при сервинге.</li>
+<li>Семантика периода различается: end-of-period vs period-average vs flow vs stock — хранить семантику.</li>
+<li>Края календаря: нумерация недель, частичные периоды, праздники, счёт бизнес-дней.</li>
+</ul>
+</div>
+</section>
+
+<section id="survey"><h2 class="sec"><span class="en">7 · Survey vs forecast/consensus data</span><span class="ru">7 · Опросные данные vs прогнозы/консенсус</span></h2>
+<div class="grid2">
+<div class="card">
+<h3><span class="k"><span class="en">Survey data</span><span class="ru">Опросные данные</span></span></h3>
+<p class="en">Responses from many respondents (PMI, consumer confidence, business sentiment).</p>
+<p class="ru">Ответы от множества респондентов (PMI, потребительская уверенность, настроение бизнеса).</p>
+<ul class="en">
+<li>Grain: respondent/panel × question × response, with weighting.</li>
+<li>Diffusion-index construction (% reporting improvement).</li>
+<li>Methodology + sample metadata matter; often anonymized/aggregated.</li>
+</ul>
+<ul class="ru">
+<li>Гранулярность: респондент/панель × вопрос × ответ, с весами.</li>
+<li>Построение diffusion-индекса (% сообщающих об улучшении).</li>
+<li>Методология + метаданные выборки важны; часто анонимизированные/агрегированные.</li>
+</ul>
+</div>
+<div class="card">
+<h3><span class="pp"><span class="en">Forecast / consensus</span><span class="ru">Прогноз / консенсус</span></span></h3>
+<p class="en">Predictions of a future value of a known indicator, from many forecasters.</p>
+<p class="ru">Предсказания будущего значения известного индикатора от многих прогнозистов.</p>
+<ul class="en">
+<li>Grain: <span class="mono">(indicator, target_period, forecaster_id, value, forecast_date)</span>.</li>
+<li>Aggregate → consensus (mean/median) + dispersion (high/low/std).</li>
+<li><span class="o">Forecasts are vintaged too</span> — a forecaster updates over time.</li>
+</ul>
+<ul class="ru">
+<li>Гранулярность: <span class="mono">(indicator, target_period, forecaster_id, value, forecast_date)</span>.</li>
+<li>Агрегировать → консенсус (mean/median) + дисперсия (high/low/std).</li>
+<li><span class="o">Прогнозы тоже версионированы</span> — прогнозист обновляет во времени.</li>
+</ul>
+</div>
+</div>
+<div class="callout probe en"><span class="tag">Interviewer will probe</span><b>What is a "surprise"?</b> <span class="k">surprise = actual − consensus</span> (often standardized by dispersion). Markets react to the surprise, not the level. So you must freeze consensus <em>before</em> release and join actual↔consensus on the right target period the instant the actual prints. This is a flagship dataset in financial data providers.</div>
+<div class="callout probe ru"><span class="tag">О чём спросит интервьюер</span><b>Что такое «сюрприз»?</b> <span class="k">сюрприз = actual − консенсус</span> (часто стандартизировано на дисперсию). Рынки реагируют на сюрприз, а не на уровень. Поэтому нужно заморозить консенсус <em>до</em> релиза и присоединить actual↔консенсус по правильному target period в момент, когда actual печатается. Это флагманский датасет в финансовых данных.</div>
+</section>
+
+<section id="vendor"><h2 class="sec"><span class="en">8 · Vendor-supplied data quirks &amp; defenses</span><span class="ru">8 · Причуды вендорных данных и защита</span></h2>
+<div class="card">
+<table class="en">
+<tr><th>Quirk</th><th>Defense</th></tr>
+<tr><td><span class="k">Identifiers / mappings</span> — vendor codes, drift, breakage</td><td>Canonical crosswalk layer (vendor_code → series_id/geo/ccy) with coverage validation</td></tr>
+<tr><td><span class="k">Units &amp; scale</span> — thousands vs millions, index vs level vs %</td><td>Units as enforced metadata; validate transforms against unit</td></tr>
+<tr><td><span class="k">Currencies</span> — local/USD/EUR, nominal vs real</td><td>FX + base metadata; explicit conversion rules</td></tr>
+<tr><td><span class="k">Geographies</span> — ISO2/ISO3/vendor, EU aggregate vs members</td><td>Geo dimension + mapping; handle changing boundaries</td></tr>
+<tr><td><span class="k">Calendar conventions</span> — EOP vs avg, business vs calendar, holidays</td><td>Store semantic; holiday calendars per geo</td></tr>
+<tr><td><span class="o">Silent revisions</span> — vendor re-sends "full file", history quietly changed</td><td><strong>Full-file diff</strong> vs last load; ingest as new vintage; never overwrite</td></tr>
+<tr><td><span class="o">Format instability</span> — schema/encoding/late files</td><td>Schema-change detection; contract/SLA monitoring; reconcile vs 2nd source</td></tr>
+</table>
+<table class="ru">
+<tr><th>Причуда</th><th>Защита</th></tr>
+<tr><td><span class="k">Идентификаторы / маппинги</span> — вендорные коды, дрифт, поломка</td><td>Канонический crosswalk слой (vendor_code → series_id/geo/ccy) с валидацией покрытия</td></tr>
+<tr><td><span class="k">Единицы и масштаб</span> — тысячи vs миллионы, index vs level vs %</td><td>Единицы как принудительные метаданные; валидировать преобразования против unit</td></tr>
+<tr><td><span class="k">Валюты</span> — local/USD/EUR, nominal vs real</td><td>FX + базовые метаданные; явные правила конверсии</td></tr>
+<tr><td><span class="k">Географии</span> — ISO2/ISO3/вендор, агрегат EU vs члены</td><td>Geo измерение + маппинг; обрабатывать меняющиеся границы</td></tr>
+<tr><td><span class="k">Календарные конвенции</span> — EOP vs avg, бизнес vs календарь, праздники</td><td>Хранить семантику; календари праздников на гео</td></tr>
+<tr><td><span class="o">Тихие ревизии</span> — вендор переотправляет «полный файл», история тихо изменена</td><td><strong>Полный diff файла</strong> vs последняя загрузка; заливать как новую версию; никогда не перезаписывать</td></tr>
+<tr><td><span class="o">Нестабильность формата</span> — схема/кодировка/поздние файлы</td><td>Обнаружение изменения схемы; мониторинг контракта/SLA; сверка vs 2-го источника</td></tr>
+</table>
+</div>
+<div class="callout en"><span class="tag">Scenario they may give</span><b>"A vendor re-sends a full file and 3 years of numbers changed."</b> Detect via diff → classify (legitimate benchmark revision vs error) → if legit, new vintage + preserve old + log lineage + check base-year/unit change; if suspect, quarantine + reconcile + escalate. Never silently overwrite vintage history.</div>
+<div class="callout ru"><span class="tag">Сценарий, который могут дать</span><b>«Вендор переотправил полный файл, и 3 года цифр изменились.»</b> Обнаружить через diff → классифицировать (легитимная benchmark-ревизия vs ошибка) → если легитимно, новая версия + сохранить старое + залогировать lineage + проверить изменение base-year/unit; если подозрительно, карантин + сверка + эскалация. Никогда не перезаписывать тихо историю версий.</div>
+</section>
+
+<section id="timeliness"><h2 class="sec"><span class="en">9 · Why timeliness matters &amp; how to design for it</span><span class="ru">9 · Почему своевременность важна и как проектировать под неё</span></h2>
+<div class="card">
+<p class="en">Releases (CPI, NFP, FOMC, GDP) move markets in <strong>seconds</strong>. Users, algos and analysts need the number the instant it's public. Late or wrong = competitive + reputational failure. That's a core value prop for financial data providers.</p>
+<p class="ru">Релизы (CPI, NFP, FOMC, GDP) двигают рынки за <strong>секунды</strong>. Пользователи, алгоритмы и аналитики нуждаются в числе в момент, когда оно публично. Поздно или неправильно = конкурентный и репутационный провал. Это ключевое предложение ценности для провайдеров финансовых данных.</p>
+<div class="diag en">
+release calendar ─► schedule + poll source ─► fast parse (mapping pre-built)
+   ─► inline validation gates ─► publish headline ─► async enrich (sub-components, SA)
+        │                              │
+        └─ embargo (08:30 ET)          └─ exception → queue → versioned correction
+</div>
+<div class="diag ru">
+календарь релизов ─► расписание + поллинг источника ─► быстрый парсинг (маппинг предсобран)
+   ─► inline-валидация ─► публикация заголовка ─► async-обогащение (подкомпоненты, SA)
+        │                              │
+        └─ эмбарго (08:30 ET)          └─ исключение → очередь → версионированное исправление
+</div>
+<ul class="en">
+<li>Releases are <strong>scheduled but format-variable</strong> → event-driven, pre-staged pipelines.</li>
+<li>Release calendar = first-class data asset; freshness/SLA monitoring ("did CPI land at 08:30 ET?").</li>
+<li><span class="o">Speed vs accuracy</span> tension → resolve by embedding fast inline controls on the critical path, human escalation only on exceptions.</li>
+<li>Corrections happen → clean, versioned re-publish (no silent overwrite).</li>
+</ul>
+<ul class="ru">
+<li>Релизы <strong>запланированы, но формат переменный</strong> → event-driven, предварительно настроенные пайплайны.</li>
+<li>Календарь релизов = первоклассный data asset; мониторинг свежести/SLA («CPI приземлился в 08:30 ET?»).</li>
+<li><span class="o">Напряжение скорость vs точность</span> → решается встраиванием быстрых inline-контролей на критическом пути, человеческая эскалация только на исключениях.</li>
+<li>Исправления случаются → чистая, версионированная переиздание (не тихая перезапись).</li>
+</ul>
+</div>
+</section>
+
+<section id="dq"><h2 class="sec"><span class="en">10 · Automated quality controls (layered) <span class="pill m">core</span></span><span class="ru">10 · Автоматизированные контроли качества (слоистые) <span class="pill m">ядро</span></span></h2>
+<div class="card">
+<table class="en">
+<tr><th>Layer</th><th>Checks</th></tr>
+<tr><td><span class="k">Schema/structure</span></td><td>Type/nullability; schema-change detection (vendor add/rename/remove). Fail-closed on breaking, alert on additive.</td></tr>
+<tr><td><span class="k">Domain rules</span></td><td>Unit/currency consistency, sign sanity (unemployment ≥ 0), frequency continuity (no missing months), period alignment, mapping completeness.</td></tr>
+<tr><td><span class="k">Statistical / anomaly</span></td><td>Value vs historical range, MoM/YoY delta vs distribution, vs-consensus deviation, <em>seasonality-aware</em> outliers. Light ML flags for human review.</td></tr>
+<tr><td><span class="k">Cross-series / referential</span></td><td>Components sum to headline; related-series consistency; vintage monotonicity where expected.</td></tr>
+<tr><td><span class="k">Completeness / timeliness</span></td><td>Expected release landed on schedule? freshness; missing-release alerts.</td></tr>
+</table>
+<table class="ru">
+<tr><th>Слой</th><th>Проверки</th></tr>
+<tr><td><span class="k">Схема/структура</span></td><td>Тип/nullable; обнаружение изменений схемы (вендор добавил/переименовал/удалил). Fail-closed на ломающих, алерт на добавляющих.</td></tr>
+<tr><td><span class="k">Доменные правила</span></td><td>Консистентность unit/currency, санитарность знака (unemployment ≥ 0), непрерывность частоты (нет пропущенных месяцев), выравнивание периода, полнота маппинга.</td></tr>
+<tr><td><span class="k">Статистические / аномалия</span></td><td>Значение vs исторический диапазон, MoM/YoY-дельта vs распределение, отклонение vs консенсус, выбросы <em>с учётом сезонности</em>. Лёгкие ML-флаги для человеческого ревью.</td></tr>
+<tr><td><span class="k">Кросс-серии / референтные</span></td><td>Компоненты суммируются к заголовку; консистентность связанных серий; монотонность версии где ожидается.</td></tr>
+<tr><td><span class="k">Полнота / своевременность</span></td><td>Ожидаемый релиз приземлился по расписанию? свежесть; алерты пропущенных релизов.</td></tr>
+</table>
+<p class="tl en">Operational: inline where cheap, async where heavy; exceptions → queue + runbook; every correction versioned; observability dashboards + alerting; idempotent re-runs.</p>
+<p class="tl ru">Операционно: inline где дёшево, async где тяжело; исключения → очередь + runbook; каждое исправление версионировано; дашборды наблюдаемости + алертинг; идемпотентные перезапуски.</p>
+<div class="bridge en"><b>Your bridge:</b> at Meta you owned DQ monitors gating publication, protecting 100+ downstream metrics. Same "controls as code, fail loud, version every fix" — tuned for SA-awareness and vintage monotonicity.</div>
+<div class="bridge ru"><b>Твой мост:</b> в Meta ты владел DQ-мониторами, блокирующими публикацию, защищая 100+ downstream-метрик. То же самое «контроли как код, падай громко, версионируй каждый фикс» — настроено на SA-осведомлённость и монотонность версий.</div>
+</div>
+</section>
+
+<section id="model"><h2 class="sec"><span class="en">11 · Reference schema (enterprise-scale)</span><span class="ru">11 · Референсная схема (корпоративный масштаб)</span></h2>
+<div class="card">
+<pre class="en"><span class="cm">-- GRAIN: observation = (series_id, observation_period, release_date/vintage)  ← bitemporal heart</span>
+
+<span class="kw">CREATE TABLE</span> <span class="fn">dim_series</span> (        <span class="cm">-- SCD2: definition revises when base year/units change</span>
+  series_id        <span class="nm">STRING</span>,
+  indicator        <span class="nm">STRING</span>,   <span class="cm">-- 'CPI'</span>
+  geography        <span class="nm">STRING</span>,   <span class="cm">-- ISO + canonical</span>
+  unit             <span class="nm">STRING</span>,   <span class="cm">-- index(1982-84=100) / pct / count</span>
+  frequency        <span class="nm">STRING</span>,   <span class="cm">-- M/Q/W/D</span>
+  sa_flag          <span class="nm">BOOLEAN</span>,  <span class="cm">-- SA vs NSA</span>
+  currency         <span class="nm">STRING</span>,
+  base_year        <span class="nm">STRING</span>,
+  period_semantic  <span class="nm">STRING</span>,   <span class="cm">-- EOP / avg / flow / stock</span>
+  source           <span class="nm">STRING</span>,
+  valid_from       <span class="nm">DATE</span>, valid_to <span class="nm">DATE</span> );
+
+<span class="kw">CREATE TABLE</span> <span class="fn">fct_observation</span> (   <span class="cm">-- APPEND-ONLY, never UPDATE</span>
+  series_id        <span class="nm">STRING</span>,
+  obs_start        <span class="nm">DATE</span>, obs_end <span class="nm">DATE</span>,  <span class="cm">-- the period described</span>
+  value            <span class="nm">DOUBLE</span>,
+  release_date     <span class="nm">TIMESTAMP</span>,  <span class="cm">-- when published</span>
+  vintage_id       <span class="nm">STRING</span>,
+  status           <span class="nm">STRING</span>,      <span class="cm">-- prelim / final</span>
+  source_file      <span class="nm">STRING</span> );    <span class="cm">-- lineage</span>
+
+<span class="cm">-- LATEST view: pick newest vintage per period</span>
+<span class="kw">SELECT</span> series_id, obs_start, value
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> *, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+           <span class="kw">PARTITION BY</span> series_id, obs_start
+           <span class="kw">ORDER BY</span> release_date <span class="kw">DESC</span>) <span class="kw">AS</span> rn
+  <span class="kw">FROM</span> fct_observation )
+<span class="kw">WHERE</span> rn = <span class="st">1</span>;
+
+<span class="cm">-- AS-OF view: what we knew on :asof_date</span>
+<span class="kw">SELECT</span> series_id, obs_start, value
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> *, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+           <span class="kw">PARTITION BY</span> series_id, obs_start
+           <span class="kw">ORDER BY</span> release_date <span class="kw">DESC</span>) <span class="kw">AS</span> rn
+  <span class="kw">FROM</span> fct_observation
+  <span class="kw">WHERE</span> release_date &lt;= <span class="nm">:asof_date</span> )   <span class="cm">-- ← no look-ahead</span>
+<span class="kw">WHERE</span> rn = <span class="st">1</span>;</pre>
+<pre class="ru"><span class="cm">-- ГРАНУЛЯРНОСТЬ: observation = (series_id, observation_period, release_date/vintage)  ← битемпоральное сердце</span>
+
+<span class="kw">CREATE TABLE</span> <span class="fn">dim_series</span> (        <span class="cm">-- SCD2: определение ревизируется при изменении base year/units</span>
+  series_id        <span class="nm">STRING</span>,
+  indicator        <span class="nm">STRING</span>,   <span class="cm">-- 'CPI'</span>
+  geography        <span class="nm">STRING</span>,   <span class="cm">-- ISO + канонический</span>
+  unit             <span class="nm">STRING</span>,   <span class="cm">-- index(1982-84=100) / pct / count</span>
+  frequency        <span class="nm">STRING</span>,   <span class="cm">-- M/Q/W/D</span>
+  sa_flag          <span class="nm">BOOLEAN</span>,  <span class="cm">-- SA vs NSA</span>
+  currency         <span class="nm">STRING</span>,
+  base_year        <span class="nm">STRING</span>,
+  period_semantic  <span class="nm">STRING</span>,   <span class="cm">-- EOP / avg / flow / stock</span>
+  source           <span class="nm">STRING</span>,
+  valid_from       <span class="nm">DATE</span>, valid_to <span class="nm">DATE</span> );
+
+<span class="kw">CREATE TABLE</span> <span class="fn">fct_observation</span> (   <span class="cm">-- APPEND-ONLY, никогда UPDATE</span>
+  series_id        <span class="nm">STRING</span>,
+  obs_start        <span class="nm">DATE</span>, obs_end <span class="nm">DATE</span>,  <span class="cm">-- период, который описывается</span>
+  value            <span class="nm">DOUBLE</span>,
+  release_date     <span class="nm">TIMESTAMP</span>,  <span class="cm">-- когда опубликовано</span>
+  vintage_id       <span class="nm">STRING</span>,
+  status           <span class="nm">STRING</span>,      <span class="cm">-- prelim / final</span>
+  source_file      <span class="nm">STRING</span> );    <span class="cm">-- lineage</span>
+
+<span class="cm">-- LATEST вьюха: выбрать новейшую версию на период</span>
+<span class="kw">SELECT</span> series_id, obs_start, value
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> *, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+           <span class="kw">PARTITION BY</span> series_id, obs_start
+           <span class="kw">ORDER BY</span> release_date <span class="kw">DESC</span>) <span class="kw">AS</span> rn
+  <span class="kw">FROM</span> fct_observation )
+<span class="kw">WHERE</span> rn = <span class="st">1</span>;
+
+<span class="cm">-- AS-OF вьюха: что мы знали на :asof_date</span>
+<span class="kw">SELECT</span> series_id, obs_start, value
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> *, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span> (
+           <span class="kw">PARTITION BY</span> series_id, obs_start
+           <span class="kw">ORDER BY</span> release_date <span class="kw">DESC</span>) <span class="kw">AS</span> rn
+  <span class="kw">FROM</span> fct_observation
+  <span class="kw">WHERE</span> release_date &lt;= <span class="nm">:asof_date</span> )   <span class="cm">-- ← нет look-ahead</span>
+<span class="kw">WHERE</span> rn = <span class="st">1</span>;</pre>
+<p class="tl en">Scale: partition by source/frequency/date; columnar; as-of prunes on release_date; compress unchanged vintages; full vintages only for revision-prone series. Also: <span class="mono">dim_release</span> (calendar, embargo) and vendor crosswalk tables.</p>
+<p class="tl ru">Масштаб: партиция по source/frequency/date; колоночное; as-of прунит по release_date; сжимать неизменённые версии; полные версии только для склонных к ревизии серий. Также: <span class="mono">dim_release</span> (календарь, эмбарго) и вендорные crosswalk-таблицы.</p>
+</div>
+</section>
+
+<section id="gap"><h2 class="sec"><span class="en">12 · The gap-bridge script (rehearse cold) <span class="pill h">do this</span></span><span class="ru">12 · Скрипт пробела-моста (отрепетировать наизусть) <span class="pill h">сделай это</span></span></h2>
+<div class="card">
+<p class="en">They've read your CV; they <strong>will</strong> raise the missing macro/time-series experience. Pre-empt it. Calm, specific, zero defensiveness.</p>
+<p class="ru">Они читали твоё CV; они <strong>поднимут</strong> отсутствие опыта макро/временны́х рядов. Опереди это. Спокойно, конкретно, без защиты.</p>
+<ol class="en">
+<li><strong>Name it plainly:</strong> "I haven't worked with macro, survey or forecast datasets; my closest time-series-adjacent work is the bank default model, not true series modelling. I want to be upfront."</li>
+<li><strong>PIT instinct from credit:</strong> the top-10 bank factoring default model lived on point-in-time correctness — you cannot train on info unavailable at decision time. Same look-ahead/vintage discipline econ demands.</li>
+<li><strong>Modelling at scale:</strong> 10 logging systems / 3.6B events/day into one model; entity-resolution fix across 6.2B records. "Nail the grain, fix identity, restore downstream trust" — here on a new temporal axis.</li>
+<li><strong>Legacy modernization (direct match):</strong> McMakler triple migration (Snowflake, Airflow, dbt), EUR 1M+ saved, no BI downtime — parallel-run + reconcile + incremental cutover.</li>
+<li><strong>Messy multi-source:</strong> Salesforce sync layer, 8-brand customer-spine convergence = the vendor crosswalk problem.</li>
+<li><strong>Proof of fast ramp:</strong> EMEA DE Hackathon win (Untangler multi-agent, picked for internal tooling); Kafka + GPT-4 production at IU in months; Azure OpenAI case study.</li>
+<li><strong>Show you started:</strong> "I've already studied vintages/PIT, seasonal adjustment, release calendars, and the BLS/BEA/Eurostat/central-bank model — happy to go deep."</li>
+</ol>
+<ol class="ru">
+<li><strong>Назови прямо:</strong> «Я не работал с макро-, опросными или прогнозными датасетами; моя ближайшая time-series-смежная работа — банковская модель дефолта, не настоящее моделирование серий. Хочу быть честным.»</li>
+<li><strong>PIT-инстинкт из кредита:</strong> модель дефолта факторинга топ-10 банка жила на point-in-time корректности — нельзя тренировать на информации, недоступной в момент решения. Та же look-ahead/vintage дисциплина, которую требует экономика.</li>
+<li><strong>Моделирование на масштабе:</strong> 10 систем логирования / 3.6B событий/день в одну модель; entity-resolution фикс на 6.2B записях. «Пробей гранулярность, почини идентичность, восстанови доверие downstream» — здесь на новой временно́й оси.</li>
+<li><strong>Модернизация легаси (прямое попадание):</strong> McMakler тройная миграция (Snowflake, Airflow, dbt), EUR 1M+ сэкономлено, никакого простоя BI — параллельный запуск + сверка + инкрементальная переключка.</li>
+<li><strong>Грязный мульти-источник:</strong> Salesforce-синк-слой, 8-брендовая customer-spine конвергенция = проблема вендорного crosswalk.</li>
+<li><strong>Доказательство быстрого вката:</strong> победа в EMEA DE Hackathon (Untangler мультиагент, выбран для внутренних инструментов); Kafka + GPT-4 в продакшн в IU за месяцы; Azure OpenAI кейс.</li>
+<li><strong>Покажи, что начал:</strong> «Я уже изучил vintages/PIT, сезонную корректировку, календари релизов и модели BLS/BEA/Eurostat/центробанков — готов углубиться.»</li>
+</ol>
+</div>
+</section>
+
+<section id="quiz"><h2 class="sec"><span class="en">13 · Self-quiz — flip to reveal</span><span class="ru">13 · Самопроверка — переверни, чтобы открыть</span></h2>
+<p class="tl en">Tap a card to flip. Define each in one sentence, fast.</p>
+<p class="tl ru">Нажми на карточку, чтобы перевернуть. Определи каждое в одном предложении, быстро.</p>
+<div class="flipwrap">
+  <div class="flip"><div class="in">
+    <div class="face front"><div class="q"><span class="en">What is a data <em>vintage</em>?</span><span class="ru">Что такое <em>vintage (версия)</em> данных?</span></div><div class="hint"><span class="en">tap to flip</span><span class="ru">нажми, чтобы открыть</span></div></div>
+    <div class="face back"><div class="a"><span class="en">The snapshot of a series as it existed at a particular point in time. Revisions produce successive vintages; PIT queries reconstruct a chosen one.</span><span class="ru">Снэпшот серии, каким он существовал в определённой точке времени. Ревизии создают последовательные версии; PIT-запросы восстанавливают выбранную.</span></div></div>
+  </div></div>
+  <div class="flip"><div class="in">
+    <div class="face front"><div class="q"><span class="en">Observation date vs release date?</span><span class="ru">Дата наблюдения vs дата релиза?</span></div><div class="hint"><span class="en">tap to flip</span><span class="ru">нажми, чтобы открыть</span></div></div>
+    <div class="face back"><div class="a"><span class="en">Observation = the period the number describes (CPI for May). Release = when it was published (12 Jun). Differ by the publication lag; PIT keys off release_date.</span><span class="ru">Observation = период, который описывает число (CPI за май). Release = когда опубликовано (12 июн). Различаются на publication lag; PIT ключуется по release_date.</span></div></div>
+  </div></div>
+  <div class="flip"><div class="in">
+    <div class="face front"><div class="q"><span class="en">Why never overwrite values in place?</span><span class="ru">Почему никогда не перезаписывать значения на месте?</span></div><div class="hint"><span class="en">tap to flip</span><span class="ru">нажми, чтобы открыть</span></div></div>
+    <div class="face back"><div class="a"><span class="en">Destroys reproducibility, audit and as-of queries; injects look-ahead bias into backtests; makes corrections indistinguishable from revisions. Append new vintage instead.</span><span class="ru">Уничтожает воспроизводимость, аудит и as-of запросы; вносит look-ahead bias в бэктесты; делает исправления неотличимыми от ревизий. Вместо этого дописывать новую версию.</span></div></div>
+  </div></div>
+  <div class="flip"><div class="in">
+    <div class="face front"><div class="q"><span class="en">SA vs NSA — and the subtle gotcha?</span><span class="ru">SA vs NSA — и тонкий подвох?</span></div><div class="hint"><span class="en">tap to flip</span><span class="ru">нажми, чтобы открыть</span></div></div>
+    <div class="face back"><div class="a"><span class="en">SA removes recurring seasonal pattern (read for trend/MoM); NSA is raw (YoY/contracts). Gotcha: SA factors re-estimate annually, so SA history revises even when raw data didn't.</span><span class="ru">SA убирает повторяющийся сезонный паттерн (читать для тренда/MoM); NSA сырой (YoY/контракты). Подвох: SA-факторы переоцениваются ежегодно, поэтому SA-история ревизируется, даже когда сырые данные нет.</span></div></div>
+  </div></div>
+  <div class="flip"><div class="in">
+    <div class="face front"><div class="q"><span class="en">The two axes of bitemporal data?</span><span class="ru">Две оси битемпоральных данных?</span></div><div class="hint"><span class="en">tap to flip</span><span class="ru">нажми, чтобы открыть</span></div></div>
+    <div class="face back"><div class="a"><span class="en">Valid time (when the fact is true in the world / observation period) and transaction/system time (when we recorded it). As-of = filter both.</span><span class="ru">Valid time (когда факт верен в мире / период наблюдения) и transaction/system time (когда мы записали его). As-of = фильтровать оба.</span></div></div>
+  </div></div>
+  <div class="flip"><div class="in">
+    <div class="face front"><div class="q"><span class="en">What is a "surprise"?</span><span class="ru">Что такое «сюрприз»?</span></div><div class="hint"><span class="en">tap to flip</span><span class="ru">нажми, чтобы открыть</span></div></div>
+    <div class="face back"><div class="a"><span class="en">actual − consensus, often standardized by dispersion. Markets react to it. So freeze consensus before release and join actual↔consensus on the right target period instantly.</span><span class="ru">actual − консенсус, часто стандартизировано на дисперсию. Рынки реагируют на него. Поэтому заморозить консенсус до релиза и присоединить actual↔консенсус по правильному target period мгновенно.</span></div></div>
+  </div></div>
+  <div class="flip"><div class="in">
+    <div class="face front"><div class="q"><span class="en">Grain of an observation table?</span><span class="ru">Гранулярность таблицы наблюдений?</span></div><div class="hint"><span class="en">tap to flip</span><span class="ru">нажми, чтобы открыть</span></div></div>
+    <div class="face back"><div class="a"><span class="en">(series_id, observation_period, release_date/vintage) — bitemporal, append-only. Not (series_id, period).</span><span class="ru">(series_id, observation_period, release_date/vintage) — битемпоральное, append-only. Не (series_id, period).</span></div></div>
+  </div></div>
+  <div class="flip"><div class="in">
+    <div class="face front"><div class="q"><span class="en">Vendor re-sends full file, history changed. First move?</span><span class="ru">Вендор переотправил полный файл, история изменена. Первый шаг?</span></div><div class="hint"><span class="en">tap to flip</span><span class="ru">нажми, чтобы открыть</span></div></div>
+    <div class="face back"><div class="a"><span class="en">Full-file diff to detect, then classify benchmark-revision vs error. Legit → new vintage + preserve old + log lineage. Suspect → quarantine + reconcile + escalate. Never silently overwrite.</span><span class="ru">Полный diff файла для обнаружения, затем классифицировать benchmark-ревизия vs ошибка. Легитимно → новая версия + сохранить старое + залогировать lineage. Подозрительно → карантин + сверка + эскалация. Никогда не перезаписывать тихо.</span></div></div>
+  </div></div>
+  <div class="flip"><div class="in">
+    <div class="face front"><div class="q"><span class="en">Fiscal vs calendar — modelling rule?</span><span class="ru">Фискальный vs календарный — правило моделирования?</span></div><div class="hint"><span class="en">tap to flip</span><span class="ru">нажми, чтобы открыть</span></div></div>
+    <div class="face back"><div class="a"><span class="en">Store actual calendar start/end dates + period_type + fiscal convention as metadata. Never compute YoY/QoQ off the label string.</span><span class="ru">Хранить фактические календарные даты start/end + period_type + фискальную конвенцию как метаданные. Никогда не вычислять YoY/QoQ из строки метки.</span></div></div>
+  </div></div>
+  <div class="flip"><div class="in">
+    <div class="face front"><div class="q"><span class="en">Why does timeliness matter?</span><span class="ru">Почему своевременность важна?</span></div><div class="hint"><span class="en">tap to flip</span><span class="ru">нажми, чтобы открыть</span></div></div>
+    <div class="face back"><div class="a"><span class="en">Releases move markets in seconds; users need the number instantly. Scheduled-but-variable → event-driven pre-staged pipelines with inline controls so speed doesn't cost accuracy.</span><span class="ru">Релизы двигают рынки за секунды; пользователи нуждаются в числе мгновенно. Запланированные-но-переменные → event-driven предварительно настроенные пайплайны с inline-контролями, чтобы скорость не стоила точности.</span></div></div>
+  </div></div>
+</div>
+</section>
+
+<section id="ckl"><h2 class="sec"><span class="en">14 · Final pre-call checklist</span><span class="ru">14 · Финальный чеклист перед звонком</span></h2>
+<div class="card">
+<details class="en"><summary>Can I define the 6 must-knows in one sentence each, fast?</summary><div class="body">vintage · point-in-time · observation vs release date · SA vs NSA · surprise · bitemporal. Drill with the flip cards above.</div></details>
+<details class="ru"><summary>Могу ли я определить 6 обязательных знаний в одном предложении каждое, быстро?</summary><div class="body">vintage · point-in-time · дата наблюдения vs дата релиза · SA vs NSA · сюрприз · битемпоральное. Тренируйся с карточками-перевёртышами выше.</div></details>
+<details class="en"><summary>Can I state and defend the bitemporal grain?</summary><div class="body"><span class="mono">(series_id, observation_period, release_date)</span>, append-only, latest = window on max(release_date), as-of = filter release_date ≤ asof. Defend append-only over UPDATE.</div></details>
+<details class="ru"><summary>Могу ли я заявить и защитить битемпоральную гранулярность?</summary><div class="body"><span class="mono">(series_id, observation_period, release_date)</span>, append-only, latest = window на max(release_date), as-of = фильтр release_date ≤ asof. Защити append-only против UPDATE.</div></details>
+<details class="en"><summary>Can I deliver the gap-bridge in 45 seconds, honest + confident?</summary><div class="body">Name gap → PIT from bank credit → modelling at Meta scale → legacy migration at McMakler → fast-ramp proof. No defensiveness.</div></details>
+<details class="ru"><summary>Могу ли я выдать скрипт пробела-моста за 45 секунд, честно + уверенно?</summary><div class="body">Назови пробел → PIT из банковского кредита → моделирование на масштабе Meta → миграция легаси в McMakler → доказательство быстрого вката. Без защиты.</div></details>
+<details class="en"><summary>Can I tie every domain answer to a real CV line?</summary><div class="body">Bank PIT correctness · Meta unified model / entity-res / DQ monitors · McMakler Snowflake/Airflow/dbt migration · Untangler + Azure OpenAI for AI-assisted controls.</div></details>
+<details class="ru"><summary>Могу ли я привязать каждый доменный ответ к реальной строке CV?</summary><div class="body">Банк PIT-корректность · Meta унифицированная модель / entity-res / DQ-мониторы · McMakler Snowflake/Airflow/dbt миграция · Untangler + Azure OpenAI для AI-ассистированных контролей.</div></details>
+<details class="en"><summary>Industry awareness?</summary><div class="body">Financial data providers serve traders, algos, analysts. Query/serving layers must produce clean, correctly-aligned series. Consensus/ECO = flagship datasets. CDMP/DAMA-DMBOK = governance framework (nice-to-have).</div></details>
+<details class="ru"><summary>Осведомлённость об индустрии?</summary><div class="body">Провайдеры финансовых данных обслуживают трейдеров, алгоритмы, аналитиков. Запрос/сервинг слои должны производить чистые, правильно выровненные серии. Консенсус/ECO = флагманские датасеты. CDMP/DAMA-DMBOK = фреймворк управления (nice-to-have).</div></details>
+</div>
+</section>
+
+</main>
+
+<footer>
+  <span class="en">Built for Amal Imangulov · Data Engineering interview prep · Companion question bank: <span class="mono">questions/economics-timeseries-domain.md</span>. Self-contained, offline, theme+language-persistent.</span>
+  <span class="ru">Сделано для Amal Imangulov · Подготовка к Data Engineering интервью · Банк вопросов-компаньон: <span class="mono">questions/economics-timeseries-domain.md</span>. Автономный, офлайн, theme+language сохраняется.</span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  // ---- theme toggle ----
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+  }
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('de_cheat_theme'); } catch (e) {}
+  applyTheme(savedTheme || 'dark');
+  themeBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('de_cheat_theme', next); } catch (e) {}
+  });
+
+  // ---- language toggle ----
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l) {
+    root.setAttribute('data-lang', l);
+    root.setAttribute('lang', l);
+    langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+  }
+  var savedLang = null;
+  try { savedLang = localStorage.getItem('de_cheat_lang'); } catch (e) {}
+  applyLang(savedLang || 'en');
+  langBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+    applyLang(next);
+    try { localStorage.setItem('de_cheat_lang', next); } catch (e) {}
+  });
+
+  // ---- flip cards ----
+  document.querySelectorAll('.flip').forEach(function (c) {
+    c.addEventListener('click', function () { c.classList.toggle('flipped'); });
+  });
+
+  // ---- scroll reveal ----
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('reveal'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('section').forEach(function (el) { io.observe(el); });
+
+  // ---- active nav highlight ----
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav a'));
+  var secs = links.map(function (l) { return document.querySelector(l.getAttribute('href')); }).filter(Boolean);
+  var spy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        links.forEach(function (l) { l.style.color = ''; l.style.background = ''; });
+        var active = links.find(function (l) { return l.getAttribute('href') === '#' + en.target.id; });
+        if (active) { active.style.color = 'var(--txt)'; active.style.background = 'var(--card2)'; }
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  secs.forEach(function (s) { spy.observe(s); });
+})();
+</script>
+</body>
+</html>

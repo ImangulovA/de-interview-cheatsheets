@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Flink (Streaming) — Data Engineering Interview Cheatsheet</title>
+<style>
+:root{
+  --bg:#0a0e1a; --card:#151d30; --card2:#1b2540; --text:#e6ecf5; --muted:#8a97b0;
+  --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7;
+  --border:#26314d; --code-bg:#0d1322; --shadow:rgba(0,0,0,.4);
+}
+[data-theme="light"]{
+  --bg:#f4f6fb; --card:#ffffff; --card2:#eef2fa; --text:#101728; --muted:#5b6678;
+  --accent:#1877F2; --green:#059b78; --orange:#c97a06; --purple:#8b3fd1;
+  --border:#d7deea; --code-bg:#0d1322; --shadow:rgba(20,40,80,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55;font-size:15px;transition:background .25s,color .25s}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px 80px}
+
+/* ---- i18n language toggle ---- */
+[data-lang="en"] .ru { display: none !important; }
+[data-lang="ru"] .en { display: none !important; }
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(10,14,26,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+[data-theme="light"] nav{background:rgba(244,246,251,.85)}
+.nav-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:10px 18px;flex-wrap:wrap}
+.nav-title{font-weight:700;color:var(--accent);font-size:14px;margin-right:auto;white-space:nowrap}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:12px;padding:4px 8px;border-radius:6px;transition:.15s}
+.nav-links a:hover{color:var(--text);background:var(--card2)}
+.toggles{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
+.toggle-btn{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;white-space:nowrap;font-weight:600}
+.toggle-btn:hover{border-color:var(--accent)}
+
+/* HEADER */
+header{padding:44px 0 18px}
+header h1{font-size:30px;line-height:1.15;margin-bottom:8px}
+header h1 .flink{color:var(--orange)}
+.sub{color:var(--muted);font-size:15px}
+.badges{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+.badge{font-size:12px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card)}
+.badge.gap{border-color:var(--orange);color:var(--orange)}
+.badge.must{border-color:var(--green);color:var(--green)}
+
+/* SECTIONS */
+section{margin-top:30px}
+.section-head{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;padding:10px 0;border-bottom:2px solid var(--border)}
+.section-head h2{font-size:20px}
+.section-head .chev{margin-left:auto;color:var(--muted);transition:transform .2s;font-size:14px}
+.section-head.collapsed .chev{transform:rotate(-90deg)}
+.section-body{padding-top:14px}
+.section-body.hidden{display:none}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:12px 0;box-shadow:0 2px 8px var(--shadow)}
+.card h3{font-size:16px;margin-bottom:8px;color:var(--accent)}
+.card h3.g{color:var(--green)} .card h3.o{color:var(--orange)} .card h3.p{color:var(--purple)}
+.card ul{margin:6px 0 6px 18px} .card li{margin:3px 0}
+.card p{margin:6px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}}
+strong{color:var(--text)} em{color:var(--purple);font-style:normal;font-weight:600}
+.k{color:var(--green);font-weight:600}
+
+/* CALLOUTS */
+.callout{border-left:3px solid var(--accent);background:var(--card2);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;font-size:14px}
+.callout.probe{border-color:var(--orange)}
+.callout.anchor{border-color:var(--green)}
+.callout.gap{border-color:var(--purple)}
+.callout .tag{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:3px}
+.callout.probe .tag{color:var(--orange)}
+.callout.anchor .tag{color:var(--green)}
+.callout.gap .tag{color:var(--purple)}
+.callout .tag.acc{color:var(--accent)}
+
+/* CODE / ASCII */
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:10px 0;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5;color:#cdd6e8}
+pre .kw{color:#ff7eb6} pre .ty{color:#79c0ff} pre .st{color:#a5d6a4} pre .cm{color:#6b7794} pre .fn{color:#f5c244} pre .nm{color:#7ee7c7}
+code.inline{background:var(--code-bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:"SF Mono",Menlo,monospace;font-size:12.5px;color:#7ee7c7}
+.ascii{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto;font-family:"SF Mono",Menlo,monospace;font-size:12px;line-height:1.45;color:#9fd0c4;white-space:pre}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--accent);font-weight:600;border-bottom:2px solid var(--border)}
+tr:hover td{background:var(--card2)}
+
+/* FLIP CARDS */
+.flip-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+@media(max-width:720px){.flip-grid{grid-template-columns:1fr}}
+.flip{background:transparent;perspective:1200px;min-height:140px;cursor:pointer}
+.flip-inner{position:relative;width:100%;height:100%;min-height:140px;transition:transform .55s;transform-style:preserve-3d}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:14px 16px;border:1px solid var(--border);display:flex;flex-direction:column;justify-content:center}
+.flip-front{background:var(--card2)}
+.flip-back{background:var(--card);transform:rotateY(180deg);overflow:auto}
+.flip-q{font-weight:600;font-size:14.5px;color:var(--orange)}
+.flip-hint{font-size:11px;color:var(--muted);margin-top:8px}
+.flip-back .a{font-size:13px}
+.flip-back ul{margin-left:16px}
+
+/* REVEAL ANIM */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .5s,transform .5s}
+.reveal.in{opacity:1;transform:none}
+
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:6px;vertical-align:middle}
+.pill.easy{background:rgba(2,226,172,.16);color:var(--green)}
+.pill.med{background:rgba(245,158,11,.16);color:var(--orange)}
+.pill.hard{background:rgba(168,85,247,.18);color:var(--purple)}
+.pill.top{background:rgba(24,119,242,.2);color:var(--accent)}
+footer{margin-top:50px;color:var(--muted);font-size:12px;text-align:center;border-top:1px solid var(--border);padding-top:20px}
+.tldr{background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border)}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <span class="nav-title">⚡ <span class="en">Flink</span><span class="ru">Flink</span></span>
+    <div class="nav-links">
+      <a href="#must"><span class="en">Must-Knows</span><span class="ru">Обязательно</span></a>
+      <a href="#time"><span class="en">Event Time</span><span class="ru">Event Time</span></a>
+      <a href="#wm"><span class="en">Watermarks</span><span class="ru">Watermarks</span></a>
+      <a href="#win"><span class="en">Windows</span><span class="ru">Окна</span></a>
+      <a href="#state"><span class="en">State</span><span class="ru">Состояние</span></a>
+      <a href="#ckpt"><span class="en">Checkpoints</span><span class="ru">Checkpoints</span></a>
+      <a href="#eo"><span class="en">Exactly-Once</span><span class="ru">Exactly-Once</span></a>
+      <a href="#arch"><span class="en">Architecture</span><span class="ru">Архитектура</span></a>
+      <a href="#vs"><span class="en">Flink vs Spark</span><span class="ru">Flink vs Spark</span></a>
+      <a href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+      <a href="#gotcha"><span class="en">Gotchas</span><span class="ru">Подводные камни</span></a>
+    </div>
+    <span class="toggles">
+      <button class="toggle-btn" id="langBtn">🌐 RU</button>
+      <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+    </span>
+  </div>
+</nav>
+
+<div class="wrap">
+<header>
+  <h1><span class="flink">Apache Flink</span> <span class="en">(Streaming) — DE Interview Prep</span><span class="ru">(Streaming) — Подготовка к DE-интервью</span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</span>
+  </div>
+  <div class="badges">
+    <span class="badge gap"><span class="en">⚠ STUDY-GAP: not in recent stack</span><span class="ru">⚠ ПРОБЕЛ: не в недавнем стеке</span></span>
+    <span class="badge must"><span class="en">Bridge from: Kafka · Scala/Spark · Airflow</span><span class="ru">Мост от: Kafka · Scala/Spark · Airflow</span></span>
+    <span class="badge"><span class="en">Senior/Lead depth</span><span class="ru">Уровень Senior/Lead</span></span>
+  </div>
+</header>
+
+<!-- MUST KNOWS -->
+<section id="must">
+  <div class="section-head"><h2><span class="en">🎯 Front-Loaded Must-Knows</span><span class="ru">🎯 Главное, что надо знать</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <div class="card tldr reveal">
+      <h3 class="g"><span class="en">The 8 things you must say cleanly</span><span class="ru">8 вещей, которые нужно сказать чётко</span></h3>
+      <ul class="en">
+        <li><strong>Event time vs processing time</strong>: logic keys off the timestamp <em>in</em> the event so replays are deterministic. Processing time = wall-clock = fast but non-deterministic.</li>
+        <li><strong>Watermark</strong> = "no earlier events expected past this point." Triggers event-time windows; is the <em>min</em> across inputs.</li>
+        <li><strong>Windows</strong>: tumbling (fixed, no overlap), sliding (overlap), session (gap-based), global (custom trigger).</li>
+        <li><strong>Exactly-once</strong> = <em>state consistency</em> via aligned <strong>checkpoint barriers</strong> (Chandy-Lamport). End-to-end needs a transactional/idempotent sink.</li>
+        <li><strong>State backends</strong>: HashMap (heap, small/fast) vs EmbeddedRocksDB (disk, huge state, incremental checkpoints).</li>
+        <li><strong>Checkpoint</strong> (auto, recovery) vs <strong>Savepoint</strong> (manual, portable, for upgrades/rescale).</li>
+        <li><strong>Keyed state</strong> after <code class="inline">keyBy</code>; rescaled via <strong>key groups</strong>; bound it with <strong>TTL</strong>.</li>
+        <li><strong>Canonical pipeline</strong>: Kafka → Flink (exactly-once stateful) → Iceberg → Trino/Spark.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Event time vs processing time</strong>: логика опирается на временную метку <em>в</em> событии, поэтому повторы детерминированы. Processing time = wall-clock = быстро, но не детерминировано.</li>
+        <li><strong>Watermark</strong> = «событий с меткой времени раньше этого момента больше не ожидается». Запускает окна event-time; равен <em>min</em> по всем входам.</li>
+        <li><strong>Окна (Windows)</strong>: tumbling (фиксированные, без перекрытия), sliding (с перекрытием), session (на основе паузы), global (кастомный триггер).</li>
+        <li><strong>Exactly-once</strong> = <em>согласованность состояния</em> через выровненные <strong>checkpoint barriers</strong> (Chandy-Lamport). Сквозная требует транзакционного/идемпотентного приёмника.</li>
+        <li><strong>State backends</strong>: HashMap (heap, маленькое/быстрое) vs EmbeddedRocksDB (диск, огромное состояние, инкрементальные checkpoints).</li>
+        <li><strong>Checkpoint</strong> (авто, восстановление) vs <strong>Savepoint</strong> (ручной, портируемый, для апгрейдов/масштабирования).</li>
+        <li><strong>Keyed state</strong> после <code class="inline">keyBy</code>; масштабируется через <strong>key groups</strong>; ограничь через <strong>TTL</strong>.</li>
+        <li><strong>Канонический пайплайн</strong>: Kafka → Flink (exactly-once stateful) → Iceberg → Trino/Spark.</li>
+      </ul>
+    </div>
+    <div class="callout anchor reveal">
+      <span class="tag"><span class="en">YOUR ANCHOR LINE</span><span class="ru">ТВОЯ ЯКОРНАЯ ФРАЗА</span></span>
+      <p class="en">"I haven't run Flink in production, but I built Kafka ingestion at IU Group, owned a Scala/Spark stateful training pipeline on Hadoop at Front Tier, and ran Airflow migrations at McMakler. Event time, watermarks, state and exactly-once are the same failure-mode reasoning I already did on those systems, so let me reason from first principles."</p>
+      <p class="ru">«Я не запускал Flink в продакшене, но строил ingestion на Kafka в IU Group, владел stateful-пайплайном на Scala/Spark поверх Hadoop во Front Tier и управлял миграциями Airflow в McMakler. Event time, watermarks, состояние и exactly-once — это те же рассуждения о режимах сбоев, которые я уже делал на тех системах, поэтому дай мне порассуждать с первых принципов.»</p>
+    </div>
+    <div class="callout gap reveal">
+      <span class="tag"><span class="en">GAP STRATEGY</span><span class="ru">СТРАТЕГИЯ ПРОБЕЛА</span></span>
+      <p class="en">Be honest about no prod Flink. Convert it: offset/exactly-once reasoning (Kafka) + stateful Scala/Spark + orchestration. Then show a concrete de-risk plan: UIDs on every stateful op, state TTL, checkpoint monitoring, MiniCluster integration tests, shadow on-call.</p>
+      <p class="ru">Честно признай отсутствие Flink в проде. Конвертируй: рассуждения про offset/exactly-once (Kafka) + stateful Scala/Spark + оркестрация. Затем покажи конкретный план снижения рисков: UIDs на каждой stateful-операции, state TTL, мониторинг checkpoint, MiniCluster integration tests, теневой on-call.</p>
+    </div>
+  </div>
+</section>
+
+<!-- EVENT TIME -->
+<section id="time">
+  <div class="section-head"><h2><span class="en">⏱ Stream vs Batch &amp; Event Time</span><span class="ru">⏱ Поток vs батч и Event Time</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <div class="grid">
+      <div class="card reveal">
+        <h3><span class="en">Stream vs Batch</span><span class="ru">Поток vs батч</span></h3>
+        <ul class="en">
+          <li><strong>Batch</strong> = bounded dataset, runs to completion, latency in min/hours.</li>
+          <li><strong>Stream</strong> = unbounded dataset, runs forever, latency in ms.</li>
+          <li>Flink treats <strong>batch as a special case of streaming</strong> (bounded stream). Unified runtime.</li>
+          <li>Streaming needs answers to: out-of-order data, when to emit, fault tolerance with running state.</li>
+        </ul>
+        <ul class="ru">
+          <li><strong>Batch</strong> = ограниченный датасет, отрабатывает до конца, задержка в мин/часах.</li>
+          <li><strong>Stream</strong> = неограниченный датасет, работает вечно, задержка в мс.</li>
+          <li>Flink трактует <strong>батч как частный случай стриминга</strong> (ограниченный поток). Единая среда выполнения.</li>
+          <li>Стриминг требует ответов на: данные вне порядка, когда выдавать результат, отказоустойчивость при наличии состояния.</li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3 class="o"><span class="en">Three notions of time</span><span class="ru">Три понятия времени</span></h3>
+        <table class="en">
+          <tr><th>Type</th><th>Meaning</th><th>Trade-off</th></tr>
+          <tr><td><span class="k">Event</span></td><td>timestamp in the record</td><td>correct + replayable; needs watermarks → latency</td></tr>
+          <tr><td><span class="k">Ingestion</span></td><td>assigned at source op</td><td>middle ground</td></tr>
+          <tr><td><span class="k">Processing</span></td><td>operator wall-clock</td><td>fastest; non-deterministic, wrong under skew</td></tr>
+        </table>
+        <table class="ru">
+          <tr><th>Тип</th><th>Смысл</th><th>Компромисс</th></tr>
+          <tr><td><span class="k">Event</span></td><td>метка времени в записи</td><td>корректно + повторяемо; требует watermarks → задержка</td></tr>
+          <tr><td><span class="k">Ingestion</span></td><td>назначается в source-операторе</td><td>золотая середина</td></tr>
+          <tr><td><span class="k">Processing</span></td><td>wall-clock оператора</td><td>быстрее всего; не детерминировано, неверно при перекосе</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="callout probe reveal">
+      <span class="tag"><span class="en">INTERVIEWER WILL PROBE</span><span class="ru">О ЧЁМ СПРОСИТ ИНТЕРВЬЮЕР</span></span>
+      <p class="en">"Why event time if it adds latency?" → Determinism. Backfills/replays produce identical results because logic uses the embedded timestamp, not when the job happened to run.</p>
+      <p class="ru">«Зачем event time, если добавляет задержку?» → Детерминизм. Backfill-ы/повторы дают идентичные результаты, потому что логика использует встроенную метку времени, а не момент запуска джоба.</p>
+    </div>
+    <div class="callout anchor reveal">
+      <span class="tag"><span class="en">ANCHOR</span><span class="ru">ЯКОРЬ</span></span>
+      <p class="en">On the bank default-prediction pipeline, features had to be computed as-of the loan-decision time, not as-of run time. Event time is that as-of discipline made first-class.</p>
+      <p class="ru">В пайплайне прогнозирования дефолтов для банка фичи должны были вычисляться на момент принятия решения о займе, а не на момент запуска. Event time — это та самая дисциплина «на момент», сделанная first-class.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WATERMARKS -->
+<section id="wm">
+  <div class="section-head"><h2><span class="en">🌊 Watermarks</span><span class="ru">🌊 Watermarks</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <div class="card reveal">
+      <h3><span class="en">What a watermark actually is</span><span class="ru">Что такое watermark на самом деле</span></h3>
+      <p class="en">A marker flowing in the stream: <em>W(t) = "no event with timestamp ≤ t will arrive after this."</em> It is Flink's notion of event-time progress and is what <strong>fires event-time windows</strong> (every window whose end ≤ W).</p>
+      <p class="ru">Маркер, текущий в потоке: <em>W(t) = «событий с меткой времени ≤ t после этого момента не будет».</em> Это понятие прогресса event-time в Flink и то, что <strong>запускает event-time окна</strong> (каждое окно, конец которого ≤ W).</p>
+      <pre><span class="cm">// bounded out-of-orderness: watermark = maxSeenTs - 5s</span>
+<span class="ty">WatermarkStrategy</span>
+  .<span class="fn">forBoundedOutOfOrderness</span>(<span class="ty">Duration</span>.<span class="fn">ofSeconds</span>(<span class="nm">5</span>))
+  .<span class="fn">withTimestampAssigner</span>((event, ts) -> event.<span class="fn">getEventTime</span>())
+  .<span class="fn">withIdleness</span>(<span class="ty">Duration</span>.<span class="fn">ofMinutes</span>(<span class="nm">1</span>)); <span class="cm">// don't let idle partition stall WM</span></pre>
+      <ul class="en">
+        <li><strong>Per-partition watermarks</strong>: operator watermark = <em>minimum</em> across all inputs/partitions. Slowest input gates progress.</li>
+        <li><strong>Idle source</strong> stalls the min forever → <code class="inline">withIdleness()</code> marks it idle.</li>
+        <li><strong>The knob</strong>: bigger out-of-orderness = more correctness for late data, more latency. Smaller = faster, more drops.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Watermarks по партициям</strong>: watermark оператора = <em>минимум</em> по всем входам/партициям. Самый медленный вход блокирует прогресс.</li>
+        <li><strong>Idle source</strong> блокирует минимум навсегда → <code class="inline">withIdleness()</code> помечает его idle.</li>
+        <li><strong>Ручка настройки</strong>: больше out-of-orderness = больше корректности для поздних данных, больше задержка. Меньше = быстрее, больше сброшенных данных.</li>
+      </ul>
+    </div>
+    <div class="ascii reveal en">event-time axis →
+events:   1  4  2   7   3(late)   9
+                         ▲ arrives after WM=5 → "late"
+watermark advances: ...  W=5 ........... W=9
+                          └ fires all windows with end ≤ 5</div>
+    <div class="ascii ru">ось event-time →
+события:  1  4  2   7   3(опоздало) 9
+                         ▲ пришло после WM=5 → «опоздало»
+watermark двигается: ... W=5 ........... W=9
+                          └ запускает все окна с концом ≤ 5</div>
+    <div class="callout probe reveal">
+      <span class="tag"><span class="en">PROBE</span><span class="ru">ВОПРОС</span></span>
+      <p class="en">"One Kafka partition is silent — what happens to your windows?" → its watermark never advances, min stays low, windows never fire. Fix: <code class="inline">withIdleness</code>.</p>
+      <p class="ru">«Одна партиция Kafka молчит — что будет с твоими окнами?» → её watermark не двигается, минимум остаётся низким, окна не запускаются. Лечение: <code class="inline">withIdleness</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WINDOWS -->
+<section id="win">
+  <div class="section-head"><h2><span class="en">🪟 Windows</span><span class="ru">🪟 Окна</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <div class="card reveal">
+      <table class="en">
+        <tr><th>Window</th><th>Shape</th><th>Use for</th></tr>
+        <tr><td><span class="k">Tumbling</span></td><td>fixed size, no overlap, 1 event → 1 window</td><td>periodic buckets ("count per 1 min")</td></tr>
+        <tr><td><span class="k">Sliding</span></td><td>size + slide; overlap; event in many windows</td><td>moving averages ("5-min count every 1 min")</td></tr>
+        <tr><td><span class="k">Session</span></td><td>dynamic, closes after gap of inactivity</td><td>user sessionization ("clicks until 30-min idle")</td></tr>
+        <tr><td><span class="k">Global</span></td><td>one window per key, custom Trigger fires it</td><td>building block / custom logic</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Окно</th><th>Форма</th><th>Для чего</th></tr>
+        <tr><td><span class="k">Tumbling</span></td><td>фиксированный размер, без перекрытия, 1 событие → 1 окно</td><td>периодические бакеты («счёт за 1 мин»)</td></tr>
+        <tr><td><span class="k">Sliding</span></td><td>размер + слайд; перекрытие; событие во многих окнах</td><td>скользящие средние («счёт за 5 мин каждую 1 мин»)</td></tr>
+        <tr><td><span class="k">Session</span></td><td>динамическое, закрывается после паузы</td><td>сессионизация пользователей («клики до 30-мин простоя»)</td></tr>
+        <tr><td><span class="k">Global</span></td><td>одно окно на ключ, кастомный Trigger запускает его</td><td>базовый блок / кастомная логика</td></tr>
+      </table>
+      <p class="en">Machinery: <strong>Assigner</strong> (which window) · <strong>Trigger</strong> (when to fire) · <strong>Evictor</strong> (optional removal) · <strong>allowed lateness</strong>.</p>
+      <p class="ru">Механизм: <strong>Assigner</strong> (какое окно) · <strong>Trigger</strong> (когда запускать) · <strong>Evictor</strong> (опциональное удаление) · <strong>allowed lateness</strong>.</p>
+      <pre><span class="ty">stream</span>.<span class="fn">keyBy</span>(e -> e.<span class="fn">userId</span>())
+  .<span class="fn">window</span>(<span class="ty">TumblingEventTimeWindows</span>.<span class="fn">of</span>(<span class="ty">Time</span>.<span class="fn">minutes</span>(<span class="nm">1</span>)))
+  .<span class="fn">allowedLateness</span>(<span class="ty">Time</span>.<span class="fn">seconds</span>(<span class="nm">30</span>))
+  .<span class="fn">sideOutputLateData</span>(lateTag)   <span class="cm">// don't drop late data silently</span>
+  .<span class="fn">aggregate</span>(<span class="kw">new</span> <span class="ty">CountAgg</span>());</pre>
+    </div>
+    <div class="card reveal">
+      <h3 class="o"><span class="en">Late data handling</span><span class="ru">Обработка опоздавших данных</span></h3>
+      <ul class="en">
+        <li>Past the watermark = <strong>late</strong>. Default: dropped.</li>
+        <li><strong>Allowed lateness</strong>: keep window state open longer; late events re-fire / update result.</li>
+        <li><strong>Side output</strong> (<code class="inline">OutputTag</code>): route too-late events to a separate stream instead of losing them.</li>
+      </ul>
+      <ul class="ru">
+        <li>Позже watermark = <strong>опоздало</strong>. По умолчанию: сброшено.</li>
+        <li><strong>Allowed lateness</strong>: держать состояние окна открытым дольше; опоздавшие события перезапускают / обновляют результат.</li>
+        <li><strong>Side output</strong> (<code class="inline">OutputTag</code>): направить слишком поздние события в отдельный поток вместо потери.</li>
+      </ul>
+    </div>
+    <div class="callout anchor reveal">
+      <span class="tag"><span class="en">ANCHOR</span><span class="ru">ЯКОРЬ</span></span>
+      <p class="en">Sessionization is the streaming-native version of the gaps-and-islands SQL I wrote for user behavior at McMakler.</p>
+      <p class="ru">Сессионизация — это streaming-native версия SQL-паттерна gaps-and-islands, который я писал для поведения пользователей в McMakler.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STATE -->
+<section id="state">
+  <div class="section-head"><h2><span class="en">🗃 State, Keyed State &amp; Backends</span><span class="ru">🗃 Состояние, Keyed State и бэкенды</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <div class="grid">
+      <div class="card reveal">
+        <h3><span class="en">Keyed vs Operator state</span><span class="ru">Keyed vs Operator state</span></h3>
+        <ul class="en">
+          <li><strong>Keyed state</strong> (after <code class="inline">keyBy</code>): one independent instance per key. Types: <span class="k">ValueState</span>, <span class="k">ListState</span>, <span class="k">MapState</span>, <span class="k">ReducingState</span>, <span class="k">AggregatingState</span>.</li>
+          <li><strong>Operator state</strong>: scoped to an operator instance, not a key (e.g. Kafka source offsets). Redistributed on rescale.</li>
+        </ul>
+        <ul class="ru">
+          <li><strong>Keyed state</strong> (после <code class="inline">keyBy</code>): один независимый экземпляр на ключ. Типы: <span class="k">ValueState</span>, <span class="k">ListState</span>, <span class="k">MapState</span>, <span class="k">ReducingState</span>, <span class="k">AggregatingState</span>.</li>
+          <li><strong>Operator state</strong>: привязан к экземпляру оператора, а не к ключу (например, оффсеты Kafka source). Перераспределяется при масштабировании.</li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3 class="o"><span class="en">State backends</span><span class="ru">State backends</span></h3>
+        <table class="en">
+          <tr><th>Backend</th><th>Where</th><th>When</th></tr>
+          <tr><td><span class="k">HashMap</span></td><td>JVM heap</td><td>small/fast state, low latency</td></tr>
+          <tr><td><span class="k">EmbeddedRocksDB</span></td><td>local disk, off-heap, serialized</td><td>huge state &gt; memory; incremental checkpoints</td></tr>
+        </table>
+        <table class="ru">
+          <tr><th>Backend</th><th>Где</th><th>Когда</th></tr>
+          <tr><td><span class="k">HashMap</span></td><td>JVM heap</td><td>маленькое/быстрое состояние, низкая задержка</td></tr>
+          <tr><td><span class="k">EmbeddedRocksDB</span></td><td>локальный диск, off-heap, сериализованное</td><td>огромное состояние &gt; памяти; инкрементальные checkpoints</td></tr>
+        </table>
+        <p class="en"><em>Checkpoint storage</em> (HDFS/S3) is separate: it's <em>where the snapshot lands</em>.</p>
+        <p class="ru"><em>Checkpoint storage</em> (HDFS/S3) — отдельно: это <em>куда попадает снапшот</em>.</p>
+      </div>
+    </div>
+    <div class="card reveal">
+      <h3 class="p"><span class="en">Rescaling &amp; TTL</span><span class="ru">Масштабирование и TTL</span></h3>
+      <ul class="en">
+        <li><strong>Key groups</strong> = atomic unit of keyed-state redistribution. Change parallelism → key groups reassigned across subtasks.</li>
+        <li><strong>Max parallelism</strong> fixes the number of key groups → caps how far you can rescale without a state migration. Set it deliberately at job creation.</li>
+        <li><strong>State TTL</strong> (<code class="inline">StateTtlConfig</code>): expire old keys or state grows forever → slow recovery, disk blowup. Essential at per-user, billions-of-keys scale.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Key groups</strong> = атомарная единица перераспределения keyed-state. Изменение parallelism → key groups переназначаются между subtasks.</li>
+        <li><strong>Max parallelism</strong> фиксирует число key groups → ограничивает, насколько можно масштабироваться без миграции состояния. Устанавливай осознанно при создании джоба.</li>
+        <li><strong>State TTL</strong> (<code class="inline">StateTtlConfig</code>): устаревание старых ключей, иначе состояние растёт вечно → медленное восстановление, взрыв диска. Критично на масштабе миллиардов ключей по пользователям.</li>
+      </ul>
+    </div>
+    <div class="callout probe reveal">
+      <span class="tag"><span class="en">PROBE</span><span class="ru">ВОПРОС</span></span>
+      <p class="en">"What if state grows unbounded?" → State TTL + RocksDB incremental checkpoints; bound joins with intervals.</p>
+      <p class="ru">«Что, если состояние растёт неограниченно?» → State TTL + RocksDB инкрементальные checkpoints; ограничь join-ы интервалами.</p>
+    </div>
+    <div class="callout anchor reveal">
+      <span class="tag"><span class="en">ANCHOR</span><span class="ru">ЯКОРЬ</span></span>
+      <p class="en">Large keyed state in RocksDB is a partitioned, spill-to-disk keyed store. Entity resolution across 6.2B records at Meta drilled the same instinct: key the data, keep per-key state bounded, deterministic recovery.</p>
+      <p class="ru">Большое keyed state в RocksDB — это партиционированное, spill-to-disk хранилище по ключам. Entity resolution по 6.2B записям в Meta тренировал тот же инстинкт: ключить данные, держать состояние на ключ ограниченным, детерминированное восстановление.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CHECKPOINTS -->
+<section id="ckpt">
+  <div class="section-head"><h2><span class="en">💾 Checkpoints &amp; Savepoints</span><span class="ru">💾 Checkpoints и Savepoints</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <div class="card reveal">
+      <table class="en">
+        <tr><th></th><th>Checkpoint</th><th>Savepoint</th></tr>
+        <tr><td>Purpose</td><td>automatic fault tolerance</td><td>manual operational snapshot</td></tr>
+        <tr><td>Trigger</td><td>periodic, by Flink</td><td>on-demand, by you/CI</td></tr>
+        <tr><td>Ownership</td><td>Flink-managed, may be cleaned up</td><td>user-owned, retained, portable</td></tr>
+        <tr><td>Use case</td><td>recover from crash</td><td>upgrade code, rescale, migrate cluster/version</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th></th><th>Checkpoint</th><th>Savepoint</th></tr>
+        <tr><td>Цель</td><td>автоматическая отказоустойчивость</td><td>ручной операционный снапшот</td></tr>
+        <tr><td>Триггер</td><td>периодически, Flink-ом</td><td>по требованию, тобой/CI</td></tr>
+        <tr><td>Владение</td><td>управляется Flink, может быть очищен</td><td>в собственности пользователя, сохранён, портируемый</td></tr>
+        <tr><td>Use case</td><td>восстановление после падения</td><td>апгрейд кода, масштабирование, миграция кластера/версии</td></tr>
+      </table>
+      <p class="en">Workflow: stop job <em>with savepoint</em> → deploy new code → resume <em>from savepoint</em>. State survives a deploy as long as schema + UIDs are compatible.</p>
+      <p class="ru">Workflow: остановить джоб <em>с savepoint</em> → задеплоить новый код → продолжить <em>из savepoint</em>. Состояние переживает деплой, пока схема + UID совместимы.</p>
+    </div>
+    <div class="callout probe reveal">
+      <span class="tag"><span class="en">PROBE — classic footgun</span><span class="ru">ВОПРОС — классическая ловушка</span></span>
+      <p class="en">"What lets state survive a code change?" → stable <strong>operator UIDs</strong> <code class="inline">.uid("...")</code>. On restore Flink maps saved state to operators by ID. Auto IDs change when topology changes → restore fails / state silently dropped. <strong>Set <code class="inline">.uid()</code> on every stateful op from day one.</strong></p>
+      <p class="ru">«Что позволяет состоянию пережить изменение кода?» → стабильные <strong>UIDs операторов</strong> <code class="inline">.uid("...")</code>. При восстановлении Flink сопоставляет сохранённое состояние с операторами по ID. Авто-ID меняются при изменении топологии → восстановление падает / состояние тихо теряется. <strong>Ставь <code class="inline">.uid()</code> на каждую stateful-операцию с первого дня.</strong></p>
+    </div>
+    <div class="callout anchor reveal">
+      <span class="tag"><span class="en">ANCHOR</span><span class="ru">ЯКОРЬ</span></span>
+      <p class="en">Monitoring checkpoint duration / size / alignment / failures is SLO thinking — same as the DQ monitors and completeness alerts I built on Meta pipelines: instrument the thing that silently degrades before it pages you.</p>
+      <p class="ru">Мониторинг длительности / размера / alignment / сбоев checkpoint — это SLO-мышление, как DQ-мониторы и алерты на полноту, которые я построил на пайплайнах в Meta: инструментируй то, что тихо деградирует, до того, как оно тебя разбудит.</p>
+    </div>
+  </div>
+</section>
+
+<!-- EXACTLY ONCE -->
+<section id="eo">
+  <div class="section-head"><h2><span class="en">✅ Exactly-Once &amp; Fault Tolerance</span><span class="ru">✅ Exactly-Once и отказоустойчивость</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <div class="card reveal">
+      <h3 class="g"><span class="en">How exactly-once works</span><span class="ru">Как работает exactly-once</span></h3>
+      <ul class="en">
+        <li>Exactly-once = <strong>state consistency</strong>, NOT "each message on the wire once." Every record affects state exactly once, even across failures.</li>
+        <li>Mechanism: <strong>asynchronous barrier snapshotting</strong> (Chandy-Lamport variant).</li>
+        <li>Coordinator injects <strong>checkpoint barriers</strong> into sources; barriers flow with data; on barrier, operator snapshots state.</li>
+        <li><strong>Barrier alignment</strong>: multi-input op waits for the barrier on ALL inputs (buffering fast ones) before snapshotting → this is what guarantees exactly-once. At-least-once skips alignment → faster but may double-count.</li>
+        <li><strong>Unaligned checkpoints</strong>: let barriers overtake in-flight data under backpressure (stores in-flight buffers in snapshot) → fast checkpoints when backpressured.</li>
+      </ul>
+      <ul class="ru">
+        <li>Exactly-once = <strong>согласованность состояния</strong>, НЕ «каждое сообщение на проводе один раз». Каждая запись влияет на состояние ровно один раз, даже при сбоях.</li>
+        <li>Механизм: <strong>асинхронное барьерное снапшотирование</strong> (вариант Chandy-Lamport).</li>
+        <li>Координатор инжектит <strong>checkpoint barriers</strong> в источники; барьеры текут с данными; при барьере оператор делает снапшот состояния.</li>
+        <li><strong>Barrier alignment</strong>: оператор с несколькими входами ждёт барьера на ВСЕХ входах (буферизуя быстрые) перед снапшотом → это и гарантирует exactly-once. At-least-once пропускает alignment → быстрее, но может задвоить.</li>
+        <li><strong>Unaligned checkpoints</strong>: пропускают барьеры обгонять in-flight данные при backpressure (сохраняют in-flight буферы в снапшоте) → быстрые checkpoints при backpressure.</li>
+      </ul>
+    </div>
+    <div class="ascii reveal en">END-TO-END EXACTLY-ONCE = consistent snapshot + cooperating source + sink
+
+[Kafka source]──barrier──▶[stateful op]──barrier──▶[2PC / idempotent sink]
+   resettable             snapshot state          pre-commit on checkpoint,
+   offsets                 + offsets               commit on checkpoint-complete</div>
+    <div class="ascii ru">СКВОЗНОЙ EXACTLY-ONCE = согласованный снапшот + кооперирующий source + sink
+
+[Kafka source]──barrier──▶[stateful op]──barrier──▶[2PC / идемп. sink]
+   сбрасываемые          снапшот состояния       pre-commit при checkpoint,
+   оффсеты                + оффсеты               commit при завершении checkpoint</div>
+    <div class="card reveal">
+      <h3 class="o"><span class="en">Guarantee ladder &amp; cost</span><span class="ru">Лестница гарантий и цена</span></h3>
+      <table class="en">
+        <tr><th>Level</th><th>How</th><th>Cost</th></tr>
+        <tr><td>at-most-once</td><td>no checkpoints</td><td>may lose data</td></tr>
+        <tr><td>at-least-once</td><td>checkpoints, no alignment</td><td>possible dupes</td></tr>
+        <tr><td>exactly-once (state)</td><td>aligned checkpoints</td><td>alignment latency</td></tr>
+        <tr><td>end-to-end EO</td><td>+ transactional/idempotent sink</td><td>2PC complexity</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Уровень</th><th>Как</th><th>Цена</th></tr>
+        <tr><td>at-most-once</td><td>нет checkpoints</td><td>может потерять данные</td></tr>
+        <tr><td>at-least-once</td><td>checkpoints, без alignment</td><td>возможны дубли</td></tr>
+        <tr><td>exactly-once (state)</td><td>aligned checkpoints</td><td>задержка alignment</td></tr>
+        <tr><td>сквозной EO</td><td>+ транзакционный/идемпотентный sink</td><td>сложность 2PC</td></tr>
+      </table>
+    </div>
+    <div class="callout probe reveal">
+      <span class="tag"><span class="en">PROBE</span><span class="ru">ВОПРОС</span></span>
+      <p class="en">"What breaks exactly-once?" → a non-transactional, non-idempotent sink. You can checkpoint perfectly and still double-write to the external system on replay.</p>
+      <p class="ru">«Что ломает exactly-once?» → не транзакционный, не идемпотентный sink. Можно идеально чекпоинтить и всё равно задвоить запись во внешнюю систему при повторе.</p>
+    </div>
+    <div class="callout anchor reveal">
+      <span class="tag"><span class="en">ANCHOR</span><span class="ru">ЯКОРЬ</span></span>
+      <p class="en">Same reasoning as Kafka offset management at IU Group: only advance the committed offset once the downstream write is durable, else gaps or dupes on restart. Flink formalizes that across the whole operator graph.</p>
+      <p class="ru">То же рассуждение, что при управлении оффсетами Kafka в IU Group: двигать закоммиченный оффсет только когда downstream-запись надёжна, иначе пропуски или дубли при рестарте. Flink формализует это на весь граф операторов.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ARCH -->
+<section id="arch">
+  <div class="section-head"><h2><span class="en">🏗 Architecture, Backpressure &amp; Operators</span><span class="ru">🏗 Архитектура, Backpressure и операторы</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <div class="card reveal">
+      <h3><span class="en">Runtime components</span><span class="ru">Runtime-компоненты</span></h3>
+      <ul class="en">
+        <li><strong>JobManager</strong> (master): schedules, coordinates checkpoints, handles failover. Contains Dispatcher, ResourceManager, per-job JobMaster.</li>
+        <li><strong>TaskManagers</strong> (workers): run subtasks in <strong>task slots</strong> (resource isolation). Slot sharing lets a pipeline slice share a slot.</li>
+        <li><strong>Dataflow</strong>: program → logical <em>JobGraph</em> → physical <em>ExecutionGraph</em> (parallel subtasks). Operators fuse into <strong>operator chains</strong> (one thread, no serialization → big perf win).</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>JobManager</strong> (мастер): планирует, координирует checkpoints, обрабатывает failover. Содержит Dispatcher, ResourceManager, per-job JobMaster.</li>
+        <li><strong>TaskManagers</strong> (воркеры): выполняют subtasks в <strong>task slots</strong> (изоляция ресурсов). Slot sharing позволяет срезу пайплайна делить slot.</li>
+        <li><strong>Dataflow</strong>: программа → логический <em>JobGraph</em> → физический <em>ExecutionGraph</em> (параллельные subtasks). Операторы сливаются в <strong>operator chains</strong> (один поток, без сериализации → большой выигрыш в производительности).</li>
+      </ul>
+    </div>
+    <div class="card reveal">
+      <h3 class="o"><span class="en">Backpressure</span><span class="ru">Backpressure</span></h3>
+      <ul class="en">
+        <li>Downstream can't keep up → it slows upstream via <strong>credit-based flow control</strong> (receiver grants buffer credits) instead of dropping/OOM. Pressure propagates back to source.</li>
+        <li>Diagnose in Web UI: bottleneck = first operator that is <em>busy but not backpressured</em>.</li>
+        <li>Causes: key skew, slow sink, GC, undersized parallelism. Heavy backpressure delays barriers → slow checkpoints (→ unaligned helps).</li>
+      </ul>
+      <ul class="ru">
+        <li>Downstream не успевает → замедляет upstream через <strong>credit-based flow control</strong> (получатель выдаёт кредиты на буфер) вместо сброса/OOM. Давление распространяется к источнику.</li>
+        <li>Диагностика в Web UI: узкое место = первый оператор, который <em>занят, но не под backpressure</em>.</li>
+        <li>Причины: перекос по ключам, медленный sink, GC, недостаточный parallelism. Сильный backpressure задерживает барьеры → медленные checkpoints (→ unaligned помогает).</li>
+      </ul>
+    </div>
+    <div class="card reveal">
+      <h3 class="p"><span class="en">Partitioning &amp; low-level APIs</span><span class="ru">Партиционирование и низкоуровневые API</span></h3>
+      <ul class="en">
+        <li><code class="inline">keyBy</code> hash partition (same key→same subtask) · <code class="inline">rebalance</code> round-robin (fix skew) · <code class="inline">rescale</code> local round-robin · <code class="inline">broadcast</code> to all (broadcast-state pattern for dynamic rules) · <code class="inline">forward</code> 1:1 (enables chaining).</li>
+        <li><strong>KeyedProcessFunction</strong>: lowest-level — events + keyed state + event/processing-time <strong>timers</strong>. For custom state machines, dedup, timeouts, joins.</li>
+        <li><strong>FlinkCEP</strong>: pattern detection ("A then B within 10m, not preceded by C") via NFA — fraud/abuse/alerting.</li>
+        <li><strong>Stream joins</strong>: interval join (bounded), CoProcessFunction (manual TTL), temporal table join (as-of dimension). <em>Always bound join state.</em></li>
+      </ul>
+      <ul class="ru">
+        <li><code class="inline">keyBy</code> хеш-партиционирование (тот же ключ→тот же subtask) · <code class="inline">rebalance</code> round-robin (лечить перекос) · <code class="inline">rescale</code> локальный round-robin · <code class="inline">broadcast</code> всем (broadcast-state паттерн для динамических правил) · <code class="inline">forward</code> 1:1 (позволяет chaining).</li>
+        <li><strong>KeyedProcessFunction</strong>: самый низкоуровневый — события + keyed state + event/processing-time <strong>таймеры</strong>. Для кастомных state machines, dedup, таймаутов, join.</li>
+        <li><strong>FlinkCEP</strong>: обнаружение паттернов («A затем B в пределах 10m, не предшествует C») через NFA — фрод/абьюз/алертинг.</li>
+        <li><strong>Stream joins</strong>: interval join (ограниченный), CoProcessFunction (ручной TTL), temporal table join (as-of измерение). <em>Всегда ограничивай join-состояние.</em></li>
+      </ul>
+    </div>
+    <div class="callout anchor reveal">
+      <span class="tag"><span class="en">ANCHOR</span><span class="ru">ЯКОРЬ</span></span>
+      <p class="en">Abuse/integrity detection at Meta is full of "sequence of actions within a window" logic — CEP and KeyedProcessFunction are the streaming-native way to express the patterns I built in batch.</p>
+      <p class="ru">Обнаружение абьюза/целостности в Meta полно логики «последовательность действий в окне» — CEP и KeyedProcessFunction — это streaming-native способ выразить паттерны, которые я строил в батче.</p>
+    </div>
+  </div>
+</section>
+
+<!-- VS SPARK + ICEBERG -->
+<section id="vs">
+  <div class="section-head"><h2><span class="en">⚔ Flink vs Spark Structured Streaming · Iceberg</span><span class="ru">⚔ Flink vs Spark Structured Streaming · Iceberg</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <div class="card reveal">
+      <table class="en">
+        <tr><th>Dimension</th><th>Flink</th><th>Spark Structured Streaming</th></tr>
+        <tr><td>Model</td><td>true record-at-a-time</td><td>micro-batch (Continuous is limited)</td></tr>
+        <tr><td>Latency</td><td>single-digit ms</td><td>~100s ms to seconds</td></tr>
+        <tr><td>Large state</td><td>first-class, RocksDB</td><td>supported, historically less mature</td></tr>
+        <tr><td>Event time</td><td>mature, fine-grained</td><td>simpler model</td></tr>
+        <tr><td>Batch + ML</td><td>weaker batch story</td><td>dominant ecosystem, MLlib</td></tr>
+        <tr><td>Best fit</td><td>low-latency, complex stateful, CEP, alerts</td><td>batch+stream on existing Spark, seconds OK</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Измерение</th><th>Flink</th><th>Spark Structured Streaming</th></tr>
+        <tr><td>Модель</td><td>настоящий record-at-a-time</td><td>micro-batch (Continuous ограничен)</td></tr>
+        <tr><td>Задержка</td><td>единицы мс</td><td>~100 мс - секунды</td></tr>
+        <tr><td>Большое состояние</td><td>first-class, RocksDB</td><td>поддерживается, исторически менее зрелое</td></tr>
+        <tr><td>Event time</td><td>зрелое, тонко настраиваемое</td><td>более простая модель</td></tr>
+        <tr><td>Batch + ML</td><td>слабее по батчу</td><td>доминирующая экосистема, MLlib</td></tr>
+        <tr><td>Лучше подходит</td><td>низкая задержка, сложное stateful, CEP, алерты</td><td>батч+поток на существующем Spark, секунды OK</td></tr>
+      </table>
+      <p class="en"><strong>One-liner:</strong> Flink for true low-latency, large-stateful, event-time-correct streaming. Spark SS when seconds are fine and you want one engine for batch + stream + ML on an existing stack.</p>
+      <p class="ru"><strong>Одной строкой:</strong> Flink для настоящего низкозадержечного, large-stateful, event-time-корректного стриминга. Spark SS, когда секунды приемлемы и нужен один движок для батча + потока + ML на существующем стеке.</p>
+    </div>
+    <div class="card reveal">
+      <h3 class="g"><span class="en">Iceberg + the canonical pipeline</span><span class="ru">Iceberg и канонический пайплайн</span></h3>
+      <div class="ascii en">Kafka ──▶ Flink ──────────▶ Iceberg ──▶ Trino / Spark
+         (exactly-once,      (ACID snapshots,   (analytics,
+          stateful, EO)       schema evolution,  time travel)
+                              hidden partitioning)</div>
+      <div class="ascii ru">Kafka ──▶ Flink ──────────▶ Iceberg ──▶ Trino / Spark
+         (exactly-once,      (ACID снапшоты,    (аналитика,
+          stateful, EO)       schema evolution,  time travel)
+                              скрытое партиционирование)</div>
+      <ul class="en">
+        <li>Flink reads/writes Iceberg (stream + batch); streaming writes commit as Iceberg snapshots aligned with Flink checkpoints → exactly-once into a lakehouse.</li>
+        <li>Iceberg = open table format giving ACID snapshot isolation, schema evolution, time travel over object storage. Open-source analog to Snowflake/BigQuery/Hive formats you've used.</li>
+      </ul>
+      <ul class="ru">
+        <li>Flink читает/пишет Iceberg (поток + батч); потоковые записи коммитятся как Iceberg-снапшоты, выровненные с Flink checkpoints → exactly-once в lakehouse.</li>
+        <li>Iceberg = открытый табличный формат, дающий ACID snapshot isolation, schema evolution, time travel поверх объектного хранилища. Открытый аналог форматов Snowflake/BigQuery/Hive, которые ты использовал.</li>
+      </ul>
+    </div>
+    <div class="callout gap reveal">
+      <span class="tag"><span class="en">GAP — say it cleanly</span><span class="ru">ПРОБЕЛ — скажи чётко</span></span>
+      <p class="en">"Iceberg is a study area for me; I know it as the ACID, schema-evolving, time-travel table format that unifies realtime + historical. The pipeline pairs Flink + Kafka + Iceberg and that Kafka→Flink→Iceberg→Trino pattern is exactly the architecture I'd draw."</p>
+      <p class="ru">«Iceberg — зона изучения для меня; я знаю его как ACID, schema-evolving, time-travel табличный формат, объединяющий realtime + исторические данные. Пайплайн связывает Flink + Kafka + Iceberg, и паттерн Kafka→Flink→Iceberg→Trino — это именно та архитектура, которую я бы нарисовал.»</p>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="section-head"><h2><span class="en">🃏 Flip-to-Reveal Self-Quiz</span><span class="ru">🃏 Самопроверка с переворачиванием</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <p class="sub en" style="margin-bottom:6px">Tap a card to flip. Answer out loud first.</p>
+    <p class="sub ru" style="margin-bottom:6px">Нажми на карточку, чтобы перевернуть. Сначала ответь вслух.</p>
+    <div class="flip-grid">
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="flip-q"><span class="en">What is a watermark in one sentence?</span><span class="ru">Что такое watermark одним предложением?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">A marker asserting "no event with timestamp ≤ t will arrive after this." It tracks event-time progress and fires event-time windows. Operator watermark = <strong>min</strong> across inputs.</span><span class="ru">Маркер, утверждающий «событий с timestamp ≤ t после этого не будет». Отслеживает прогресс event-time и запускает event-time окна. Watermark оператора = <strong>min</strong> по входам.</span></div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="flip-q"><span class="en">How does Flink achieve exactly-once?</span><span class="ru">Как Flink достигает exactly-once?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Aligned <strong>checkpoint barriers</strong> (Chandy-Lamport snapshots): operators wait for the barrier on all inputs, snapshot state consistently. End-to-end needs a <strong>transactional/idempotent sink</strong> + resettable source.</span><span class="ru">Выровненные <strong>checkpoint barriers</strong> (Chandy-Lamport снапшоты): операторы ждут барьера на всех входах, делают снапшот состояния согласованно. Сквозной требует <strong>транзакционного/идемпотентного sink</strong> + сбрасываемого source.</span></div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="flip-q"><span class="en">Checkpoint vs Savepoint?</span><span class="ru">Checkpoint vs Savepoint?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Checkpoint = automatic, Flink-managed, for crash recovery. Savepoint = manual, user-owned, portable — for code upgrades, rescale, version/cluster migration.</span><span class="ru">Checkpoint = автоматический, управляется Flink, для восстановления после падения. Savepoint = ручной, в собственности пользователя, портируемый — для апгрейдов кода, масштабирования, миграции версии/кластера.</span></div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="flip-q"><span class="en">Why set <code class="inline">.uid()</code> on operators?</span><span class="ru">Зачем ставить <code class="inline">.uid()</code> на операторах?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">On restore Flink maps saved state to operators by ID. Auto IDs change when topology changes → restore fails / state dropped. Stable UIDs let state survive code refactors and rescale.</span><span class="ru">При восстановлении Flink сопоставляет сохранённое состояние с операторами по ID. Авто-ID меняются при изменении топологии → восстановление падает / состояние теряется. Стабильные UID позволяют состоянию пережить рефакторинг кода и масштабирование.</span></div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="flip-q"><span class="en">HashMap vs RocksDB state backend?</span><span class="ru">HashMap vs RocksDB state backend?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">HashMap = on JVM heap, fast, small state. EmbeddedRocksDB = on local disk, serialized, supports state bigger than memory + <strong>incremental checkpoints</strong>, slightly higher access latency.</span><span class="ru">HashMap = на JVM heap, быстрое, маленькое состояние. EmbeddedRocksDB = на локальном диске, сериализованное, поддерживает состояние больше памяти + <strong>инкрементальные checkpoints</strong>, чуть выше задержка доступа.</span></div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="flip-q"><span class="en">Tumbling vs sliding vs session window?</span><span class="ru">Tumbling vs sliding vs session окно?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Tumbling = fixed, non-overlapping. Sliding = fixed size + slide, overlapping. Session = dynamic, closes after a <strong>gap of inactivity</strong> (sessionization).</span><span class="ru">Tumbling = фиксированное, без перекрытия. Sliding = фиксированный размер + слайд, с перекрытием. Session = динамическое, закрывается после <strong>паузы в активности</strong> (сессионизация).</span></div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="flip-q"><span class="en">What is barrier alignment and its cost?</span><span class="ru">Что такое barrier alignment и его цена?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">A multi-input operator waits for the checkpoint barrier on ALL inputs (buffering faster ones) before snapshotting. Guarantees exactly-once; costs latency. Skipping it = at-least-once. Unaligned checkpoints relax it under backpressure.</span><span class="ru">Оператор с несколькими входами ждёт checkpoint барьера на ВСЕХ входах (буферизуя быстрые) перед снапшотом. Гарантирует exactly-once; стоит задержку. Пропуск = at-least-once. Unaligned checkpoints ослабляют при backpressure.</span></div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="flip-q"><span class="en">How does Flink handle backpressure?</span><span class="ru">Как Flink обрабатывает backpressure?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en"><strong>Credit-based flow control</strong>: receivers grant buffer credits; senders transmit only with credits. Pressure propagates to the source — no drops/OOM. Diagnose in Web UI (busy vs backpressured).</span><span class="ru"><strong>Credit-based flow control</strong>: получатели выдают кредиты на буфер; отправители передают только при наличии кредитов. Давление распространяется к источнику — нет сброса/OOM. Диагностика в Web UI (занят vs под backpressure).</span></div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="flip-q"><span class="en">How do you avoid unbounded state?</span><span class="ru">Как избежать неограниченного состояния?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en"><strong>State TTL</strong> (StateTtlConfig) to expire old keys; bound stream joins via interval/temporal; RocksDB incremental checkpoints. Otherwise recovery slows and disk blows up.</span><span class="ru"><strong>State TTL</strong> (StateTtlConfig) для устаревания старых ключей; ограничь stream join через interval/temporal; RocksDB инкрементальные checkpoints. Иначе восстановление замедляется и диск взрывается.</span></div></div>
+      </div></div>
+
+      <div class="flip"><div class="flip-inner">
+        <div class="flip-face flip-front"><div class="flip-q"><span class="en">Key groups — what and why care?</span><span class="ru">Key groups — что и зачем заботиться?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Atomic unit of keyed-state redistribution on rescale. <strong>Max parallelism</strong> fixes their count, capping rescale without state migration — so set it deliberately at job creation.</span><span class="ru">Атомарная единица перераспределения keyed-state при масштабировании. <strong>Max parallelism</strong> фиксирует их число, ограничивая масштабирование без миграции состояния — поэтому устанавливай осознанно при создании джоба.</span></div></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- GOTCHAS -->
+<section id="gotcha">
+  <div class="section-head"><h2><span class="en">⚠ Gotchas &amp; Failure-Mode Drills</span><span class="ru">⚠ Подводные камни и разбор режимов сбоев</span></h2><span class="chev">▼</span></div>
+  <div class="section-body">
+    <div class="card reveal">
+      <h3 class="o"><span class="en">Top production gotchas</span><span class="ru">Главные подводные камни в продакшене</span></h3>
+      <ul class="en">
+        <li>No <code class="inline">.uid()</code> → can't restore from savepoint after a code edit.</li>
+        <li>No state TTL → state grows forever, recovery gets slower over time.</li>
+        <li>Idle Kafka partition → min watermark stalls → windows never fire. Use <code class="inline">withIdleness</code>.</li>
+        <li>Non-idempotent sink → exactly-once is a lie; you double-write on replay.</li>
+        <li>Key skew → one subtask backpressured → checkpoints time out. Salt / two-phase aggregate.</li>
+        <li>Dropping late data silently → use side outputs to capture it.</li>
+        <li>Unbounded stream join → state explosion. Use interval/temporal joins or TTL.</li>
+      </ul>
+      <ul class="ru">
+        <li>Нет <code class="inline">.uid()</code> → не восстановить из savepoint после правки кода.</li>
+        <li>Нет state TTL → состояние растёт вечно, восстановление замедляется со временем.</li>
+        <li>Idle партиция Kafka → min watermark застревает → окна не запускаются. Использовать <code class="inline">withIdleness</code>.</li>
+        <li>Не идемпотентный sink → exactly-once — ложь; ты задваиваешь запись при повторе.</li>
+        <li>Перекос по ключам → один subtask под backpressure → checkpoints таймаутятся. Salt / двухфазная агрегация.</li>
+        <li>Тихий сброс опоздавших данных → использовать side outputs, чтобы захватить их.</li>
+        <li>Неограниченный stream join → взрыв состояния. Использовать interval/temporal join или TTL.</li>
+      </ul>
+    </div>
+    <div class="card reveal">
+      <h3 class="p"><span class="en">Drill: "Checkpoints keep timing out under load."</span><span class="ru">Разбор: «Checkpoints таймаутятся под нагрузкой»</span></h3>
+      <ol class="en" style="margin-left:18px">
+        <li>Web UI: is it <strong>alignment time</strong> (backpressure) or <strong>snapshot time</strong> (state size)?</li>
+        <li>Alignment-bound → find bottleneck (busy, not backpressured); fix skew / scale / speed sink; try <strong>unaligned checkpoints</strong>.</li>
+        <li>State-size-bound → <strong>incremental checkpoints</strong> (RocksDB) + <strong>state TTL</strong>; relax interval/timeout.</li>
+        <li>Sink-bound (slow 2PC commit) → investigate external latency; idempotent sink may beat 2PC.</li>
+        <li>Confirm with metrics, not vibes.</li>
+      </ol>
+      <ol class="ru" style="margin-left:18px">
+        <li>Web UI: это <strong>alignment time</strong> (backpressure) или <strong>snapshot time</strong> (размер состояния)?</li>
+        <li>Ограничен alignment → найти узкое место (занят, но не под backpressure); чинить перекос / масштабировать / ускорить sink; попробовать <strong>unaligned checkpoints</strong>.</li>
+        <li>Ограничен размером состояния → <strong>инкрементальные checkpoints</strong> (RocksDB) + <strong>state TTL</strong>; ослабить интервал/таймаут.</li>
+        <li>Ограничен sink (медленный 2PC commit) → исследовать внешнюю задержку; идемпотентный sink может быть лучше 2PC.</li>
+        <li>Подтверждать метриками, а не ощущениями.</li>
+      </ol>
+    </div>
+    <div class="card reveal">
+      <h3 class="g"><span class="en">When NOT to use Flink</span><span class="ru">Когда НЕ использовать Flink</span></h3>
+      <ul class="en">
+        <li>Pure batch ETL where seconds-minutes latency is fine and the org is on Spark.</li>
+        <li>Low volume where a consumer or cron suffices — Flink's ops overhead isn't justified.</li>
+        <li>No JVM/streaming ops capacity — exactly-once + state + savepoint discipline is real cost.</li>
+        <li><em>Picking boring batch when realtime isn't needed is senior judgment.</em></li>
+      </ul>
+      <ul class="ru">
+        <li>Чистый батч ETL, где задержка в секундах-минутах приемлема, и организация на Spark.</li>
+        <li>Малый объём, где хватает консьюмера или cron — операционные расходы Flink не оправданы.</li>
+        <li>Нет JVM/streaming-ops компетенций — exactly-once + состояние + savepoint дисциплина — реальная цена.</li>
+        <li><em>Выбирать скучный батч, когда realtime не нужен — это senior-суждение.</em></li>
+      </ul>
+    </div>
+    <div class="callout anchor reveal">
+      <span class="tag"><span class="en">CLOSING ANCHOR (gap → strength)</span><span class="ru">ЗАКЛЮЧИТЕЛЬНЫЙ ЯКОРЬ (пробел → сила)</span></span>
+      <p class="en">"No prod Flink yet, but I've shipped the hard parts under other names: Kafka exactly-once offset reasoning, Scala/Spark stateful pipelines, Airflow migrations saving €1M+. Day one I'd enforce UIDs, state TTL, deterministic event-time logic, MiniCluster integration tests and checkpoint monitoring — the craftsmanship and failure-mode rigor needed."</p>
+      <p class="ru">«Flink в проде пока нет, но я запустил сложные части под другими именами: Kafka exactly-once рассуждения про оффсеты, Scala/Spark stateful-пайплайны, Airflow-миграции, сэкономившие €1M+. С первого дня я бы внедрил UID, state TTL, детерминированную event-time логику, MiniCluster integration tests и мониторинг checkpoints — необходимые мастерство и строгость в режимах сбоев.»</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Built for Amal Imangulov · Data Engineering interview prep · Anchor your Flink stories on <strong>IU Group / Front Tier / Meta</strong> · Lead with event-time, watermarks, state, exactly-once, and honest gap framing.</span>
+  <span class="ru">Сделано для Amal Imangulov · Подготовка к Data Engineering интервью · Якори для историй про Flink — <strong>IU Group / Front Tier / Meta</strong> · Веди с event-time, watermarks, состояния, exactly-once и честной формулировки про пробел.</span>
+</footer>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  // ---- theme toggle ----
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+  }
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('de_cheat_theme'); } catch (e) {}
+  applyTheme(savedTheme || 'dark');
+  themeBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('de_cheat_theme', next); } catch (e) {}
+  });
+
+  // ---- language toggle ----
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l) {
+    root.setAttribute('data-lang', l);
+    root.setAttribute('lang', l);
+    langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+  }
+  var savedLang = null;
+  try { savedLang = localStorage.getItem('de_cheat_lang'); } catch (e) {}
+  applyLang(savedLang || 'en');
+  langBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+    applyLang(next);
+    try { localStorage.setItem('de_cheat_lang', next); } catch (e) {}
+  });
+
+  // ---- collapsible sections ----
+  document.querySelectorAll('.section-head').forEach(function (h) {
+    h.addEventListener('click', function () {
+      h.classList.toggle('collapsed');
+      h.nextElementSibling.classList.toggle('hidden');
+    });
+  });
+
+  // ---- flip cards ----
+  document.querySelectorAll('.flip').forEach(function (c) {
+    c.addEventListener('click', function () { c.classList.toggle('flipped'); });
+  });
+
+  // ---- scroll reveal ----
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+})();
+</script>
+</body>
+</html>

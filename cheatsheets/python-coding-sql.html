@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Coding &amp; SQL — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --card:#151d30; --card2:#1b2540; --txt:#e6ecf5; --muted:#8a97b3;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7;
+    --border:#26324d; --code-bg:#0d1424; --shadow:rgba(0,0,0,.45);
+    --kw:#a855f7; --str:#02e2ac; --num:#f59e0b; --com:#5c6b8a; --fn:#1877F2; --bi:#e6ecf5;
+  }
+  [data-theme="light"]{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2fb; --txt:#16203a; --muted:#5b6680;
+    --accent:#1565d8; --green:#089e7c; --orange:#c87a06; --purple:#8b3fd6;
+    --border:#d6deeb; --code-bg:#f0f3fa; --shadow:rgba(20,40,80,.10);
+    --kw:#8b3fd6; --str:#089e7c; --num:#c87a06; --com:#8893a8; --fn:#1565d8; --bi:#16203a;
+  }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55; font-size:15px; transition:background .3s,color .3s;
+  }
+  code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* Sticky nav */
+  nav{
+    position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:14px; padding:10px 18px; flex-wrap:wrap;
+  }
+  nav .brand{font-weight:700; font-size:15px; color:var(--txt); white-space:nowrap}
+  nav .brand .dot{color:var(--green)}
+  nav .links{display:flex; gap:6px; flex-wrap:wrap; flex:1}
+  nav .links a{
+    color:var(--muted); padding:4px 9px; border-radius:7px; font-size:12.5px; font-weight:600;
+  }
+  nav .links a:hover{background:var(--card2); color:var(--txt); text-decoration:none}
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--txt);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  header.hero{padding:34px 20px 12px; max-width:1080px; margin:0 auto}
+  header.hero h1{font-size:27px; margin:0 0 6px; letter-spacing:-.4px}
+  header.hero p{color:var(--muted); margin:4px 0; max-width:760px}
+  .pills{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+  .pill{font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:20px; border:1px solid var(--border); color:var(--muted)}
+  .pill.a{color:var(--accent); border-color:color-mix(in srgb,var(--accent) 50%,var(--border))}
+  .pill.g{color:var(--green); border-color:color-mix(in srgb,var(--green) 50%,var(--border))}
+  .pill.o{color:var(--orange); border-color:color-mix(in srgb,var(--orange) 50%,var(--border))}
+  .pill.p{color:var(--purple); border-color:color-mix(in srgb,var(--purple) 50%,var(--border))}
+
+  main{max-width:1080px; margin:0 auto; padding:10px 20px 80px}
+
+  /* Collapsible sections */
+  section{margin:18px 0}
+  .sec-head{
+    display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;
+    padding:12px 16px; background:var(--card); border:1px solid var(--border); border-radius:12px;
+    transition:border-color .2s;
+  }
+  .sec-head:hover{border-color:var(--accent)}
+  .sec-head h2{margin:0; font-size:18px; flex:1}
+  .sec-head .chev{transition:transform .25s; color:var(--muted); font-size:14px}
+  .sec-head.collapsed .chev{transform:rotate(-90deg)}
+  .sec-body{padding:6px 2px 2px}
+  .sec-body.hidden{display:none}
+  .sec-num{color:var(--accent); font-weight:800; font-size:13px; background:var(--card2); padding:2px 8px; border-radius:6px}
+
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:16px 18px; margin:12px 0; box-shadow:0 1px 3px var(--shadow);
+  }
+  .card h3{margin:0 0 8px; font-size:15.5px; color:var(--txt)}
+  .card h4{margin:14px 0 6px; font-size:13.5px; color:var(--green); text-transform:uppercase; letter-spacing:.5px}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px}
+
+  ul,ol{margin:6px 0; padding-left:20px}
+  li{margin:3px 0}
+  .muted{color:var(--muted)}
+  b.k{color:var(--purple)}
+  b.acc{color:var(--accent)}
+  b.gr{color:var(--green)}
+
+  /* Code blocks */
+  pre{
+    background:var(--code-bg); border:1px solid var(--border); border-radius:9px;
+    padding:12px 14px; overflow-x:auto; font-size:12.8px; line-height:1.5; margin:8px 0;
+  }
+  pre code{white-space:pre}
+  .tok-kw{color:var(--kw); font-weight:600}
+  .tok-str{color:var(--str)}
+  .tok-num{color:var(--num)}
+  .tok-com{color:var(--com); font-style:italic}
+  .tok-fn{color:var(--fn)}
+  .tok-bi{color:var(--orange)}
+  code.inline{background:var(--code-bg); border:1px solid var(--border); padding:1px 6px; border-radius:5px; font-size:12.5px}
+
+  /* Callouts */
+  .callout{border-left:3px solid var(--accent); background:var(--card2); padding:10px 14px; border-radius:0 9px 9px 0; margin:10px 0; font-size:13.5px}
+  .callout.probe{border-color:var(--purple)}
+  .callout.probe::before{content:"🎯 INTERVIEWER WILL PROBE"; display:block; font-weight:800; font-size:11px; letter-spacing:.6px; color:var(--purple); margin-bottom:4px}
+  .callout.probe.ru::before{content:"🎯 О ЧЁМ СПРОСИТ ИНТЕРВЬЮЕР"}
+  .callout.gotcha{border-color:var(--orange)}
+  .callout.gotcha::before{content:"⚠ GOTCHA"; display:block; font-weight:800; font-size:11px; letter-spacing:.6px; color:var(--orange); margin-bottom:4px}
+  .callout.gotcha.ru::before{content:"⚠ ПОДВОХ"}
+  .callout.big{border-color:var(--green)}
+  .callout.big::before{content:"⏱ BIG-O"; display:block; font-weight:800; font-size:11px; letter-spacing:.6px; color:var(--green); margin-bottom:4px}
+  .callout.craft{border-color:var(--accent)}
+  .callout.craft::before{content:"✦ CRAFTSMANSHIP"; display:block; font-weight:800; font-size:11px; letter-spacing:.6px; color:var(--accent); margin-bottom:4px}
+  .callout.craft.ru::before{content:"✦ МАСТЕРСТВО"}
+
+  /* Flip cards */
+  .flip{perspective:1600px; margin:14px 0}
+  .flip-inner{position:relative; transition:transform .55s; transform-style:preserve-3d; min-height:90px}
+  .flip.open .flip-inner{transform:rotateX(180deg)}
+  .flip-face{backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:12px; border:1px solid var(--border)}
+  .flip-front{background:var(--card); padding:16px 18px}
+  .flip-back{position:absolute; inset:0; transform:rotateX(180deg); background:var(--card); padding:16px 18px; overflow:auto}
+  .flip-front .q-tag{font-size:11px; font-weight:800; letter-spacing:.6px; color:var(--orange)}
+  .flip-front h3{margin:6px 0 8px}
+  .flip-btn{
+    margin-top:10px; cursor:pointer; border:1px solid var(--accent); background:transparent;
+    color:var(--accent); padding:6px 14px; border-radius:8px; font-weight:700; font-size:12.5px;
+  }
+  .flip-btn:hover{background:var(--accent); color:#fff}
+  .flip-back .a-tag{font-size:11px; font-weight:800; letter-spacing:.6px; color:var(--green)}
+
+  /* Reveal animation */
+  .reveal{opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s}
+  .reveal.in{opacity:1; transform:none}
+
+  table.tbl{width:100%; border-collapse:collapse; font-size:13px; margin:8px 0}
+  table.tbl th,table.tbl td{border:1px solid var(--border); padding:6px 9px; text-align:left; vertical-align:top}
+  table.tbl th{background:var(--card2); color:var(--green); font-size:11.5px; text-transform:uppercase; letter-spacing:.4px}
+
+  footer{max-width:1080px; margin:0 auto; padding:20px; color:var(--muted); font-size:12.5px; border-top:1px solid var(--border)}
+
+  @media(max-width:640px){
+    header.hero h1{font-size:22px}
+    nav .brand{font-size:13px}
+    body{font-size:14px}
+    .sec-head h2{font-size:16px}
+  }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand"><span class="en">Python &amp; SQL</span><span class="ru">Python и SQL</span><span class="dot">●</span></span>
+  <span class="links">
+    <a href="#py-idiom"><span class="en">Idiomatic</span><span class="ru">Идиомы</span></a>
+    <a href="#py-data"><span class="en">Files/JSON</span><span class="ru">Файлы/JSON</span></a>
+    <a href="#py-pandas"><span class="en">pandas</span><span class="ru">pandas</span></a>
+    <a href="#py-robust"><span class="en">Robust code</span><span class="ru">Надёжный код</span></a>
+    <a href="#py-problems"><span class="en">Py Problems</span><span class="ru">Задачи Py</span></a>
+    <a href="#sql-core"><span class="en">SQL Core</span><span class="ru">SQL Основы</span></a>
+    <a href="#sql-ts"><span class="en">Time-series</span><span class="ru">Временные ряды</span></a>
+    <a href="#sql-opt"><span class="en">Optimization</span><span class="ru">Оптимизация</span></a>
+    <a href="#sql-problems"><span class="en">SQL Problems</span><span class="ru">Задачи SQL</span></a>
+    <a href="#closers"><span class="en">Closers</span><span class="ru">Финал</span></a>
+  </span>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Python Coding &amp; SQL — <span class="k">DE Interview Prep</span></span><span class="ru">Python Coding и SQL — <span class="k">Подготовка к DE-интервью</span></span></h1>
+  <p class="en">Senior Data Engineer · Fast-revision cheatsheet for Data Engineering interviews. First round (~60 min) may include live <b class="acc">Python coding</b> and/or <b class="gr">SQL</b> portions: parse/clean/aggregate structured, semi-structured (nested JSON) and unstructured (text) data.</p>
+  <p class="ru">Senior Data Engineer · Шпаргалка для быстрого повторения перед Data Engineering интервью. Первый раунд (~60 мин) может включать живой <b class="acc">Python coding</b> и/или <b class="gr">SQL</b>: парсинг/очистка/агрегация структурированных, полуструктурированных (вложенный JSON) и неструктурированных (текст) данных.</p>
+  <p class="muted en">Interviewers reward <b>correctness</b>, <b>clean readable code</b>, clear reasoning out loud, complexity awareness, and handling of edge cases. Talk through trade-offs.</p>
+  <p class="muted ru">Интервьюеры ценят <b>корректность</b>, <b>чистый читаемый код</b>, чёткую вербализацию рассуждений, понимание сложности и обработку граничных случаев. Проговаривай компромиссы.</p>
+  <div class="pills">
+    <span class="pill a"><span class="en">comprehensions · generators</span><span class="ru">comprehensions · generators</span></span>
+    <span class="pill g"><span class="en">window functions · CTEs</span><span class="ru">window functions · CTE</span></span>
+    <span class="pill o"><span class="en">gaps-and-islands · sessionization</span><span class="ru">пробелы-и-острова · сессии</span></span>
+    <span class="pill p"><span class="en">time-series resampling</span><span class="ru">ресамплинг временных рядов</span></span>
+    <span class="pill"><span class="en">flip cards = solutions</span><span class="ru">карточки-перевёртыши = решения</span></span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ PYTHON IDIOMATIC ============ -->
+<section id="py-idiom">
+  <div class="sec-head"><span class="sec-num">01</span><h2><span class="en">Idiomatic Python &amp; Lazy Evaluation</span><span class="ru">Идиоматический Python и ленивые вычисления</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="grid">
+      <div class="card">
+        <h3><span class="en">Comprehensions vs generators</span><span class="ru">Comprehensions vs генераторы</span></h3>
+        <pre><code><span class="tok-com"># list comp: materializes everything (memory)</span>
+squares = [x*x <span class="tok-kw">for</span> x <span class="tok-kw">in</span> rng <span class="tok-kw">if</span> x % <span class="tok-num">2</span>]
+<span class="tok-com"># generator expr: lazy, O(1) memory, single-pass</span>
+gen = (x*x <span class="tok-kw">for</span> x <span class="tok-kw">in</span> rng <span class="tok-kw">if</span> x % <span class="tok-num">2</span>)
+total = <span class="tok-bi">sum</span>(x*x <span class="tok-kw">for</span> x <span class="tok-kw">in</span> rng)  <span class="tok-com"># no temp list</span>
+
+<span class="tok-com"># dict / set comps</span>
+idx = {row.id: row <span class="tok-kw">for</span> row <span class="tok-kw">in</span> rows}
+seen = {r.key <span class="tok-kw">for</span> r <span class="tok-kw">in</span> rows}</code></pre>
+        <div class="callout big en">Generators give <b>O(1)</b> memory for streaming. Prefer them for files/logs that don't fit in RAM. Downside: single-pass, no <code class="inline">len()</code>, no indexing.</div>
+        <div class="callout big ru">Генераторы дают <b>O(1)</b> памяти для потоковой обработки. Используй их для файлов/логов, не влезающих в RAM. Минусы: один проход, нет <code class="inline">len()</code>, нет индексирования.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Generators &amp; pipelines (lazy)</span><span class="ru">Генераторы и пайплайны (ленивые)</span></h3>
+        <pre><code><span class="tok-kw">def</span> <span class="tok-fn">read_lines</span>(path):
+    <span class="tok-kw">with</span> <span class="tok-bi">open</span>(path) <span class="tok-kw">as</span> f:
+        <span class="tok-kw">for</span> line <span class="tok-kw">in</span> f:          <span class="tok-com"># file iterates line-by-line</span>
+            <span class="tok-kw">yield</span> line.rstrip(<span class="tok-str">"\n"</span>)
+
+<span class="tok-com"># chain lazy steps; nothing runs until consumed</span>
+rows   = read_lines(<span class="tok-str">"big.log"</span>)
+parsed = (parse(r) <span class="tok-kw">for</span> r <span class="tok-kw">in</span> rows)
+valid  = (p <span class="tok-kw">for</span> p <span class="tok-kw">in</span> parsed <span class="tok-kw">if</span> p)
+<span class="tok-kw">for</span> rec <span class="tok-kw">in</span> valid:           <span class="tok-com"># streams through pipeline</span>
+    handle(rec)</code></pre>
+        <div class="callout craft en">Each stage is a pure transform. Easy to test in isolation, composable, constant memory. Mention this when asked to process a "huge file".</div>
+        <div class="callout craft ru">Каждая стадия — чистая трансформация. Легко тестировать изолированно, композируется, константная память. Упоминай это, когда просят обработать «огромный файл».</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">collections toolkit</span><span class="ru">Инструментарий collections</span></h3>
+        <pre><code><span class="tok-kw">from</span> collections <span class="tok-kw">import</span> defaultdict, Counter, deque
+
+groups = defaultdict(<span class="tok-bi">list</span>)
+<span class="tok-kw">for</span> r <span class="tok-kw">in</span> rows:
+    groups[r.key].append(r)        <span class="tok-com"># no KeyError</span>
+
+freq = Counter(words)              <span class="tok-com"># O(n)</span>
+freq.most_common(<span class="tok-num">10</span>)              <span class="tok-com"># top-K</span>
+freq.update(more_words)
+
+q = deque(maxlen=<span class="tok-num">5</span>)              <span class="tok-com"># O(1) ends; sliding window</span></code></pre>
+        <div class="callout probe en">"How would you count frequencies?" → <code class="inline">Counter</code>, then <code class="inline">most_common(k)</code>. If only top-K matters on a stream, use a heap of size k (O(n log k)) instead of full sort.</div>
+        <div class="callout probe ru">«Как бы ты посчитал частоты?» → <code class="inline">Counter</code>, затем <code class="inline">most_common(k)</code>. Если нужен только top-K на потоке, используй heap размера k (O(n log k)) вместо полной сортировки.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">itertools (lazy combinators)</span><span class="ru">itertools (ленивые комбинаторы)</span></h3>
+        <pre><code><span class="tok-kw">from</span> itertools <span class="tok-kw">import</span> (groupby, islice, chain,
+    accumulate, tee, count, takewhile)
+
+<span class="tok-com"># groupby needs SORTED input by the key!</span>
+<span class="tok-kw">for</span> k, grp <span class="tok-kw">in</span> groupby(<span class="tok-bi">sorted</span>(rows, key=kf), key=kf):
+    process(k, <span class="tok-bi">list</span>(grp))
+
+islice(stream, <span class="tok-num">0</span>, <span class="tok-num">100</span>)         <span class="tok-com"># first 100, lazily</span>
+chain(a, b, c)                  <span class="tok-com"># flatten iterables</span>
+accumulate(nums)                <span class="tok-com"># running totals</span></code></pre>
+        <div class="callout gotcha en"><code class="inline">itertools.groupby</code> only groups <b>consecutive</b> equal keys. You must <code class="inline">sort</code> first, unlike SQL <code class="inline">GROUP BY</code>. Forgetting this is the #1 bug.</div>
+        <div class="callout gotcha ru"><code class="inline">itertools.groupby</code> группирует только <b>подряд идущие</b> одинаковые ключи. Нужна <code class="inline">sort</code> сначала, в отличие от SQL <code class="inline">GROUP BY</code>. Забыть это — ошибка №1.</div>
+      </div>
+    </div>
+    <div class="callout craft en">Pythonic style signals: unpacking (<code class="inline">a, *rest = xs</code>), <code class="inline">enumerate</code>/<code class="inline">zip</code> over index loops, <code class="inline">with</code> for resources, <code class="inline">dict.get(k, default)</code>, EAFP (<code class="inline">try/except</code>) over deep <code class="inline">if</code> checks, f-strings, <code class="inline">pathlib</code> over string paths.</div>
+    <div class="callout craft ru">Признаки питонического стиля: распаковка (<code class="inline">a, *rest = xs</code>), <code class="inline">enumerate</code>/<code class="inline">zip</code> вместо циклов по индексам, <code class="inline">with</code> для ресурсов, <code class="inline">dict.get(k, default)</code>, EAFP (<code class="inline">try/except</code>) вместо глубоких <code class="inline">if</code>, f-strings, <code class="inline">pathlib</code> вместо строковых путей.</div>
+  </div>
+</section>
+
+<!-- ============ FILES / JSON / CSV / PARQUET ============ -->
+<section id="py-data">
+  <div class="sec-head"><span class="sec-num">02</span><h2><span class="en">Files · JSON · CSV · Parquet · Regex</span><span class="ru">Файлы · JSON · CSV · Parquet · Regex</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="grid">
+      <div class="card">
+        <h3><span class="en">CSV — use the module, not split</span><span class="ru">CSV — используй модуль, не split</span></h3>
+        <pre><code><span class="tok-kw">import</span> csv
+<span class="tok-kw">with</span> <span class="tok-bi">open</span>(<span class="tok-str">"data.csv"</span>, newline=<span class="tok-str">""</span>) <span class="tok-kw">as</span> f:
+    <span class="tok-kw">for</span> row <span class="tok-kw">in</span> csv.DictReader(f):   <span class="tok-com"># dict per row</span>
+        <span class="tok-bi">print</span>(row[<span class="tok-str">"ts"</span>], row[<span class="tok-str">"value"</span>])
+
+<span class="tok-kw">with</span> <span class="tok-bi">open</span>(<span class="tok-str">"out.csv"</span>, <span class="tok-str">"w"</span>, newline=<span class="tok-str">""</span>) <span class="tok-kw">as</span> f:
+    w = csv.DictWriter(f, fieldnames=cols)
+    w.writeheader(); w.writerows(records)</code></pre>
+        <div class="callout gotcha en">Never <code class="inline">line.split(",")</code> for real CSV — it breaks on quoted commas, embedded newlines, and escapes. Mention this; it shows you've handled messy real data.</div>
+        <div class="callout gotcha ru">Никогда не <code class="inline">line.split(",")</code> для настоящих CSV — ломается на закавыченных запятых, встроенных переносах строк и экранировании. Упоминай это — показывает, что ты работал с грязными реальными данными.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">JSON &amp; JSON-Lines</span><span class="ru">JSON и JSON-Lines</span></h3>
+        <pre><code><span class="tok-kw">import</span> json
+obj = json.loads(s)                 <span class="tok-com"># str -> dict</span>
+s   = json.dumps(obj, default=<span class="tok-bi">str</span>)  <span class="tok-com"># dates etc.</span>
+
+<span class="tok-com"># JSONL: one JSON object per line (streamable)</span>
+<span class="tok-kw">with</span> <span class="tok-bi">open</span>(<span class="tok-str">"events.jsonl"</span>) <span class="tok-kw">as</span> f:
+    <span class="tok-kw">for</span> line <span class="tok-kw">in</span> f:
+        rec = json.loads(line)      <span class="tok-com"># O(1) memory</span>
+        yield_event(rec)</code></pre>
+        <div class="callout probe en">"Semi-structured data" usually means <b>nested JSON</b>. Be ready to safely traverse with <code class="inline">.get()</code> chains and to flatten (see Problem 5). Know JSONL streams vs one giant JSON array (must fully load).</div>
+        <div class="callout probe ru">«Полуструктурированные данные» обычно значит <b>вложенный JSON</b>. Будь готов безопасно обходить через цепочки <code class="inline">.get()</code> и уплощать (см. Задачу 5). Знай разницу между JSONL-потоками и одним гигантским JSON-массивом (нужно грузить полностью).</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Parquet (columnar)</span><span class="ru">Parquet (колоночный)</span></h3>
+        <pre><code><span class="tok-kw">import</span> pyarrow.parquet <span class="tok-kw">as</span> pq
+table = pq.read_table(<span class="tok-str">"f.parquet"</span>,
+    columns=[<span class="tok-str">"ts"</span>, <span class="tok-str">"val"</span>])      <span class="tok-com"># projection pushdown</span>
+
+<span class="tok-com"># row-group streaming for big files</span>
+pf = pq.ParquetFile(<span class="tok-str">"big.parquet"</span>)
+<span class="tok-kw">for</span> batch <span class="tok-kw">in</span> pf.iter_batches(<span class="tok-num">100_000</span>):
+    df = batch.to_pandas()
+    process(df)</code></pre>
+        <div class="callout big en">Parquet = columnar + compressed + typed + predicate/projection pushdown. Reading 2 of 50 columns reads ~2/50 of the bytes. Huge win for analytics vs CSV.</div>
+        <div class="callout big ru">Parquet = колоночный + сжатый + типизированный + predicate/projection pushdown. Чтение 2 из 50 колонок читает ~2/50 байтов. Огромный выигрыш для аналитики против CSV.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Regex for unstructured text</span><span class="ru">Regex для неструктурированного текста</span></h3>
+        <pre><code><span class="tok-kw">import</span> re
+<span class="tok-com"># Apache-ish log: ip - - [ts] "GET /x" 200 1234</span>
+pat = re.<span class="tok-fn">compile</span>(
+  <span class="tok-str">r'(?P&lt;ip&gt;\S+).*\[(?P&lt;ts&gt;[^\]]+)\]'</span>
+  <span class="tok-str">r'\s+"(?P&lt;method&gt;\S+)\s+(?P&lt;path&gt;\S+)'</span>
+  <span class="tok-str">r'[^"]*"\s+(?P&lt;code&gt;\d+)\s+(?P&lt;bytes&gt;\d+)'</span>)
+m = pat.search(line)
+<span class="tok-kw">if</span> m: rec = m.groupdict()</code></pre>
+        <div class="callout craft en"><b>Compile once</b> outside the loop. Use named groups for readability. Prefer non-greedy <code class="inline">[^"]*</code> over <code class="inline">.*?</code> where you can. Anchor when possible. Always handle the no-match case.</div>
+        <div class="callout craft ru"><b>Компилируй один раз</b> вне цикла. Используй именованные группы для читаемости. Предпочитай non-greedy <code class="inline">[^"]*</code> вместо <code class="inline">.*?</code>, где можно. Якори, где возможно. Всегда обрабатывай случай отсутствия совпадения.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PANDAS ============ -->
+<section id="py-pandas">
+  <div class="sec-head"><span class="sec-num">03</span><h2><span class="en">pandas Essentials &amp; Performance</span><span class="ru">pandas: основы и производительность</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="grid">
+      <div class="card">
+        <h3><span class="en">groupby / merge / vectorize</span><span class="ru">groupby / merge / векторизация</span></h3>
+        <pre><code><span class="tok-kw">import</span> pandas <span class="tok-kw">as</span> pd
+g = (df.groupby(<span class="tok-str">"key"</span>)
+       .agg(n=(<span class="tok-str">"val"</span>,<span class="tok-str">"size"</span>),
+            avg=(<span class="tok-str">"val"</span>,<span class="tok-str">"mean"</span>)))
+m = a.merge(b, on=<span class="tok-str">"id"</span>, how=<span class="tok-str">"left"</span>,
+            validate=<span class="tok-str">"1:1"</span>)        <span class="tok-com"># catches dup keys</span>
+<span class="tok-com"># vectorized, no python loop</span>
+df[<span class="tok-str">"z"</span>] = (df.v - df.v.mean()) / df.v.std()</code></pre>
+        <div class="callout gotcha en">Avoid <code class="inline">df.apply(..., axis=1)</code> and <code class="inline">iterrows()</code> on big frames — they're row-by-row Python (~100x slower). Reach for vectorized column math, <code class="inline">np.where</code>, <code class="inline">.map</code>, or <code class="inline">groupby.transform</code>.</div>
+        <div class="callout gotcha ru">Избегай <code class="inline">df.apply(..., axis=1)</code> и <code class="inline">iterrows()</code> на больших датафреймах — это построчный Python (~в 100 раз медленнее). Используй векторизованную математику по колонкам, <code class="inline">np.where</code>, <code class="inline">.map</code> или <code class="inline">groupby.transform</code>.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Memory discipline</span><span class="ru">Дисциплина по памяти</span></h3>
+        <pre><code>df = pd.read_csv(<span class="tok-str">"f.csv"</span>,
+    usecols=[<span class="tok-str">"ts"</span>,<span class="tok-str">"sym"</span>,<span class="tok-str">"px"</span>],
+    dtype={<span class="tok-str">"sym"</span>:<span class="tok-str">"category"</span>,<span class="tok-str">"px"</span>:<span class="tok-str">"float32"</span>},
+    parse_dates=[<span class="tok-str">"ts"</span>])
+<span class="tok-com"># chunked aggregation of a file too big for RAM</span>
+acc = Counter()
+<span class="tok-kw">for</span> chunk <span class="tok-kw">in</span> pd.read_csv(<span class="tok-str">"huge.csv"</span>,
+        chunksize=<span class="tok-num">500_000</span>):
+    acc.update(chunk.groupby(<span class="tok-str">"k"</span>).size()
+                    .to_dict())</code></pre>
+        <div class="callout big en"><code class="inline">category</code> dtype collapses repeated strings to ints. <code class="inline">float32</code> halves numeric memory. <code class="inline">usecols</code> = column pruning at read time. Quote these for the "large dataset" question.</div>
+        <div class="callout big ru"><code class="inline">category</code> dtype сжимает повторяющиеся строки в инты. <code class="inline">float32</code> вдвое уменьшает память для чисел. <code class="inline">usecols</code> = отсечение колонок при чтении. Упоминай это для вопроса про «большие датасеты».</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Time-series in pandas</span><span class="ru">Временные ряды в pandas</span></h3>
+        <pre><code>df = df.set_index(<span class="tok-str">"ts"</span>).sort_index()
+daily = df[<span class="tok-str">"val"</span>].resample(<span class="tok-str">"1D"</span>).mean()  <span class="tok-com"># bucket</span>
+filled = daily.asfreq(<span class="tok-str">"1D"</span>).ffill()        <span class="tok-com"># gap-fill</span>
+roll = df[<span class="tok-str">"val"</span>].rolling(<span class="tok-str">"7D"</span>).mean()      <span class="tok-com"># running avg</span>
+ret  = df[<span class="tok-str">"px"</span>].pct_change()              <span class="tok-com"># returns</span></code></pre>
+        <div class="callout probe en">Time-series data: know resampling (<code class="inline">resample</code>), gap-filling (<code class="inline">asfreq</code> + <code class="inline">ffill</code>/interpolate), rolling windows, and alignment/joining of series on a date index.</div>
+        <div class="callout probe ru">Данные временных рядов: знай ресамплинг (<code class="inline">resample</code>), заполнение пробелов (<code class="inline">asfreq</code> + <code class="inline">ffill</code>/interpolate), скользящие окна и выравнивание/джойны серий по индексу дат.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">pandas vs pure Python — when?</span><span class="ru">pandas vs чистый Python — когда?</span></h3>
+        <ul class="en">
+          <li><b class="gr">pandas:</b> tabular analytics, joins, group aggregations, time-series math; fits in memory.</li>
+          <li><b class="acc">Pure Python / generators:</b> streaming a file bigger than RAM, irregular parsing, single-pass aggregation, no heavy dep wanted.</li>
+          <li><b class="p">DB / SQL:</b> data already in a warehouse, or joins/aggregations that should be pushed down.</li>
+        </ul>
+        <ul class="ru">
+          <li><b class="gr">pandas:</b> табличная аналитика, джойны, групповые агрегации, математика временных рядов; помещается в памяти.</li>
+          <li><b class="acc">Чистый Python / генераторы:</b> поток файла больше RAM, нерегулярный парсинг, агрегация за один проход, не нужна тяжёлая зависимость.</li>
+          <li><b class="p">БД / SQL:</b> данные уже в хранилище или джойны/агрегации, которые должны быть pushed down.</li>
+        </ul>
+        <div class="callout craft en">In an interview, state your assumption about data size first ("if it fits in memory I'd use pandas; if not, I'd stream"). That single sentence reads as senior.</div>
+        <div class="callout craft ru">На интервью сначала формулируй предположение о размере данных («если влезает в память, использую pandas; если нет — стримлю»). Одно это предложение звучит по-сеньорски.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ROBUST / TESTABLE ============ -->
+<section id="py-robust">
+  <div class="sec-head"><span class="sec-num">04</span><h2><span class="en">Robust, Testable, Typed Code</span><span class="ru">Надёжный, тестируемый, типизированный код</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="grid">
+      <div class="card">
+        <h3><span class="en">Error handling &amp; retries</span><span class="ru">Обработка ошибок и ретраи</span></h3>
+        <pre><code><span class="tok-kw">import</span> time
+<span class="tok-kw">def</span> <span class="tok-fn">with_retry</span>(fn, tries=<span class="tok-num">3</span>, base=<span class="tok-num">0.5</span>):
+    <span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-bi">range</span>(tries):
+        <span class="tok-kw">try</span>:
+            <span class="tok-kw">return</span> fn()
+        <span class="tok-kw">except</span> (TimeoutError, ConnectionError) <span class="tok-kw">as</span> e:
+            <span class="tok-kw">if</span> i == tries - <span class="tok-num">1</span>:
+                <span class="tok-kw">raise</span>
+            time.sleep(base * <span class="tok-num">2</span>**i)   <span class="tok-com"># expo backoff</span></code></pre>
+        <div class="callout gotcha en">Catch <b>specific</b> exceptions, not bare <code class="inline">except:</code>. Only retry transient errors (network/timeout), never a <code class="inline">ValueError</code> from bad data. Add jitter in production. Always re-raise after exhausting tries.</div>
+        <div class="callout gotcha ru">Ловить <b>конкретные</b> исключения, а не голый <code class="inline">except:</code>. Ретраить только временные ошибки (сеть/таймауты), никогда не <code class="inline">ValueError</code> от плохих данных. Добавлять jitter в проде. Всегда re-raise после исчерпания попыток.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Pure functions + dependency injection</span><span class="ru">Чистые функции + dependency injection</span></h3>
+        <pre><code><span class="tok-com"># BAD: hidden I/O, hard to test</span>
+<span class="tok-kw">def</span> <span class="tok-fn">total</span>():
+    <span class="tok-kw">return</span> <span class="tok-bi">sum</span>(r.v <span class="tok-kw">for</span> r <span class="tok-kw">in</span> db.query())
+
+<span class="tok-com"># GOOD: pure core, I/O at the edges</span>
+<span class="tok-kw">def</span> <span class="tok-fn">total</span>(rows):           <span class="tok-com"># deterministic, testable</span>
+    <span class="tok-kw">return</span> <span class="tok-bi">sum</span>(r.v <span class="tok-kw">for</span> r <span class="tok-kw">in</span> rows)
+total(db.query())             <span class="tok-com"># inject dependency</span></code></pre>
+        <div class="callout craft en">Push side effects (DB, files, clock, network) to the boundary; keep the logic pure. Pure functions are trivially unit-testable and what DE interviewers mean by "craftsmanship".</div>
+        <div class="callout craft ru">Отталкивай побочные эффекты (БД, файлы, часы, сеть) на границу; держи логику чистой. Чистые функции тривиально юнит-тестируются — это то, что DE-интервьюеры понимают под «мастерством».</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Typing &amp; clean signatures</span><span class="ru">Типизация и чистые сигнатуры</span></h3>
+        <pre><code><span class="tok-kw">from</span> typing <span class="tok-kw">import</span> Iterable, Iterator
+<span class="tok-kw">from</span> dataclasses <span class="tok-kw">import</span> dataclass
+
+<span class="tok-bi">@dataclass</span>(frozen=<span class="tok-bi">True</span>)
+<span class="tok-kw">class</span> <span class="tok-fn">Trade</span>:
+    ts: <span class="tok-bi">int</span>; sym: <span class="tok-bi">str</span>; px: <span class="tok-bi">float</span>
+
+<span class="tok-kw">def</span> <span class="tok-fn">clean</span>(rows: Iterable[<span class="tok-bi">dict</span>]) -&gt; Iterator[Trade]:
+    <span class="tok-kw">for</span> r <span class="tok-kw">in</span> rows:
+        <span class="tok-kw">yield</span> Trade(<span class="tok-bi">int</span>(r[<span class="tok-str">"ts"</span>]), r[<span class="tok-str">"sym"</span>],
+                    <span class="tok-bi">float</span>(r[<span class="tok-str">"px"</span>]))</code></pre>
+        <div class="callout probe en">Type hints + a <code class="inline">@dataclass</code> show intent. Be ready to say you'd run <code class="inline">mypy</code>/<code class="inline">pyright</code> and write <code class="inline">pytest</code> cases incl. edge cases (empty, malformed, duplicates).</div>
+        <div class="callout probe ru">Type hints + <code class="inline">@dataclass</code> показывают намерение. Будь готов сказать, что прогонишь <code class="inline">mypy</code>/<code class="inline">pyright</code> и напишешь кейсы <code class="inline">pytest</code>, включая граничные случаи (пустой ввод, кривые данные, дубли).</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Edge cases checklist (say these aloud)</span><span class="ru">Чеклист граничных случаев (проговаривай вслух)</span></h3>
+        <ul class="en">
+          <li>Empty input / single element.</li>
+          <li>Duplicates &amp; ties (define tie-break explicitly).</li>
+          <li>Malformed / missing fields → skip vs raise (decide &amp; state).</li>
+          <li>Nulls / NaN / empty strings vs zero.</li>
+          <li>Unsorted input when logic assumes order.</li>
+          <li>Timezones &amp; mixed timestamp formats.</li>
+          <li>Very large input → does it fit in memory?</li>
+        </ul>
+        <ul class="ru">
+          <li>Пустой ввод / один элемент.</li>
+          <li>Дубликаты и равенства (определи tie-break явно).</li>
+          <li>Кривые / отсутствующие поля → пропустить или выбросить ошибку (реши и скажи).</li>
+          <li>Nulls / NaN / пустые строки против нуля.</li>
+          <li>Несортированный ввод, когда логика полагается на порядок.</li>
+          <li>Таймзоны и смешанные форматы меток времени.</li>
+          <li>Очень большой ввод → влезает ли в память?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PYTHON PROBLEMS ============ -->
+<section id="py-problems">
+  <div class="sec-head"><span class="sec-num">05</span><h2><span class="en">Python Coding Problems <span class="muted" style="font-size:13px;font-weight:500">(flip to reveal)</span></span><span class="ru">Задачи по Python <span class="muted" style="font-size:13px;font-weight:500">(нажми для раскрытия)</span></span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+
+    <!-- P1 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">PROBLEM 1 · PARSE &amp; AGGREGATE</div>
+          <h3><span class="en">Parse a messy CSV and aggregate revenue per region</span><span class="ru">Распарсить грязный CSV и агрегировать выручку по регионам</span></h3>
+          <p class="muted en">Rows have inconsistent casing, stray whitespace, some missing amounts, quoted commas. Output total &amp; count per region, sorted descending.</p>
+          <p class="muted ru">Строки с непостоянным регистром, лишними пробелами, пропущенными суммами, закавыченными запятыми. Вывести сумму и счётчик на регион, отсортированные по убыванию.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">APPROACH · O(n) one pass</div>
+          <pre><code><span class="tok-kw">import</span> csv
+<span class="tok-kw">from</span> collections <span class="tok-kw">import</span> defaultdict
+
+<span class="tok-kw">def</span> <span class="tok-fn">revenue_by_region</span>(path):
+    agg = defaultdict(<span class="tok-kw">lambda</span>: [<span class="tok-num">0.0</span>, <span class="tok-num">0</span>])  <span class="tok-com"># [sum, cnt]</span>
+    <span class="tok-kw">with</span> <span class="tok-bi">open</span>(path, newline=<span class="tok-str">""</span>) <span class="tok-kw">as</span> f:
+        <span class="tok-kw">for</span> row <span class="tok-kw">in</span> csv.DictReader(f):
+            region = (row.get(<span class="tok-str">"region"</span>) <span class="tok-kw">or</span> <span class="tok-str">""</span>).strip().lower()
+            raw = (row.get(<span class="tok-str">"amount"</span>) <span class="tok-kw">or</span> <span class="tok-str">""</span>).strip()
+            <span class="tok-kw">if</span> <span class="tok-kw">not</span> region <span class="tok-kw">or</span> <span class="tok-kw">not</span> raw:
+                <span class="tok-kw">continue</span>                  <span class="tok-com"># skip bad rows</span>
+            <span class="tok-kw">try</span>:
+                amt = <span class="tok-bi">float</span>(raw.replace(<span class="tok-str">","</span>, <span class="tok-str">""</span>))
+            <span class="tok-kw">except</span> ValueError:
+                <span class="tok-kw">continue</span>
+            agg[region][<span class="tok-num">0</span>] += amt
+            agg[region][<span class="tok-num">1</span>] += <span class="tok-num">1</span>
+    <span class="tok-kw">return</span> <span class="tok-bi">sorted</span>(((r, s, c) <span class="tok-kw">for</span> r,(s,c) <span class="tok-kw">in</span> agg.items()),
+                  key=<span class="tok-kw">lambda</span> t: -t[<span class="tok-num">1</span>])</code></pre>
+          <p class="muted en">Normalize keys (strip+lower), use <code class="inline">DictReader</code> (handles quoting), decide skip-vs-raise on bad rows and say it. Single pass, O(n) time, O(#regions) memory.</p>
+          <p class="muted ru">Нормализуй ключи (strip+lower), используй <code class="inline">DictReader</code> (обрабатывает кавычки), реши «пропустить или выбросить ошибку» для плохих строк и скажи это. Один проход, O(n) время, O(#регионов) памяти.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">PROBLEM 2 · DEDUP LATEST</div>
+          <h3><span class="en">Dedup records, keeping the latest by timestamp per id</span><span class="ru">Дедуплицировать записи, оставив последнюю по временной метке на id</span></h3>
+          <p class="muted en">Stream of <code class="inline">{id, ts, payload}</code>; for each id keep only the row with the max ts. Tie → keep last seen.</p>
+          <p class="muted ru">Поток <code class="inline">{id, ts, payload}</code>; для каждого id оставить только строку с макс ts. Если равны → оставить последнюю увиденную.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">APPROACH · O(n) hash map</div>
+          <pre><code><span class="tok-kw">def</span> <span class="tok-fn">dedup_latest</span>(records):
+    latest = {}                       <span class="tok-com"># id -> record</span>
+    <span class="tok-kw">for</span> r <span class="tok-kw">in</span> records:
+        cur = latest.get(r[<span class="tok-str">"id"</span>])
+        <span class="tok-kw">if</span> cur <span class="tok-kw">is</span> <span class="tok-bi">None</span> <span class="tok-kw">or</span> r[<span class="tok-str">"ts"</span>] &gt;= cur[<span class="tok-str">"ts"</span>]:
+            latest[r[<span class="tok-str">"id"</span>]] = r   <span class="tok-com"># &gt;= => last wins on tie</span>
+    <span class="tok-kw">return</span> <span class="tok-bi">list</span>(latest.values())</code></pre>
+          <p class="muted en">Single pass, O(n) time, O(#ids) memory. State the tie-break explicitly (<code class="inline">&gt;=</code> = keep later occurrence). This is exactly SQL's <code class="inline">ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC)=1</code> — mention the parallel.</p>
+          <p class="muted ru">Один проход, O(n) время, O(#ids) памяти. Сформулируй tie-break явно (<code class="inline">&gt;=</code> = оставить более позднюю). Это ровно SQL <code class="inline">ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC)=1</code> — упомяни параллель.</p>
+          <div class="callout big" style="margin-top:8px"><span class="en">If the stream is huge and unsorted, the hash map is optimal. If pre-sorted by (id, ts), you can dedup in O(1) extra memory with <code class="inline">itertools.groupby</code>.</span><span class="ru">Если поток огромный и несортированный, хеш-мапа оптимальна. Если предотсортирован по (id, ts), можно дедуплицировать с O(1) доп. памятью через <code class="inline">itertools.groupby</code>.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">PROBLEM 3 · TIME BUCKETS</div>
+          <h3><span class="en">Group time-series events into daily buckets (sum per day)</span><span class="ru">Сгруппировать события временного ряда в дневные бакеты (сумма на день)</span></h3>
+          <p class="muted en">Events <code class="inline">(epoch_seconds, value)</code>. Produce <code class="inline">{date: total}</code>, contiguous days, zero-filling gaps.</p>
+          <p class="muted ru">События <code class="inline">(epoch_seconds, value)</code>. Выдать <code class="inline">{дата: сумма}</code>, смежные дни, заполнить нулями пробелы.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">APPROACH · bucket + gap-fill</div>
+          <pre><code><span class="tok-kw">from</span> datetime <span class="tok-kw">import</span> datetime, timezone, timedelta
+<span class="tok-kw">from</span> collections <span class="tok-kw">import</span> defaultdict
+
+<span class="tok-kw">def</span> <span class="tok-fn">daily_totals</span>(events):
+    buckets = defaultdict(<span class="tok-bi">float</span>)
+    <span class="tok-kw">for</span> ts, v <span class="tok-kw">in</span> events:
+        d = datetime.fromtimestamp(ts, timezone.utc).date()
+        buckets[d] += v
+    <span class="tok-kw">if</span> <span class="tok-kw">not</span> buckets:
+        <span class="tok-kw">return</span> {}
+    lo, hi = <span class="tok-bi">min</span>(buckets), <span class="tok-bi">max</span>(buckets)
+    out, d = {}, lo
+    <span class="tok-kw">while</span> d &lt;= hi:                 <span class="tok-com"># fill missing days w/ 0</span>
+        out[d] = buckets.get(d, <span class="tok-num">0.0</span>)
+        d += timedelta(days=<span class="tok-num">1</span>)
+    <span class="tok-kw">return</span> out</code></pre>
+          <p class="muted en">Bucket via <code class="inline">.date()</code> (decide UTC vs local). Gap-fill so downstream sees a continuous series. O(n + days).</p>
+          <p class="muted ru">Бакетирование через <code class="inline">.date()</code> (реши UTC vs local). Заполни пробелы, чтобы downstream видел непрерывный ряд. O(n + дней).</p>
+          <div class="callout probe en">"What about timezones / DST?" Answer: bucket in a fixed tz (UTC), convert at the edge; daily buckets avoid DST hour issues but month/quarter buckets need calendar-aware logic.</div>
+          <div class="callout probe ru">«А таймзоны / DST?» Ответ: бакетируй в фиксированной зоне (UTC), конвертируй на границе; дневные бакеты избегают проблем с часами DST, но месячные/квартальные бакеты требуют календарно-осведомлённой логики.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">PROBLEM 4 · ANOMALY (Z-SCORE)</div>
+          <h3><span class="en">Detect anomalies in a series via z-score</span><span class="ru">Обнаружить аномалии в ряду через z-score</span></h3>
+          <p class="muted en">Flag points more than <code class="inline">k</code> std-devs from the mean. Discuss robustness.</p>
+          <p class="muted ru">Отметить точки более чем на <code class="inline">k</code> стандартных отклонений от среднего. Обсудить робастность.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">APPROACH · two pass, O(n)</div>
+          <pre><code><span class="tok-kw">import</span> statistics <span class="tok-kw">as</span> st
+
+<span class="tok-kw">def</span> <span class="tok-fn">anomalies</span>(xs, k=<span class="tok-num">3.0</span>):
+    <span class="tok-kw">if</span> <span class="tok-bi">len</span>(xs) &lt; <span class="tok-num">2</span>:
+        <span class="tok-kw">return</span> []
+    mu = st.fmean(xs)
+    sd = st.pstdev(xs)
+    <span class="tok-kw">if</span> sd == <span class="tok-num">0</span>:
+        <span class="tok-kw">return</span> []                 <span class="tok-com"># no spread, no outliers</span>
+    <span class="tok-kw">return</span> [(i, x) <span class="tok-kw">for</span> i, x <span class="tok-kw">in</span> <span class="tok-bi">enumerate</span>(xs)
+            <span class="tok-kw">if</span> <span class="tok-bi">abs</span>((x - mu) / sd) &gt; k]</code></pre>
+          <p class="muted en">Guard <code class="inline">sd == 0</code> (divide-by-zero) and tiny n. Mean/std are <b>not robust</b> — a single huge outlier inflates std and masks others.</p>
+          <p class="muted ru">Защита от <code class="inline">sd == 0</code> (деление на ноль) и крошечного n. Mean/std <b>не робастны</b> — один огромный выброс раздувает std и маскирует другие.</p>
+          <div class="callout gotcha en">Better for real data: <b>robust z-score</b> using median &amp; MAD (median absolute deviation), or a <b>rolling</b> window so the baseline tracks trend/seasonality. Mention this trade-off — it shows data maturity.</div>
+          <div class="callout gotcha ru">Лучше для реальных данных: <b>робастный z-score</b> через медиану и MAD (median absolute deviation) или <b>скользящее</b> окно, чтобы базовая линия отслеживала тренд/сезонность. Упомяни этот компромисс — показывает зрелость работы с данными.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">PROBLEM 5 · FLATTEN NESTED JSON</div>
+          <h3><span class="en">Flatten arbitrarily nested JSON to dotted keys</span><span class="ru">Уплостить произвольно вложенный JSON в точечные ключи</span></h3>
+          <p class="muted en">Semi-structured input. <code class="inline">{"a":{"b":1},"c":[10,20]}</code> → <code class="inline">{"a.b":1,"c.0":10,"c.1":20}</code>.</p>
+          <p class="muted ru">Полуструктурированный ввод. <code class="inline">{"a":{"b":1},"c":[10,20]}</code> → <code class="inline">{"a.b":1,"c.0":10,"c.1":20}</code>.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">APPROACH · recursion</div>
+          <pre><code><span class="tok-kw">def</span> <span class="tok-fn">flatten</span>(obj, prefix=<span class="tok-str">""</span>, out=<span class="tok-bi">None</span>):
+    <span class="tok-kw">if</span> out <span class="tok-kw">is</span> <span class="tok-bi">None</span>:
+        out = {}
+    <span class="tok-kw">if</span> <span class="tok-bi">isinstance</span>(obj, <span class="tok-bi">dict</span>):
+        <span class="tok-kw">for</span> k, v <span class="tok-kw">in</span> obj.items():
+            flatten(v, <span class="tok-str">f"{prefix}{k}."</span>, out)
+    <span class="tok-kw">elif</span> <span class="tok-bi">isinstance</span>(obj, <span class="tok-bi">list</span>):
+        <span class="tok-kw">for</span> i, v <span class="tok-kw">in</span> <span class="tok-bi">enumerate</span>(obj):
+            flatten(v, <span class="tok-str">f"{prefix}{i}."</span>, out)
+    <span class="tok-kw">else</span>:
+        out[prefix[:-<span class="tok-num">1</span>]] = obj   <span class="tok-com"># strip trailing dot</span>
+    <span class="tok-kw">return</span> out</code></pre>
+          <p class="muted en">Handle dict, list, and scalar (leaf) cases. O(total nodes). Mutable-default trap avoided via <code class="inline">out=None</code>.</p>
+          <p class="muted ru">Обработка dict, list и скалярных (листьев) случаев. O(всего узлов). Ловушка mutable default избегается через <code class="inline">out=None</code>.</p>
+          <div class="callout probe en">Follow-ups: deeply nested data risks <b>recursion-depth limits</b> → convert to an explicit stack. Decide how to handle empty dicts/lists and key collisions. Note the inverse (unflatten) is sometimes asked.</div>
+          <div class="callout probe ru">Продолжение: глубоко вложенные данные рискуют <b>лимитом глубины рекурсии</b> → переписать через явный стек. Реши, как обрабатывать пустые dict/list и коллизии ключей. Отметь, что инверсия (unflatten) иногда спрашивают.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P6 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">PROBLEM 6 · MERGE INTERVALS</div>
+          <h3><span class="en">Merge overlapping date ranges</span><span class="ru">Слить перекрывающиеся диапазоны дат</span></h3>
+          <p class="muted en">Given <code class="inline">[(start, end), ...]</code>, merge overlapping/adjacent intervals into the minimal set.</p>
+          <p class="muted ru">Даны <code class="inline">[(start, end), ...]</code>, слить перекрывающиеся/смежные интервалы в минимальное множество.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">APPROACH · sort + sweep, O(n log n)</div>
+          <pre><code><span class="tok-kw">def</span> <span class="tok-fn">merge_intervals</span>(intervals):
+    <span class="tok-kw">if</span> <span class="tok-kw">not</span> intervals:
+        <span class="tok-kw">return</span> []
+    intervals = <span class="tok-bi">sorted</span>(intervals)        <span class="tok-com"># by start</span>
+    merged = [intervals[<span class="tok-num">0</span>]]
+    <span class="tok-kw">for</span> s, e <span class="tok-kw">in</span> intervals[<span class="tok-num">1</span>:]:
+        ls, le = merged[-<span class="tok-num">1</span>]
+        <span class="tok-kw">if</span> s &lt;= le:                  <span class="tok-com"># overlap/adjacent</span>
+            merged[-<span class="tok-num">1</span>] = (ls, <span class="tok-bi">max</span>(le, e))
+        <span class="tok-kw">else</span>:
+            merged.append((s, e))
+    <span class="tok-kw">return</span> merged</code></pre>
+          <p class="muted en">Sort by start, sweep once keeping the running end. O(n log n) dominated by sort, O(n) extra. This is the Python analogue of SQL gaps-and-islands.</p>
+          <p class="muted ru">Сортировка по началу, один проход с хранением текущего конца. O(n log n) доминирует сортировка, O(n) доп. Это питоновский аналог SQL gaps-and-islands.</p>
+          <div class="callout gotcha en">Clarify whether touching endpoints (<code class="inline">[1,5],[5,9]</code>) count as overlapping — half-open <code class="inline">[s,e)</code> vs closed <code class="inline">[s,e]</code> changes the <code class="inline">&lt;=</code> vs <code class="inline">&lt;</code>. Ask before coding.</div>
+          <div class="callout gotcha ru">Уточни, считаются ли соприкасающиеся концы (<code class="inline">[1,5],[5,9]</code>) перекрывающимися — полуоткрытый <code class="inline">[s,e)</code> vs замкнутый <code class="inline">[s,e]</code> меняет <code class="inline">&lt;=</code> на <code class="inline">&lt;</code>. Спроси перед кодингом.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P7 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">PROBLEM 7 · TOP-N PER KEY</div>
+          <h3><span class="en">Top-N items per group (e.g. top 3 trades per symbol)</span><span class="ru">Top-N элементов на группу (напр. top 3 трейдов на символ)</span></h3>
+          <p class="muted en">Large stream of <code class="inline">(symbol, value)</code>. Return the N largest values per symbol without sorting everything.</p>
+          <p class="muted ru">Большой поток <code class="inline">(символ, значение)</code>. Вернуть N максимальных значений на символ без полной сортировки всего.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">APPROACH · per-key min-heap, O(n log N)</div>
+          <pre><code><span class="tok-kw">import</span> heapq
+<span class="tok-kw">from</span> collections <span class="tok-kw">import</span> defaultdict
+
+<span class="tok-kw">def</span> <span class="tok-fn">top_n_per_key</span>(rows, n=<span class="tok-num">3</span>):
+    heaps = defaultdict(<span class="tok-bi">list</span>)        <span class="tok-com"># key -&gt; min-heap</span>
+    <span class="tok-kw">for</span> key, val <span class="tok-kw">in</span> rows:
+        h = heaps[key]
+        <span class="tok-kw">if</span> <span class="tok-bi">len</span>(h) &lt; n:
+            heapq.heappush(h, val)
+        <span class="tok-kw">elif</span> val &gt; h[<span class="tok-num">0</span>]:          <span class="tok-com"># beats current min</span>
+            heapq.heapreplace(h, val)
+    <span class="tok-kw">return</span> {k: <span class="tok-bi">sorted</span>(h, reverse=<span class="tok-bi">True</span>)
+            <span class="tok-kw">for</span> k, h <span class="tok-kw">in</span> heaps.items()}</code></pre>
+          <p class="muted en">A size-N min-heap per key keeps the top N in O(log N) per row. O(n log N) total, O(#keys × N) memory — far better than sorting each group fully (O(n log n)). Maps to SQL <code class="inline">ROW_NUMBER() ... &lt;= N</code>.</p>
+          <p class="muted ru">Мин-хип размера N на ключ хранит топ N за O(log N) на строку. O(n log N) итого, O(#ключей × N) памяти — гораздо лучше полной сортировки каждой группы (O(n log n)). Соответствует SQL <code class="inline">ROW_NUMBER() ... &lt;= N</code>.</p>
+          <div class="callout big en">Single global top-K instead? Use one heap of size K: <code class="inline">heapq.nlargest(k, stream)</code>. O(n log k).</div>
+          <div class="callout big ru">Один глобальный top-K вместо этого? Используй один хип размера K: <code class="inline">heapq.nlargest(k, stream)</code>. O(n log k).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P8 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">PROBLEM 8 · RUNNING AVERAGE / PIPELINE</div>
+          <h3><span class="en">Streaming rolling average (window of size w) + tiny pipeline</span><span class="ru">Потоковое скользящее среднее (окно размера w) + мини-пайплайн</span></h3>
+          <p class="muted en">Lazily compute the moving average over a stream with constant memory; show how it composes into a clean pipeline.</p>
+          <p class="muted ru">Ленивое вычисление скользящего среднего по потоку с константной памятью; покажи, как это композируется в чистый пайплайн.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">APPROACH · deque, O(1) per element</div>
+          <pre><code><span class="tok-kw">from</span> collections <span class="tok-kw">import</span> deque
+
+<span class="tok-kw">def</span> <span class="tok-fn">rolling_avg</span>(stream, w):
+    win = deque(maxlen=w)
+    running = <span class="tok-num">0.0</span>
+    <span class="tok-kw">for</span> x <span class="tok-kw">in</span> stream:
+        <span class="tok-kw">if</span> <span class="tok-bi">len</span>(win) == w:
+            running -= win[<span class="tok-num">0</span>]     <span class="tok-com"># evicted on append</span>
+        win.append(x)
+        running += x
+        <span class="tok-kw">yield</span> running / <span class="tok-bi">len</span>(win)
+
+<span class="tok-com"># compose: read -&gt; clean -&gt; smooth, all lazy</span>
+prices = (<span class="tok-bi">float</span>(l) <span class="tok-kw">for</span> l <span class="tok-kw">in</span> read_lines(<span class="tok-str">"px.txt"</span>) <span class="tok-kw">if</span> l)
+<span class="tok-kw">for</span> ma <span class="tok-kw">in</span> rolling_avg(prices, <span class="tok-num">20</span>):
+    emit(ma)</code></pre>
+          <p class="muted en">Maintain a running sum + bounded deque → O(1) amortized per element, O(w) memory, fully streaming. Generator output composes with other lazy stages.</p>
+          <p class="muted ru">Поддержание running sum + ограниченной deque → O(1) амортизированно на элемент, O(w) памяти, полностью потоковая. Генераторный вывод композируется с другими ленивыми стадиями.</p>
+          <div class="callout gotcha en">Don't recompute <code class="inline">sum(win)</code> each step (that's O(w) per element = O(nw)). Maintaining a running total is the difference between a correct-but-slow and a clean-and-fast answer. With floats over very long streams, periodic re-sum avoids drift.</div>
+          <div class="callout gotcha ru">Не пересчитывай <code class="inline">sum(win)</code> каждый шаг (это O(w) на элемент = O(nw)). Поддержание running total — разница между правильным-но-медленным и чистым-и-быстрым ответом. С float на очень длинных потоках периодический re-sum избегает дрифта.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ SQL CORE ============ -->
+<section id="sql-core">
+  <div class="sec-head"><span class="sec-num">06</span><h2><span class="en">SQL Core: Windows · CTEs · Joins · Dedup</span><span class="ru">SQL Основы: окна · CTE · джойны · дедуп</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="grid">
+      <div class="card">
+        <h3><span class="en">Window functions</span><span class="ru">Оконные функции</span></h3>
+        <pre><code><span class="tok-kw">SELECT</span>
+  user_id,
+  event_ts,
+  <span class="tok-fn">ROW_NUMBER</span>() <span class="tok-kw">OVER</span> (<span class="tok-kw">PARTITION BY</span> user_id
+                     <span class="tok-kw">ORDER BY</span> event_ts <span class="tok-kw">DESC</span>) <span class="tok-kw">AS</span> rn,
+  <span class="tok-fn">RANK</span>()       <span class="tok-kw">OVER</span> (<span class="tok-kw">ORDER BY</span> amount <span class="tok-kw">DESC</span>) <span class="tok-kw">AS</span> rnk,
+  <span class="tok-fn">LAG</span>(amount)  <span class="tok-kw">OVER</span> (<span class="tok-kw">PARTITION BY</span> user_id
+                     <span class="tok-kw">ORDER BY</span> event_ts) <span class="tok-kw">AS</span> prev_amt,
+  <span class="tok-fn">SUM</span>(amount)  <span class="tok-kw">OVER</span> (<span class="tok-kw">PARTITION BY</span> user_id
+                     <span class="tok-kw">ORDER BY</span> event_ts
+                     <span class="tok-kw">ROWS BETWEEN UNBOUNDED PRECEDING</span>
+                          <span class="tok-kw">AND CURRENT ROW</span>) <span class="tok-kw">AS</span> running_total
+<span class="tok-kw">FROM</span> events;</code></pre>
+        <div class="callout gotcha en"><code class="inline">ROW_NUMBER</code> = no ties (1,2,3). <code class="inline">RANK</code> = ties share, gaps after (1,1,3). <code class="inline">DENSE_RANK</code> = ties share, no gaps (1,1,2). Pick deliberately — interviewers ask the difference constantly.</div>
+        <div class="callout gotcha ru"><code class="inline">ROW_NUMBER</code> = нет равенств (1,2,3). <code class="inline">RANK</code> = равные делят, с пробелами (1,1,3). <code class="inline">DENSE_RANK</code> = равные делят, без пробелов (1,1,2). Выбирай осознанно — интервьюеры постоянно спрашивают разницу.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Window frames (the subtle part)</span><span class="ru">Оконные фреймы (тонкая часть)</span></h3>
+        <pre><code><span class="tok-com">-- default frame WITH ORDER BY is RANGE</span>
+<span class="tok-com">-- UNBOUNDED PRECEDING .. CURRENT ROW</span>
+<span class="tok-com">-- which makes SUM a running total (good)</span>
+<span class="tok-com">-- but ties at same ORDER BY value collapse!</span>
+<span class="tok-fn">AVG</span>(px) <span class="tok-kw">OVER</span> (<span class="tok-kw">ORDER BY</span> ts
+              <span class="tok-kw">ROWS BETWEEN</span> <span class="tok-num">6</span> <span class="tok-kw">PRECEDING</span>
+                   <span class="tok-kw">AND CURRENT ROW</span>)  <span class="tok-com">-- 7-row MA</span></code></pre>
+        <div class="callout probe en">Know <b>ROWS vs RANGE</b>. <code class="inline">ROWS</code> = physical N rows; <code class="inline">RANGE</code> = logical value window (peers with equal ORDER BY value treated together). Mismatched frames are a classic running-total bug.</div>
+        <div class="callout probe ru">Знай <b>ROWS vs RANGE</b>. <code class="inline">ROWS</code> = физические N строк; <code class="inline">RANGE</code> = логическое окно по значению (peer-ы с одинаковым ORDER BY обрабатываются вместе). Несовпадающие фреймы — классический баг running total.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Dedup with ROW_NUMBER (keep latest)</span><span class="ru">Дедуп через ROW_NUMBER (оставить последние)</span></h3>
+        <pre><code><span class="tok-kw">WITH</span> ranked <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> *,
+    <span class="tok-fn">ROW_NUMBER</span>() <span class="tok-kw">OVER</span> (
+      <span class="tok-kw">PARTITION BY</span> id
+      <span class="tok-kw">ORDER BY</span> updated_at <span class="tok-kw">DESC</span>) <span class="tok-kw">AS</span> rn
+  <span class="tok-kw">FROM</span> records)
+<span class="tok-kw">SELECT</span> * <span class="tok-kw">EXCEPT</span>(rn)
+<span class="tok-kw">FROM</span> ranked
+<span class="tok-kw">WHERE</span> rn = <span class="tok-num">1</span>;</code></pre>
+        <div class="callout craft en">The canonical dedup pattern (== Python Problem 2). Add a tiebreak column to <code class="inline">ORDER BY</code> for determinism (e.g. <code class="inline">updated_at DESC, id DESC</code>). Without it, "latest" is ambiguous on ties.</div>
+        <div class="callout craft ru">Канонический паттерн дедупликации (== Задача 2 по Python). Добавь tiebreak-колонку в <code class="inline">ORDER BY</code> для детерминизма (напр. <code class="inline">updated_at DESC, id DESC</code>). Без этого «последняя» неоднозначна при равенствах.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Joins: anti &amp; semi</span><span class="ru">Джойны: анти и полу</span></h3>
+        <pre><code><span class="tok-com">-- ANTI JOIN: rows in A with NO match in B</span>
+<span class="tok-kw">SELECT</span> a.*
+<span class="tok-kw">FROM</span> a <span class="tok-kw">LEFT JOIN</span> b <span class="tok-kw">ON</span> a.id = b.id
+<span class="tok-kw">WHERE</span> b.id <span class="tok-kw">IS NULL</span>;
+
+<span class="tok-com">-- SEMI JOIN: rows in A that DO match (no dup blowup)</span>
+<span class="tok-kw">SELECT</span> a.*
+<span class="tok-kw">FROM</span> a
+<span class="tok-kw">WHERE</span> <span class="tok-kw">EXISTS</span> (<span class="tok-kw">SELECT</span> <span class="tok-num">1</span> <span class="tok-kw">FROM</span> b <span class="tok-kw">WHERE</span> b.id = a.id);</code></pre>
+        <div class="callout gotcha en"><code class="inline">EXISTS</code>/semi-join won't duplicate A rows when B has many matches, unlike a plain <code class="inline">INNER JOIN</code>. Also <code class="inline">NOT IN</code> is dangerous: if the subquery returns any <b>NULL</b>, it yields no rows. Prefer <code class="inline">NOT EXISTS</code> / anti-join.</div>
+        <div class="callout gotcha ru"><code class="inline">EXISTS</code>/semi-join не дублирует строки A, когда B имеет много совпадений, в отличие от обычного <code class="inline">INNER JOIN</code>. Также <code class="inline">NOT IN</code> опасен: если подзапрос вернёт хотя бы один <b>NULL</b>, не вернётся ни одной строки. Предпочитай <code class="inline">NOT EXISTS</code> / anti-join.</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="en">NULL logic — the trap basket</span><span class="ru">NULL-логика — корзина ловушек</span></h3>
+      <table class="tbl en">
+        <tr><th>Expression</th><th>Result</th><th>Note</th></tr>
+        <tr><td><code class="inline">NULL = NULL</code></td><td>NULL (not TRUE)</td><td>Use <code class="inline">IS NULL</code> / <code class="inline">IS NOT DISTINCT FROM</code></td></tr>
+        <tr><td><code class="inline">x NOT IN (1, NULL)</code></td><td>never TRUE</td><td>Silent row loss — prefer <code class="inline">NOT EXISTS</code></td></tr>
+        <tr><td><code class="inline">COUNT(col)</code></td><td>ignores NULLs</td><td><code class="inline">COUNT(*)</code> counts all rows</td></tr>
+        <tr><td><code class="inline">SUM</code>/<code class="inline">AVG</code> over NULLs</td><td>skips NULLs</td><td>AVG denominator excludes them</td></tr>
+        <tr><td>aggregate of 0 rows</td><td><code class="inline">SUM</code>→NULL, <code class="inline">COUNT</code>→0</td><td>Wrap with <code class="inline">COALESCE</code></td></tr>
+      </table>
+      <table class="tbl ru">
+        <tr><th>Выражение</th><th>Результат</th><th>Заметка</th></tr>
+        <tr><td><code class="inline">NULL = NULL</code></td><td>NULL (не TRUE)</td><td>Используй <code class="inline">IS NULL</code> / <code class="inline">IS NOT DISTINCT FROM</code></td></tr>
+        <tr><td><code class="inline">x NOT IN (1, NULL)</code></td><td>никогда не TRUE</td><td>Тихая потеря строк — используй <code class="inline">NOT EXISTS</code></td></tr>
+        <tr><td><code class="inline">COUNT(col)</code></td><td>игнорирует NULL</td><td><code class="inline">COUNT(*)</code> считает все строки</td></tr>
+        <tr><td><code class="inline">SUM</code>/<code class="inline">AVG</code> по NULL</td><td>пропускает NULL</td><td>знаменатель AVG их исключает</td></tr>
+        <tr><td>агрегация 0 строк</td><td><code class="inline">SUM</code>→NULL, <code class="inline">COUNT</code>→0</td><td>Оборачивай в <code class="inline">COALESCE</code></td></tr>
+      </table>
+      <div class="callout probe en">Expect a "why are rows missing / why is the total wrong" question rooted in NULL semantics or a fan-out join. Talk through 3-valued logic (TRUE/FALSE/UNKNOWN).</div>
+      <div class="callout probe ru">Жди вопроса «почему пропали строки / почему сумма неправильная», коренящегося в NULL-семантике или fan-out джойне. Проговаривай 3-значную логику (TRUE/FALSE/UNKNOWN).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SQL TIME SERIES ============ -->
+<section id="sql-ts">
+  <div class="sec-head"><span class="sec-num">07</span><h2><span class="en">SQL Time-Series &amp; Advanced Patterns</span><span class="ru">SQL временные ряды и продвинутые паттерны</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="grid">
+      <div class="card">
+        <h3><span class="en">Gaps-and-islands</span><span class="ru">Пробелы-и-острова</span></h3>
+        <pre><code><span class="tok-com">-- group consecutive "active" days into islands</span>
+<span class="tok-kw">WITH</span> flagged <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> user_id, d,
+    <span class="tok-fn">ROW_NUMBER</span>() <span class="tok-kw">OVER</span> (<span class="tok-kw">PARTITION BY</span> user_id
+                       <span class="tok-kw">ORDER BY</span> d) <span class="tok-kw">AS</span> rn
+  <span class="tok-kw">FROM</span> active_days)
+<span class="tok-kw">SELECT</span> user_id,
+       <span class="tok-fn">MIN</span>(d) <span class="tok-kw">AS</span> start_d,
+       <span class="tok-fn">MAX</span>(d) <span class="tok-kw">AS</span> end_d,
+       <span class="tok-fn">COUNT</span>(*) <span class="tok-kw">AS</span> streak
+<span class="tok-kw">FROM</span> flagged
+<span class="tok-kw">GROUP BY</span> user_id,
+         d - <span class="tok-fn">CAST</span>(rn <span class="tok-kw">AS</span> integer)   <span class="tok-com">-- date minus rownum is constant per island</span></code></pre>
+        <div class="callout big en">Trick: for a consecutive run, <code class="inline">date - ROW_NUMBER()</code> is constant. Grouping by that difference isolates each "island". O(n log n) for the window sort.</div>
+        <div class="callout big ru">Трюк: для последовательного ряда <code class="inline">date - ROW_NUMBER()</code> константа. Группировка по этой разнице изолирует каждый «остров». O(n log n) для оконной сортировки.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Sessionization (30-min gap = new session)</span><span class="ru">Сессионизация (30-минутный пробел = новая сессия)</span></h3>
+        <pre><code><span class="tok-kw">WITH</span> gaps <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> *,
+    <span class="tok-kw">CASE WHEN</span> event_ts - <span class="tok-fn">LAG</span>(event_ts) <span class="tok-kw">OVER</span> (
+           <span class="tok-kw">PARTITION BY</span> user_id <span class="tok-kw">ORDER BY</span> event_ts)
+         &gt; <span class="tok-kw">INTERVAL</span> <span class="tok-str">'30'</span> <span class="tok-kw">MINUTE</span>
+         <span class="tok-kw">THEN</span> <span class="tok-num">1</span> <span class="tok-kw">ELSE</span> <span class="tok-num">0</span> <span class="tok-kw">END</span> <span class="tok-kw">AS</span> is_new
+  <span class="tok-kw">FROM</span> events),
+sess <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> *,
+    <span class="tok-fn">SUM</span>(is_new) <span class="tok-kw">OVER</span> (<span class="tok-kw">PARTITION BY</span> user_id
+        <span class="tok-kw">ORDER BY</span> event_ts) <span class="tok-kw">AS</span> session_id
+  <span class="tok-kw">FROM</span> gaps)
+<span class="tok-kw">SELECT</span> user_id, session_id,
+       <span class="tok-fn">MIN</span>(event_ts), <span class="tok-fn">MAX</span>(event_ts), <span class="tok-fn">COUNT</span>(*)
+<span class="tok-kw">FROM</span> sess <span class="tok-kw">GROUP BY</span> user_id, session_id;</code></pre>
+        <div class="callout craft en">Pattern: <code class="inline">LAG</code> to find gaps → flag boundaries → <code class="inline">SUM() OVER</code> the flag = a cumulative session id. Same shape as Python rolling logic.</div>
+        <div class="callout craft ru">Паттерн: <code class="inline">LAG</code> для поиска пробелов → флаг границ → <code class="inline">SUM() OVER</code> по флагу = накопительный session id. Та же форма, что у питоновой скользящей логики.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Resampling / gap-filling a series</span><span class="ru">Ресамплинг / заполнение пробелов ряда</span></h3>
+        <pre><code><span class="tok-com">-- dense calendar LEFT JOINed to sparse data,</span>
+<span class="tok-com">-- then carry last value forward (LOCF)</span>
+<span class="tok-kw">WITH</span> cal <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> d <span class="tok-kw">FROM</span> <span class="tok-fn">UNNEST</span>(<span class="tok-fn">SEQUENCE</span>(
+     <span class="tok-kw">DATE</span> <span class="tok-str">'2024-01-01'</span>, <span class="tok-kw">DATE</span> <span class="tok-str">'2024-12-31'</span>,
+     <span class="tok-kw">INTERVAL</span> <span class="tok-str">'1'</span> <span class="tok-kw">DAY</span>)) <span class="tok-kw">AS</span> t(d)),
+joined <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> cal.d, series.val
+  <span class="tok-kw">FROM</span> cal <span class="tok-kw">LEFT JOIN</span> series <span class="tok-kw">ON</span> cal.d = series.d)
+<span class="tok-kw">SELECT</span> d,
+  <span class="tok-fn">COALESCE</span>(val, <span class="tok-fn">LAST_VALUE</span>(val) <span class="tok-kw">IGNORE NULLS</span> <span class="tok-kw">OVER</span> (
+     <span class="tok-kw">ORDER BY</span> d <span class="tok-kw">ROWS UNBOUNDED PRECEDING</span>)) <span class="tok-kw">AS</span> val
+<span class="tok-kw">FROM</span> joined;</code></pre>
+        <div class="callout probe en">Time-series: be ready to fill missing trading days/months. Two moves: (1) generate a dense calendar &amp; LEFT JOIN; (2) forward-fill (LOCF) via <code class="inline">LAST_VALUE ... IGNORE NULLS</code>. Mention interpolation as the alternative to LOCF.</div>
+        <div class="callout probe ru">Временные ряды: будь готов заполнять пропущенные торговые дни/месяцы. Два хода: (1) сгенерировать плотный календарь и LEFT JOIN; (2) forward-fill (LOCF) через <code class="inline">LAST_VALUE ... IGNORE NULLS</code>. Упомяни интерполяцию как альтернативу LOCF.</div>
+      </div>
+      <div class="card">
+        <h3><span class="en">Pivot &amp; recursive CTE</span><span class="ru">Pivot и рекурсивный CTE</span></h3>
+        <pre><code><span class="tok-com">-- conditional aggregation = portable pivot</span>
+<span class="tok-kw">SELECT</span> region,
+  <span class="tok-fn">SUM</span>(<span class="tok-kw">CASE WHEN</span> yr=<span class="tok-num">2023</span> <span class="tok-kw">THEN</span> rev <span class="tok-kw">END</span>) <span class="tok-kw">AS</span> y2023,
+  <span class="tok-fn">SUM</span>(<span class="tok-kw">CASE WHEN</span> yr=<span class="tok-num">2024</span> <span class="tok-kw">THEN</span> rev <span class="tok-kw">END</span>) <span class="tok-kw">AS</span> y2024
+<span class="tok-kw">FROM</span> sales <span class="tok-kw">GROUP BY</span> region;
+
+<span class="tok-com">-- recursive CTE: generate a date spine / walk a tree</span>
+<span class="tok-kw">WITH RECURSIVE</span> dates(d) <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> <span class="tok-kw">DATE</span> <span class="tok-str">'2024-01-01'</span>
+  <span class="tok-kw">UNION ALL</span>
+  <span class="tok-kw">SELECT</span> d + <span class="tok-kw">INTERVAL</span> <span class="tok-str">'1'</span> <span class="tok-kw">DAY</span> <span class="tok-kw">FROM</span> dates
+  <span class="tok-kw">WHERE</span> d &lt; <span class="tok-kw">DATE</span> <span class="tok-str">'2024-12-31'</span>)
+<span class="tok-kw">SELECT</span> * <span class="tok-kw">FROM</span> dates;</code></pre>
+        <div class="callout craft en">Conditional aggregation is the portable pivot (works everywhere). Recursive CTEs: date spines, org hierarchies, graph walks. Always include a terminating predicate.</div>
+        <div class="callout craft ru">Условная агрегация — портируемый pivot (работает везде). Рекурсивные CTE: календарные спайны, орг-иерархии, обход графов. Всегда включай предикат завершения.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SQL OPTIMIZATION ============ -->
+<section id="sql-opt">
+  <div class="sec-head"><span class="sec-num">08</span><h2><span class="en">SQL Query Optimization</span><span class="ru">Оптимизация SQL-запросов</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="card">
+      <div class="grid">
+        <div>
+          <h4><span class="en">Predicate &amp; projection pushdown</span><span class="ru">Predicate и projection pushdown</span></h4>
+          <ul class="en">
+            <li>Filter (<code class="inline">WHERE</code>) and select columns <b>early</b> so the engine reads less data.</li>
+            <li>On partitioned/Parquet tables, filter on the <b>partition column</b> to prune whole files (partition pruning).</li>
+            <li>Avoid <code class="inline">SELECT *</code> — projection pushdown only reads needed columns in columnar stores.</li>
+          </ul>
+          <ul class="ru">
+            <li>Фильтруй (<code class="inline">WHERE</code>) и выбирай колонки <b>рано</b>, чтобы движок читал меньше данных.</li>
+            <li>На партиционированных/Parquet таблицах фильтруй по <b>колонке партиционирования</b>, чтобы отсечь целые файлы (partition pruning).</li>
+            <li>Избегай <code class="inline">SELECT *</code> — projection pushdown читает только нужные колонки в колоночных хранилищах.</li>
+          </ul>
+          <h4><span class="en">Join strategies</span><span class="ru">Стратегии джойнов</span></h4>
+          <ul class="en">
+            <li><b class="acc">Broadcast (map-side):</b> small table copied to every node. Great when one side is tiny.</li>
+            <li><b class="p">Shuffle/hash:</b> both sides repartitioned by key. Default for two large tables.</li>
+            <li><b class="gr">Sort-merge:</b> good when inputs already sorted on the join key.</li>
+          </ul>
+          <ul class="ru">
+            <li><b class="acc">Broadcast (map-side):</b> маленькая таблица скопирована на все ноды. Отлично, когда одна сторона крошечная.</li>
+            <li><b class="p">Shuffle/hash:</b> обе стороны перепартиционированы по ключу. Дефолт для двух больших таблиц.</li>
+            <li><b class="gr">Sort-merge:</b> хорош, когда входы уже отсортированы по ключу джойна.</li>
+          </ul>
+        </div>
+        <div>
+          <h4><span class="en">Data skew</span><span class="ru">Перекос данных</span></h4>
+          <ul class="en">
+            <li>One hot key (e.g. <code class="inline">NULL</code> or a default id) sends most rows to one reducer → straggler.</li>
+            <li>Fixes: filter/handle the hot key separately, <b>salt</b> the key (append a random bucket), pre-aggregate before the join.</li>
+          </ul>
+          <ul class="ru">
+            <li>Один горячий ключ (напр. <code class="inline">NULL</code> или дефолтный id) отправляет большинство строк одному reducer → straggler.</li>
+            <li>Лечение: фильтруй/обрабатывай горячий ключ отдельно, <b>соли</b> ключ (добавь случайный бакет), предагрегируй перед джойном.</li>
+          </ul>
+          <h4><span class="en">General craftsmanship</span><span class="ru">Общее мастерство</span></h4>
+          <ul class="en">
+            <li>Aggregate <b>before</b> joining when possible (shrinks the join inputs).</li>
+            <li>Beware fan-out joins inflating <code class="inline">SUM</code>/<code class="inline">COUNT</code> — dedup or use semi-joins.</li>
+            <li>Functions on a column (<code class="inline">WHERE DATE(ts)=...</code>) can defeat partition pruning / indexes; filter on raw range instead.</li>
+            <li>Read the <code class="inline">EXPLAIN</code> plan; look for full scans, exploding shuffles, skew.</li>
+          </ul>
+          <ul class="ru">
+            <li>Агрегируй <b>до</b> джойна, где возможно (уменьшает входы джойна).</li>
+            <li>Остерегайся fan-out джойнов, раздувающих <code class="inline">SUM</code>/<code class="inline">COUNT</code> — дедуплицируй или используй semi-joins.</li>
+            <li>Функции на колонке (<code class="inline">WHERE DATE(ts)=...</code>) могут сломать partition pruning / индексы; фильтруй по сырому диапазону.</li>
+            <li>Читай план <code class="inline">EXPLAIN</code>; ищи full scans, взрывающиеся shuffle, перекосы.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout probe en">"How would you make this query faster?" Lead with: reduce data scanned (pushdown + partition pruning), choose the right join (broadcast small side), and handle skew. Mention reading the query plan. That sequence covers 90% of follow-ups.</div>
+      <div class="callout probe ru">«Как бы ты ускорил этот запрос?» Веди с: уменьшить просканированные данные (pushdown + partition pruning), выбрать правильный джойн (broadcast малой стороны), обработать перекос. Упомяни чтение плана запроса. Эта последовательность покрывает 90% продолжений.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SQL PROBLEMS ============ -->
+<section id="sql-problems">
+  <div class="sec-head"><span class="sec-num">09</span><h2><span class="en">SQL Practice Problems <span class="muted" style="font-size:13px;font-weight:500">(flip to reveal)</span></span><span class="ru">Задачи по SQL <span class="muted" style="font-size:13px;font-weight:500">(нажми для раскрытия)</span></span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+
+    <!-- SQL1 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">SQL 1 · TOP-N PER GROUP</div>
+          <h3><span class="en">Top 3 highest-paid employees per department</span><span class="ru">Top 3 самых высокооплачиваемых сотрудников на департамент</span></h3>
+          <p class="muted en">Return dept, employee, salary for the 3 highest salaries in each department; include ties as a discussion point.</p>
+          <p class="muted ru">Вернуть dept, сотрудник, зарплата для 3 наивысших зарплат в каждом департаменте; учесть равенства как точку обсуждения.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">SOLUTION</div>
+          <pre><code><span class="tok-kw">WITH</span> ranked <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> dept_id, emp_id, salary,
+    <span class="tok-fn">DENSE_RANK</span>() <span class="tok-kw">OVER</span> (
+      <span class="tok-kw">PARTITION BY</span> dept_id
+      <span class="tok-kw">ORDER BY</span> salary <span class="tok-kw">DESC</span>) <span class="tok-kw">AS</span> dr
+  <span class="tok-kw">FROM</span> employees)
+<span class="tok-kw">SELECT</span> dept_id, emp_id, salary
+<span class="tok-kw">FROM</span> ranked
+<span class="tok-kw">WHERE</span> dr &lt;= <span class="tok-num">3</span>
+<span class="tok-kw">ORDER BY</span> dept_id, salary <span class="tok-kw">DESC</span>;</code></pre>
+          <p class="muted en"><code class="inline">DENSE_RANK</code> includes salary ties at the cutoff (may return &gt;3 rows). Use <code class="inline">ROW_NUMBER</code> for exactly 3 (arbitrary tie-break) — clarify which the interviewer wants. == Python Problem 7.</p>
+          <p class="muted ru"><code class="inline">DENSE_RANK</code> включает равные зарплаты на срезе (может вернуть &gt;3 строк). Используй <code class="inline">ROW_NUMBER</code> для ровно 3 (произвольный tie-break) — уточни, что хочет интервьюер. == Задача 7 по Python.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL2 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">SQL 2 · DEDUP + AUDIT</div>
+          <h3><span class="en">Keep latest row per id and count how many dupes were dropped</span><span class="ru">Оставить последнюю строку на id и посчитать сколько дублей выброшено</span></h3>
+          <p class="muted en">Source has multiple versions per <code class="inline">id</code> (by <code class="inline">updated_at</code>). Output the deduped set and a total duplicates-removed count.</p>
+          <p class="muted ru">Источник имеет несколько версий на <code class="inline">id</code> (по <code class="inline">updated_at</code>). Вывести дедуплицированный набор и общий счётчик удалённых дублей.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">SOLUTION</div>
+          <pre><code><span class="tok-kw">WITH</span> ranked <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> *,
+    <span class="tok-fn">ROW_NUMBER</span>() <span class="tok-kw">OVER</span> (
+      <span class="tok-kw">PARTITION BY</span> id
+      <span class="tok-kw">ORDER BY</span> updated_at <span class="tok-kw">DESC</span>, id <span class="tok-kw">DESC</span>) <span class="tok-kw">AS</span> rn
+  <span class="tok-kw">FROM</span> records)
+<span class="tok-kw">SELECT</span>
+  (<span class="tok-kw">SELECT</span> <span class="tok-fn">COUNT</span>(*) <span class="tok-kw">FROM</span> ranked <span class="tok-kw">WHERE</span> rn &gt; <span class="tok-num">1</span>) <span class="tok-kw">AS</span> dupes_removed;
+<span class="tok-com">-- and the deduped data:</span>
+<span class="tok-kw">SELECT</span> * <span class="tok-kw">FROM</span> ranked <span class="tok-kw">WHERE</span> rn = <span class="tok-num">1</span>;</code></pre>
+          <p class="muted en">Deterministic tie-break in <code class="inline">ORDER BY</code>. <code class="inline">rn &gt; 1</code> are the dupes. Mirrors Python Problem 2.</p>
+          <p class="muted ru">Детерминированный tie-break в <code class="inline">ORDER BY</code>. <code class="inline">rn &gt; 1</code> — дубли. Зеркало Задачи 2 по Python.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL3 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">SQL 3 · TIME-SERIES · MoM</div>
+          <h3><span class="en">Month-over-month % growth of revenue, with gap-filled months</span><span class="ru">% рост выручки месяц-к-месяцу с заполнением пропущенных месяцев</span></h3>
+          <p class="muted en">Some months have no sales. Produce every month in range, its revenue (0 if none), and MoM % change.</p>
+          <p class="muted ru">Некоторые месяцы без продаж. Вывести каждый месяц в диапазоне, его выручку (0, если нет), и MoM % изменение.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">SOLUTION · calendar spine + LAG</div>
+          <pre><code><span class="tok-kw">WITH</span> months <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> m <span class="tok-kw">FROM</span> <span class="tok-fn">UNNEST</span>(<span class="tok-fn">SEQUENCE</span>(
+    <span class="tok-kw">DATE</span> <span class="tok-str">'2024-01-01'</span>, <span class="tok-kw">DATE</span> <span class="tok-str">'2024-12-01'</span>,
+    <span class="tok-kw">INTERVAL</span> <span class="tok-str">'1'</span> <span class="tok-kw">MONTH</span>)) <span class="tok-kw">AS</span> t(m)),
+rev <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> <span class="tok-fn">DATE_TRUNC</span>(<span class="tok-str">'month'</span>, sale_dt) <span class="tok-kw">AS</span> m,
+         <span class="tok-fn">SUM</span>(amount) <span class="tok-kw">AS</span> revenue
+  <span class="tok-kw">FROM</span> sales <span class="tok-kw">GROUP BY</span> <span class="tok-num">1</span>),
+joined <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> months.m,
+         <span class="tok-fn">COALESCE</span>(rev.revenue, <span class="tok-num">0</span>) <span class="tok-kw">AS</span> revenue
+  <span class="tok-kw">FROM</span> months <span class="tok-kw">LEFT JOIN</span> rev <span class="tok-kw">ON</span> months.m = rev.m)
+<span class="tok-kw">SELECT</span> m, revenue,
+  <span class="tok-fn">LAG</span>(revenue) <span class="tok-kw">OVER</span> (<span class="tok-kw">ORDER BY</span> m) <span class="tok-kw">AS</span> prev,
+  <span class="tok-fn">ROUND</span>(<span class="tok-num">100.0</span> * (revenue
+        - <span class="tok-fn">LAG</span>(revenue) <span class="tok-kw">OVER</span> (<span class="tok-kw">ORDER BY</span> m))
+        / <span class="tok-fn">NULLIF</span>(<span class="tok-fn">LAG</span>(revenue) <span class="tok-kw">OVER</span> (<span class="tok-kw">ORDER BY</span> m), <span class="tok-num">0</span>),
+        <span class="tok-num">2</span>) <span class="tok-kw">AS</span> mom_pct
+<span class="tok-kw">FROM</span> joined <span class="tok-kw">ORDER BY</span> m;</code></pre>
+          <p class="muted en">Spine guarantees all months exist; <code class="inline">COALESCE</code> zero-fills; <code class="inline">LAG</code> gives the prior month; <code class="inline">NULLIF(...,0)</code> avoids divide-by-zero. First month's <code class="inline">mom_pct</code> is NULL by design.</p>
+          <p class="muted ru">Спайн гарантирует существование всех месяцев; <code class="inline">COALESCE</code> заполняет нулями; <code class="inline">LAG</code> даёт предыдущий месяц; <code class="inline">NULLIF(...,0)</code> избегает деления на ноль. <code class="inline">mom_pct</code> первого месяца NULL по дизайну.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL4 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">SQL 4 · TIME-SERIES · ROLLING</div>
+          <h3><span class="en">7-day rolling average of daily active users</span><span class="ru">7-дневное скользящее среднее дневных активных пользователей</span></h3>
+          <p class="muted en">Given daily counts, compute the trailing 7-day moving average per day.</p>
+          <p class="muted ru">Даны дневные счётчики, вычислить скользящее 7-дневное среднее на день.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">SOLUTION · windowed frame</div>
+          <pre><code><span class="tok-kw">SELECT</span>
+  d,
+  dau,
+  <span class="tok-fn">AVG</span>(dau) <span class="tok-kw">OVER</span> (
+    <span class="tok-kw">ORDER BY</span> d
+    <span class="tok-kw">ROWS BETWEEN</span> <span class="tok-num">6</span> <span class="tok-kw">PRECEDING</span>
+         <span class="tok-kw">AND CURRENT ROW</span>) <span class="tok-kw">AS</span> ma7
+<span class="tok-kw">FROM</span> daily_active
+<span class="tok-kw">ORDER BY</span> d;</code></pre>
+          <p class="muted en">Use <code class="inline">ROWS</code> (physical 7 rows), not <code class="inline">RANGE</code>. If days can be missing, first build a date spine (SQL 3) so "7 rows" = "7 calendar days". Early rows average fewer than 7 — note that, or filter to full windows.</p>
+          <p class="muted ru">Используй <code class="inline">ROWS</code> (физические 7 строк), не <code class="inline">RANGE</code>. Если дни могут отсутствовать, сначала построй календарный спайн (SQL 3), чтобы «7 строк» = «7 календарных дней». Ранние строки усредняют меньше 7 — отметь это или фильтруй до полных окон.</p>
+          <div class="callout big" style="margin-top:8px"><span class="en">== Python Problem 8 (deque rolling average). Window functions are the SQL way to do streaming aggregates.</span><span class="ru">== Задача 8 по Python (deque скользящее среднее). Оконные функции — SQL-способ делать потоковые агрегации.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL5 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">SQL 5 · GAPS-AND-ISLANDS</div>
+          <h3><span class="en">Longest streak of consecutive login days per user</span><span class="ru">Максимальный streak последовательных дней логина на пользователя</span></h3>
+          <p class="muted en">From a table of <code class="inline">(user_id, login_date)</code> (one row per active day), find each user's longest consecutive-day streak.</p>
+          <p class="muted ru">Из таблицы <code class="inline">(user_id, login_date)</code> (одна строка на активный день) найти максимальный последовательный streak на пользователя.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">SOLUTION · date − rownum trick</div>
+          <pre><code><span class="tok-kw">WITH</span> numbered <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> user_id, login_date,
+    <span class="tok-fn">ROW_NUMBER</span>() <span class="tok-kw">OVER</span> (<span class="tok-kw">PARTITION BY</span> user_id
+                       <span class="tok-kw">ORDER BY</span> login_date) <span class="tok-kw">AS</span> rn
+  <span class="tok-kw">FROM</span> (<span class="tok-kw">SELECT DISTINCT</span> user_id, login_date <span class="tok-kw">FROM</span> logins)),
+islands <span class="tok-kw">AS</span> (
+  <span class="tok-kw">SELECT</span> user_id,
+    <span class="tok-fn">COUNT</span>(*) <span class="tok-kw">AS</span> streak
+  <span class="tok-kw">FROM</span> numbered
+  <span class="tok-kw">GROUP BY</span> user_id,
+           login_date - <span class="tok-fn">CAST</span>(rn <span class="tok-kw">AS</span> integer))
+<span class="tok-kw">SELECT</span> user_id, <span class="tok-fn">MAX</span>(streak) <span class="tok-kw">AS</span> longest_streak
+<span class="tok-kw">FROM</span> islands
+<span class="tok-kw">GROUP BY</span> user_id;</code></pre>
+          <p class="muted en"><code class="inline">DISTINCT</code> first (dupes break the trick). For consecutive dates, <code class="inline">login_date − rn</code> is constant within a run, so grouping on it forms islands; <code class="inline">COUNT(*)</code> = streak length.</p>
+          <p class="muted ru"><code class="inline">DISTINCT</code> сначала (дубли ломают трюк). Для последовательных дат <code class="inline">login_date − rn</code> константа внутри ряда, поэтому группировка по ней формирует острова; <code class="inline">COUNT(*)</code> = длина streak.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL6 -->
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="q-tag">SQL 6 · ANTI-JOIN / FUNNEL</div>
+          <h3><span class="en">Users who viewed a product but never purchased it</span><span class="ru">Пользователи, просмотревшие продукт, но никогда не купившие его</span></h3>
+          <p class="muted en">Two event tables: <code class="inline">views(user_id, product_id)</code>, <code class="inline">purchases(user_id, product_id)</code>. Find view-without-purchase pairs.</p>
+          <p class="muted ru">Две таблицы событий: <code class="inline">views(user_id, product_id)</code>, <code class="inline">purchases(user_id, product_id)</code>. Найти пары просмотр-без-покупки.</p>
+          <button class="flip-btn"><span class="en">Reveal solution ▸</span><span class="ru">Раскрыть решение ▸</span></button>
+        </div>
+        <div class="flip-face flip-back">
+          <div class="a-tag">SOLUTION · NOT EXISTS (safe anti-join)</div>
+          <pre><code><span class="tok-kw">SELECT DISTINCT</span> views.user_id, views.product_id
+<span class="tok-kw">FROM</span> views
+<span class="tok-kw">WHERE NOT EXISTS</span> (
+  <span class="tok-kw">SELECT</span> <span class="tok-num">1</span>
+  <span class="tok-kw">FROM</span> purchases
+  <span class="tok-kw">WHERE</span> purchases.user_id = views.user_id
+    <span class="tok-kw">AND</span> purchases.product_id = views.product_id);</code></pre>
+          <p class="muted en">Use <code class="inline">NOT EXISTS</code>, not <code class="inline">NOT IN</code> (NULL-safe). Equivalent: <code class="inline">LEFT JOIN ... WHERE purchases.user_id IS NULL</code>. <code class="inline">DISTINCT</code> because a user may view a product many times. == Python set-difference / anti-join thinking.</p>
+          <p class="muted ru">Используй <code class="inline">NOT EXISTS</code>, не <code class="inline">NOT IN</code> (NULL-безопасно). Эквивалент: <code class="inline">LEFT JOIN ... WHERE purchases.user_id IS NULL</code>. <code class="inline">DISTINCT</code>, потому что пользователь может просматривать продукт много раз. == питоновое set-разность / анти-джойн мышление.</p>
+          <div class="callout craft" style="margin-top:8px"><span class="en">Mention indexing/partitioning on <code class="inline">(user_id, product_id)</code> to make the anti-join efficient on large tables.</span><span class="ru">Упомяни индексирование/партиционирование по <code class="inline">(user_id, product_id)</code>, чтобы анти-джойн был эффективен на больших таблицах.</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ CLOSERS ============ -->
+<section id="closers">
+  <div class="sec-head"><span class="sec-num">10</span><h2><span class="en">Interview Closers &amp; Craftsmanship Checklist</span><span class="ru">Финалы интервью и чеклист мастерства</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="grid">
+      <div class="card">
+        <h3><span class="en">How to run the 60 minutes</span><span class="ru">Как провести 60 минут</span></h3>
+        <ol class="en">
+          <li><b>Clarify</b> input format, size, ordering, duplicates, edge cases — before coding.</li>
+          <li><b>State approach</b> + big-O out loud; get a nod.</li>
+          <li><b>Code cleanly:</b> good names, small pure functions, handle empties.</li>
+          <li><b>Walk a small example</b> to verify; mention test cases you'd add.</li>
+          <li><b>Discuss scale:</b> "if this didn't fit in memory I'd stream / push to SQL".</li>
+        </ol>
+        <ol class="ru">
+          <li><b>Уточни</b> формат ввода, размер, упорядочивание, дубликаты, граничные случаи — до кодирования.</li>
+          <li><b>Сформулируй подход</b> + big-O вслух; получи кивок.</li>
+          <li><b>Кодируй чисто:</b> хорошие имена, маленькие чистые функции, обрабатывай пустоты.</li>
+          <li><b>Пройди малый пример</b> для проверки; упомяни тест-кейсы, которые бы добавил.</li>
+          <li><b>Обсуди масштаб:</b> «если бы это не влезало в память, я бы стримил / пушил в SQL».</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3><span class="en">Python ↔ SQL equivalences (say these)</span><span class="ru">Python ↔ SQL эквиваленции (проговаривай это)</span></h3>
+        <table class="tbl">
+          <tr><th><span class="en">Task</span><span class="ru">Задача</span></th><th>Python</th><th>SQL</th></tr>
+          <tr><td><span class="en">Dedup latest</span><span class="ru">Дедуп последних</span></td><td>dict by id</td><td>ROW_NUMBER=1</td></tr>
+          <tr><td>Top-N/key</td><td>per-key heap</td><td>RANK ≤ N</td></tr>
+          <tr><td><span class="en">Frequencies</span><span class="ru">Частоты</span></td><td>Counter</td><td>GROUP BY COUNT</td></tr>
+          <tr><td><span class="en">Rolling avg</span><span class="ru">Скольз. среднее</span></td><td>deque + sum</td><td>AVG OVER ROWS</td></tr>
+          <tr><td>Anti-join</td><td>set difference</td><td>NOT EXISTS</td></tr>
+          <tr><td><span class="en">Merge runs</span><span class="ru">Слияние рядов</span></td><td>sort + sweep</td><td>gaps-and-islands</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3><span class="en">Craftsmanship signals interviewers look for</span><span class="ru">Сигналы мастерства, которые ищут интервьюеры</span></h3>
+        <ul class="en">
+          <li>Correctness first; edge cases handled, not hand-waved.</li>
+          <li>Readable: meaningful names, no clever one-liners that obscure.</li>
+          <li>Right data structure for the complexity you claim.</li>
+          <li>Pure functions / I/O at edges → testable.</li>
+          <li>You proactively name trade-offs and limitations.</li>
+          <li>You'd add types + unit tests in real code.</li>
+        </ul>
+        <ul class="ru">
+          <li>Корректность прежде всего; граничные случаи обработаны, не отмахнуты.</li>
+          <li>Читаемо: значимые имена, нет умных однострочников, затемняющих суть.</li>
+          <li>Правильная структура данных под заявленную сложность.</li>
+          <li>Чистые функции / I/O на границах → тестируемо.</li>
+          <li>Ты активно называешь компромиссы и ограничения.</li>
+          <li>Ты бы добавил типы + юнит-тесты в реальном коде.</li>
+        </ul>
+        <div class="callout craft en">Saying "here's the simple correct version, and here's how I'd optimize / what breaks at scale" is the senior signal that separates a 10-yr DE from a junior.</div>
+        <div class="callout craft ru">Сказать «вот простая корректная версия, а вот как бы я оптимизировал / что ломается на масштабе» — это сеньорский сигнал, отделяющий 10-летнего DE от джуна.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span class="en">Python Coding &amp; SQL — Data Engineering Interview Prep · Senior Data Engineer · Self-contained, offline. Flip cards = solutions; click section headers to collapse. Good luck, Amal.</span>
+  <span class="ru">Python Coding и SQL — Подготовка к Data Engineering интервью · Senior Data Engineer · Автономная, офлайн. Карточки-перевёртыши = решения; клик на заголовки секций, чтобы свернуть. Удачи, Amal.</span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  // ---- theme toggle ----
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+  }
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('de_cheat_theme'); } catch (e) {}
+  applyTheme(savedTheme || 'dark');
+  themeBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('de_cheat_theme', next); } catch (e) {}
+  });
+
+  // ---- language toggle ----
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l) {
+    root.setAttribute('data-lang', l);
+    root.setAttribute('lang', l);
+    langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+  }
+  var savedLang = null;
+  try { savedLang = localStorage.getItem('de_cheat_lang'); } catch (e) {}
+  applyLang(savedLang || 'en');
+  langBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+    applyLang(next);
+    try { localStorage.setItem('de_cheat_lang', next); } catch (e) {}
+  });
+
+  // ---- Collapsible sections ----
+  document.querySelectorAll('.sec-head').forEach(function(h){
+    h.addEventListener('click', function(){
+      h.classList.toggle('collapsed');
+      var body = h.nextElementSibling;
+      if(body && body.classList.contains('sec-body')){
+        body.classList.toggle('hidden');
+      }
+    });
+  });
+
+  // ---- Flip cards ----
+  document.querySelectorAll('.flip').forEach(function(card){
+    card.addEventListener('click', function(e){
+      // ignore clicks that select text inside the back face
+      if(window.getSelection && String(window.getSelection()).length > 0) return;
+      card.classList.toggle('open');
+    });
+  });
+
+  // ---- Scroll reveal ----
+  (function(){
+    var els = document.querySelectorAll('.card, .flip, .callout');
+    els.forEach(function(el){ el.classList.add('reveal'); });
+    if('IntersectionObserver' in window){
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+        });
+      }, {threshold:0.08});
+      els.forEach(function(el){ io.observe(el); });
+    } else {
+      els.forEach(function(el){ el.classList.add('in'); });
+    }
+  })();
+
+  // ---- Smooth nav offset for sticky header ----
+  document.querySelectorAll('nav .links a').forEach(function(a){
+    a.addEventListener('click', function(e){
+      var id = a.getAttribute('href').slice(1);
+      var target = document.getElementById(id);
+      if(target){
+        // make sure section is expanded
+        var head = target.querySelector('.sec-head');
+        var body = target.querySelector('.sec-body');
+        if(head && head.classList.contains('collapsed')){
+          head.classList.remove('collapsed');
+          if(body) body.classList.remove('hidden');
+        }
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

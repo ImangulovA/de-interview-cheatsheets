@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Engineering Interview Cheatsheets</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #151d30;
+    --card-2: #1b2540;
+    --text: #e6ecf7;
+    --muted: #93a0bd;
+    --border: #243154;
+    --accent: #1877F2;
+    --green: #02e2ac;
+    --orange: #f59e0b;
+    --purple: #a855f7;
+    --shadow: rgba(0,0,0,0.45);
+  }
+  [data-theme="light"] {
+    --bg: #f4f7fc;
+    --card: #ffffff;
+    --card-2: #eef3fb;
+    --text: #14213d;
+    --muted: #56627e;
+    --border: #d6deee;
+    --shadow: rgba(20,33,61,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    transition: background .3s, color .3s;
+    padding-bottom: 80px;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* i18n */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* Nav */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,26,0.82);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 26px;
+  }
+  [data-theme="light"] nav { background: rgba(244,247,252,0.85); }
+  .nav-brand { font-weight: 700; font-size: 15px; letter-spacing: .3px; }
+  .nav-brand span { color: var(--accent); }
+  .nav-links { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .nav-links a { color: var(--muted); font-size: 13.5px; font-weight: 500; }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
+  .toggle-btn {
+    background: var(--card-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 7px 13px; cursor: pointer; font-size: 13px; font-weight: 600;
+    transition: transform .15s, border-color .15s;
+  }
+  .toggle-btn:hover { transform: translateY(-1px); border-color: var(--accent); }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 22px; }
+
+  /* Hero */
+  header.hero {
+    text-align: center; padding: 66px 22px 38px;
+    background:
+      radial-gradient(1200px 380px at 50% -120px, rgba(24,119,242,0.18), transparent 70%),
+      radial-gradient(900px 320px at 80% 0, rgba(168,85,247,0.12), transparent 70%);
+  }
+  .eyebrow {
+    display: inline-block; font-size: 12.5px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--green);
+    border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px;
+    background: var(--card); margin-bottom: 18px;
+  }
+  header.hero h1 { font-size: 40px; line-height: 1.12; margin-bottom: 12px; }
+  header.hero h1 .grad {
+    background: linear-gradient(100deg, var(--accent), var(--purple));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .role-meta { color: var(--muted); font-size: 15.5px; max-width: 720px; margin: 0 auto 8px; }
+  .role-tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+  .tag {
+    font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--card); color: var(--muted);
+  }
+  .tag.s { color: var(--green); border-color: rgba(2,226,172,0.35); }
+  .tag.p { color: var(--purple); border-color: rgba(168,85,247,0.35); }
+
+  /* Sections */
+  section { padding: 40px 0 6px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  .sec-head h2 { font-size: 22px; }
+  .sec-head .num { color: var(--accent); font-weight: 800; font-size: 15px; }
+  .sec-sub { color: var(--muted); font-size: 14px; margin-bottom: 20px; max-width: 760px; }
+
+  /* Topic card grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px,1fr)); gap: 15px; }
+  .topic {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px;
+    display: flex; flex-direction: column; gap: 9px; transition: transform .18s, border-color .18s;
+  }
+  .topic:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .topic .top { display: flex; align-items: center; gap: 9px; }
+  .topic h4 { font-size: 15.5px; }
+  .topic .ico { font-size: 21px; }
+  .topic .desc { color: var(--muted); font-size: 13px; flex: 1; }
+  .topic a.open {
+    align-self: flex-start; font-size: 13px; font-weight: 600; padding: 6px 13px; border-radius: 8px;
+    background: var(--card-2); border: 1px solid var(--border); color: var(--accent);
+  }
+  .topic a.open:hover { text-decoration: none; border-color: var(--accent); }
+  .topic.soon { opacity: .85; }
+  .topic .badge {
+    font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; letter-spacing: .4px;
+    text-transform: uppercase; color: var(--purple); background: rgba(168,85,247,0.12);
+    border: 1px solid rgba(168,85,247,0.3);
+  }
+
+  .reveal { opacity:0; transform: translateY(16px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+
+  .tip {
+    margin-top: 26px; background: var(--card); border: 1px solid var(--border);
+    border-left: 4px solid var(--green); border-radius: 0 12px 12px 0; padding: 14px 18px;
+    color: var(--muted); font-size: 13.5px;
+  }
+  .tip strong { color: var(--text); }
+
+  footer { text-align: center; color: var(--muted); font-size: 13px; padding: 52px 22px 10px; }
+  hr.sep { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">DE Interview <span>// Cheatsheets</span></div>
+  <div class="nav-links">
+    <a href="#streaming"><span class="en">Streaming</span><span class="ru">Стриминг</span></a>
+    <a href="#compute"><span class="en">Compute</span><span class="ru">Вычисления</span></a>
+    <a href="#storage"><span class="en">Storage</span><span class="ru">Хранение</span></a>
+    <a href="#pipelines"><span class="en">Pipelines</span><span class="ru">Пайплайны</span></a>
+    <a href="#quality"><span class="en">Quality</span><span class="ru">Качество</span></a>
+    <a href="#coding"><span class="en">Coding</span><span class="ru">Код</span></a>
+    <a href="#design"><span class="en">Design</span><span class="ru">Дизайн</span></a>
+    <a href="#behavioral"><span class="en">Behavioral</span><span class="ru">Поведенческое</span></a>
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="en">Interview Prep Pack</span><span class="ru">Набор для подготовки</span></span>
+    <h1><span class="en">Data Engineering <span class="grad">Interview Cheatsheets</span></span><span class="ru">Шпаргалки к собеседованиям <span class="grad">Data Engineer</span></span></h1>
+    <p class="role-meta">
+      <span class="en">A self-contained set of fast-revision cheatsheets for Senior/Lead Data Engineering interviews: concepts, diagrams, gotchas, interviewer probes, and flip-card self-quizzes. Every page is bilingual (EN/RU) with a dark/light theme.</span>
+      <span class="ru">Самодостаточный набор шпаргалок для быстрого повторения перед собеседованиями на Senior/Lead Data Engineer: концепции, схемы, подводные камни, вопросы интервьюера и карточки для самопроверки. Каждая страница двуязычная (EN/RU), с тёмной и светлой темой.</span>
+    </p>
+    <div class="role-tags">
+      <span class="tag s"><span class="en">Distributed systems</span><span class="ru">Распределённые системы</span></span>
+      <span class="tag s">Spark · Kafka · Flink</span>
+      <span class="tag s">SQL · Iceberg · Airflow</span>
+      <span class="tag p"><span class="en">Data quality &amp; testing</span><span class="ru">Качество данных и тесты</span></span>
+      <span class="tag p"><span class="en">System design</span><span class="ru">Системный дизайн</span></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section id="streaming">
+    <div class="sec-head"><span class="num">01</span><h2><span class="en">Streaming &amp; Messaging</span><span class="ru">Стриминг и обмен сообщениями</span></h2></div>
+    <p class="sec-sub"><span class="en">Logs, partitions, delivery semantics, watermarks and stateful stream processing.</span><span class="ru">Логи, партиции, семантики доставки, watermarks и stateful-обработка потоков.</span></p>
+    <div class="grid">
+      <div class="topic reveal">
+        <div class="top"><span class="ico">⚡</span><h4>Apache Kafka</h4></div>
+        <div class="desc"><span class="en">Topics, partitions, ISR, delivery semantics, EOS, retention, failure modes.</span><span class="ru">Топики, партиции, ISR, семантики доставки, EOS, хранение, режимы сбоев.</span></div>
+        <a class="open" href="cheatsheets/kafka.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🌊</span><h4>Apache Flink</h4></div>
+        <div class="desc"><span class="en">Event vs processing time, watermarks, windowing, keyed state, checkpoint EOS.</span><span class="ru">Event vs processing time, watermarks, окна, keyed state, EOS через чекпоинты.</span></div>
+        <a class="open" href="cheatsheets/apache-flink.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="compute">
+    <div class="sec-head"><span class="num">02</span><h2><span class="en">Batch Compute &amp; Language</span><span class="ru">Батч-вычисления и язык</span></h2></div>
+    <p class="sec-sub"><span class="en">Distributed compute engines and the JVM language behind them.</span><span class="ru">Движки распределённых вычислений и JVM-язык под ними.</span></p>
+    <div class="grid">
+      <div class="topic reveal">
+        <div class="top"><span class="ico">✴️</span><h4>Apache Spark</h4></div>
+        <div class="desc"><span class="en">Driver/executors, DAG, shuffles, skew, broadcast joins, caching, Catalyst.</span><span class="ru">Driver/executors, DAG, shuffle, перекос, broadcast join, кэширование, Catalyst.</span></div>
+        <a class="open" href="cheatsheets/apache-spark.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">📕</span><h4><span class="en">Scala for Big Data</span><span class="ru">Scala для Big Data</span></h4></div>
+        <div class="desc"><span class="en">Case classes, pattern matching, Option/Either, immutability, Dataset API.</span><span class="ru">Case-классы, pattern matching, Option/Either, иммутабельность, Dataset API.</span></div>
+        <a class="open" href="cheatsheets/scala-bigdata.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🧠</span><h4><span class="en">Coding &amp; Algorithms</span><span class="ru">Код и алгоритмы</span></h4></div>
+        <div class="desc"><span class="en">Arrays, hash maps, two pointers, heaps, trees/graphs, data-flavoured prompts.</span><span class="ru">Массивы, хеш-таблицы, два указателя, кучи, деревья/графы, задачи на данные.</span></div>
+        <a class="open" href="cheatsheets/coding-algorithms.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🐍</span><h4>Python &amp; SQL</h4></div>
+        <div class="desc"><span class="en">Idiomatic Python, pandas, typed/testable code, SQL windows, CTEs, optimization.</span><span class="ru">Идиоматичный Python, pandas, типизированный код, оконные функции SQL, CTE, оптимизация.</span></div>
+        <a class="open" href="cheatsheets/python-coding-sql.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="storage">
+    <div class="sec-head"><span class="num">03</span><h2><span class="en">Storage &amp; Data Modeling</span><span class="ru">Хранение и моделирование данных</span></h2></div>
+    <p class="sec-sub"><span class="en">Table formats, warehousing, modeling, governance and lineage.</span><span class="ru">Табличные форматы, warehousing, моделирование, governance и lineage.</span></p>
+    <div class="grid">
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🧊</span><h4><span class="en">Iceberg &amp; Warehousing</span><span class="ru">Iceberg и warehousing</span></h4></div>
+        <div class="desc"><span class="en">Table vs file format, hidden partitioning, ACID, time travel, schema evolution.</span><span class="ru">Table vs file format, скрытое партиционирование, ACID, time travel, эволюция схемы.</span></div>
+        <a class="open" href="cheatsheets/iceberg-warehousing.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">📊</span><h4><span class="en">SQL &amp; Data Modeling</span><span class="ru">SQL и моделирование</span></h4></div>
+        <div class="desc"><span class="en">Window functions, sessionization, dedup, funnels, SCD, grain, partitioning.</span><span class="ru">Оконные функции, сессионизация, дедуп, воронки, SCD, грануляция, партиционирование.</span></div>
+        <a class="open" href="cheatsheets/sql-data-modeling.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🗂️</span><h4><span class="en">Modeling, Governance &amp; Lineage</span><span class="ru">Моделирование, governance, lineage</span></h4></div>
+        <div class="desc"><span class="en">Dimensional modeling, metadata, data contracts, lineage, governance.</span><span class="ru">Размерное моделирование, метаданные, data contracts, lineage, governance.</span></div>
+        <a class="open" href="cheatsheets/data-modelling-governance-lineage.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="pipelines">
+    <div class="sec-head"><span class="num">04</span><h2><span class="en">Pipelines &amp; Platform</span><span class="ru">Пайплайны и платформа</span></h2></div>
+    <p class="sec-sub"><span class="en">Orchestration, pipeline design, DataOps/CI-CD and modernizing legacy systems.</span><span class="ru">Оркестрация, дизайн пайплайнов, DataOps/CI-CD и модернизация legacy.</span></p>
+    <div class="grid">
+      <div class="topic reveal">
+        <div class="top"><span class="ico">📅</span><h4><span class="en">Airflow &amp; Orchestration</span><span class="ru">Airflow и оркестрация</span></h4></div>
+        <div class="desc"><span class="en">DAG design, idempotency, retries, backfills, sensors, SLAs.</span><span class="ru">Дизайн DAG, идемпотентность, ретраи, бэкфилы, сенсоры, SLA.</span></div>
+        <a class="open" href="cheatsheets/airflow-orchestration.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🛠️</span><h4><span class="en">Pipeline Design</span><span class="ru">Дизайн пайплайнов</span></h4></div>
+        <div class="desc"><span class="en">End-to-end design, idempotency, scheduling, dbt, vendor trade-offs.</span><span class="ru">Сквозной дизайн, идемпотентность, расписания, dbt, выбор вендоров.</span></div>
+        <a class="open" href="cheatsheets/data-pipeline-design-orchestration.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">☁️</span><h4>Cloud, DataOps &amp; CI/CD</h4></div>
+        <div class="desc"><span class="en">Cloud data stack, IaC, testing in CI, deployment, observability.</span><span class="ru">Облачный стек данных, IaC, тесты в CI, деплой, наблюдаемость.</span></div>
+        <a class="open" href="cheatsheets/cloud-dataops-cicd.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🏗️</span><h4><span class="en">Legacy Modernization</span><span class="ru">Модернизация legacy</span></h4></div>
+        <div class="desc"><span class="en">Strangler/parallel-run, backfills, CDC, reconciliation, safe cutover.</span><span class="ru">Strangler/parallel-run, бэкфилы, CDC, сверка, безопасный cutover.</span></div>
+        <a class="open" href="cheatsheets/legacy-modernization-migrations.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="quality">
+    <div class="sec-head"><span class="num">05</span><h2><span class="en">Quality, Testing &amp; ML</span><span class="ru">Качество, тестирование и ML</span></h2></div>
+    <p class="sec-sub"><span class="en">Making data trustworthy: testing, observability and ML-assisted quality.</span><span class="ru">Как сделать данные надёжными: тестирование, наблюдаемость и ML для качества.</span></p>
+    <div class="grid">
+      <div class="topic reveal">
+        <div class="top"><span class="ico">✅</span><h4><span class="en">Software Testing for DE</span><span class="ru">Тестирование для DE</span></h4></div>
+        <div class="desc"><span class="en">Test pyramid, pipeline testing, schema/freshness/null checks, CI gating.</span><span class="ru">Пирамида тестов, тестирование пайплайнов, проверки схемы/свежести/null, гейтинг в CI.</span></div>
+        <a class="open" href="cheatsheets/software-testing-data.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🔬</span><h4><span class="en">Data Quality &amp; Observability</span><span class="ru">Качество данных и наблюдаемость</span></h4></div>
+        <div class="desc"><span class="en">DQ dimensions, controls, monitors, anomaly detection, incident response.</span><span class="ru">Измерения качества, контроли, мониторы, детекция аномалий, реакция на инциденты.</span></div>
+        <a class="open" href="cheatsheets/data-quality-controls-observability.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🤖</span><h4>ML/AI for Data Quality</h4></div>
+        <div class="desc"><span class="en">ML-based anomaly detection, drift, validation and AI-assisted DQ.</span><span class="ru">ML-детекция аномалий, дрейф, валидация и AI-помощь в контроле качества.</span></div>
+        <a class="open" href="cheatsheets/ml-ai-for-data-quality.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="design">
+    <div class="sec-head"><span class="num">06</span><h2><span class="en">System Design &amp; Domain</span><span class="ru">Системный дизайн и домен</span></h2></div>
+    <p class="sec-sub"><span class="en">Designing a data platform end-to-end, plus a worked domain example.</span><span class="ru">Сквозной дизайн дата-платформы плюс разобранный доменный пример.</span></p>
+    <div class="grid">
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🧩</span><h4><span class="en">System Design: Data Platform</span><span class="ru">Системный дизайн: дата-платформа</span></h4></div>
+        <div class="desc"><span class="en">Requirements, ingestion, storage, compute, serving, trade-offs at scale.</span><span class="ru">Требования, ingestion, хранение, вычисления, отдача данных, компромиссы на масштабе.</span></div>
+        <a class="open" href="cheatsheets/system-design-data-platform.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">📈</span><h4><span class="en">Economics &amp; Time-Series Domain</span><span class="ru">Домен: экономика и временные ряды</span></h4></div>
+        <div class="desc"><span class="en">Vintages, revisions, point-in-time, seasonality, frequency, bitemporal data.</span><span class="ru">Vintages, ревизии, point-in-time, сезонность, частота, битемпоральные данные.</span></div>
+        <a class="open" href="cheatsheets/economics-timeseries-domain.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal soon">
+        <div class="top"><span class="ico">🧮</span><h4><span class="en">Distributed Systems</span><span class="ru">Распределённые системы</span></h4><span class="badge"><span class="en">Soon</span><span class="ru">Скоро</span></span></div>
+        <div class="desc"><span class="en">A dedicated multi-level project (beginner → intermediate → advanced) is in the works.</span><span class="ru">Готовится отдельный многоуровневый проект (новичок → средний → продвинутый).</span></div>
+        <a class="open" href="#" onclick="return false" style="opacity:.6;cursor:default"><span class="en">Coming soon</span><span class="ru">Скоро</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="behavioral">
+    <div class="sec-head"><span class="num">07</span><h2><span class="en">Behavioral &amp; Collaboration</span><span class="ru">Поведенческое и взаимодействие</span></h2></div>
+    <p class="sec-sub"><span class="en">Values, mentorship, and translating between stakeholders and data work.</span><span class="ru">Ценности, менторство и перевод между стейкхолдерами и работой с данными.</span></p>
+    <div class="grid">
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🏆</span><h4><span class="en">Behavioral &amp; Values</span><span class="ru">Поведенческое и ценности</span></h4></div>
+        <div class="desc"><span class="en">Quality, ownership, ambiguity, cross-functional work. STAR-ready stories.</span><span class="ru">Качество, ответственность, неопределённость, кросс-функциональность. Истории по STAR.</span></div>
+        <a class="open" href="cheatsheets/behavioral-values.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">🤝</span><h4><span class="en">Behavioral, Mentorship &amp; Values</span><span class="ru">Поведенческое, менторство, ценности</span></h4></div>
+        <div class="desc"><span class="en">Mentoring, leadership, accountability and collaboration stories.</span><span class="ru">Истории про менторство, лидерство, ответственность и сотрудничество.</span></div>
+        <a class="open" href="cheatsheets/behavioral-mentorship-values.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+      <div class="topic reveal">
+        <div class="top"><span class="ico">💬</span><h4><span class="en">Stakeholders &amp; Requirements</span><span class="ru">Стейкхолдеры и требования</span></h4></div>
+        <div class="desc"><span class="en">Translating vague asks into specs, managing stakeholders, scoping.</span><span class="ru">Перевод размытых запросов в спеки, работа со стейкхолдерами, скоупинг.</span></div>
+        <a class="open" href="cheatsheets/stakeholder-translation-requirements.html"><span class="en">Open →</span><span class="ru">Открыть →</span></a>
+      </div>
+    </div>
+  </section>
+
+  <div class="tip reveal">
+    <span class="en"><strong>How to use:</strong> each page works offline and remembers your language and theme. Read concepts, study the "interviewer will probe" callouts, then flip the self-quiz cards and answer out loud before revealing.</span>
+    <span class="ru"><strong>Как пользоваться:</strong> каждая страница работает офлайн и запоминает язык и тему. Читай концепции, разбирай блоки «о чём спросит интервьюер», затем переворачивай карточки самопроверки и отвечай вслух до того, как открыть ответ.</span>
+  </div>
+
+  <hr class="sep">
+  <footer>
+    <span class="en">Data Engineering interview cheatsheets · bilingual EN/RU · dark/light theme · built for Amal Imangulov.</span>
+    <span class="ru">Шпаргалки к собеседованиям Data Engineer · двуязычно EN/RU · тёмная/светлая тема · сделано для Amal Imangulov.</span>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+
+    // theme toggle
+    var themeBtn = document.getElementById('themeBtn');
+    function applyTheme(t) {
+      root.setAttribute('data-theme', t);
+      themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+    }
+    var savedTheme = null;
+    try { savedTheme = localStorage.getItem('de_cheat_theme'); } catch (e) {}
+    applyTheme(savedTheme || 'dark');
+    themeBtn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try { localStorage.setItem('de_cheat_theme', next); } catch (e) {}
+    });
+
+    // language toggle
+    var langBtn = document.getElementById('langBtn');
+    function applyLang(l) {
+      root.setAttribute('data-lang', l);
+      root.setAttribute('lang', l);
+      langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+    }
+    var savedLang = null;
+    try { savedLang = localStorage.getItem('de_cheat_lang'); } catch (e) {}
+    applyLang(savedLang || 'en');
+    langBtn.addEventListener('click', function () {
+      var next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+      applyLang(next);
+      try { localStorage.setItem('de_cheat_lang', next); } catch (e) {}
+    });
+
+    // scroll reveal
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+  })();
+</script>
+</body>
+</html>

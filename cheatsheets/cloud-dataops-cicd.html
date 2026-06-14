@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud, DataOps &amp; CI/CD — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #151d30;
+    --card2: #1c2740;
+    --text: #e6ebf5;
+    --muted: #93a1c0;
+    --border: #243049;
+    --accent: #1877F2;
+    --green: #02e2ac;
+    --orange: #f59e0b;
+    --purple: #a855f7;
+    --code-bg: #0d1424;
+    --shadow: rgba(0,0,0,0.45);
+  }
+  [data-theme="light"] {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --card2: #eef2fa;
+    --text: #15203a;
+    --muted: #5b6b88;
+    --border: #d6deec;
+    --accent: #1877F2;
+    --green: #018f6c;
+    --orange: #b9740a;
+    --purple: #8b3ee0;
+    --code-bg: #eef2fa;
+    --shadow: rgba(20,40,80,0.12);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    font-size: 15px;
+    transition: background .25s, color .25s;
+  }
+  code, pre, .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* nav */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 4px;
+    padding: 8px 14px; flex-wrap: wrap;
+  }
+  nav .brand { font-weight: 700; color: var(--accent); margin-right: 8px; font-size: 14px; white-space: nowrap; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 12.5px;
+    padding: 4px 8px; border-radius: 6px; white-space: nowrap;
+  }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  header.hero {
+    padding: 38px 22px 26px; max-width: 1080px; margin: 0 auto;
+  }
+  header.hero h1 { font-size: 28px; margin: 0 0 8px; line-height: 1.2; }
+  header.hero p { color: var(--muted); margin: 4px 0; max-width: 760px; }
+  .badges { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 7px; }
+  .badge {
+    font-size: 11.5px; padding: 4px 10px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--card); color: var(--muted);
+  }
+  .badge.a { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+  .badge.g { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, var(--border)); }
+  .badge.o { color: var(--orange); border-color: color-mix(in srgb, var(--orange) 45%, var(--border)); }
+  .badge.p { color: var(--purple); border-color: color-mix(in srgb, var(--purple) 45%, var(--border)); }
+
+  main { max-width: 1080px; margin: 0 auto; padding: 0 18px 80px; }
+
+  /* sections */
+  section { margin: 22px 0; }
+  .sec-head {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    user-select: none; padding: 12px 16px; border-radius: 12px;
+    background: var(--card); border: 1px solid var(--border);
+    transition: border-color .2s;
+  }
+  .sec-head:hover { border-color: var(--accent); }
+  .sec-head h2 { margin: 0; font-size: 18px; flex: 1; }
+  .sec-head .num {
+    font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700;
+    color: var(--bg); background: var(--accent);
+    width: 24px; height: 24px; border-radius: 6px;
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .sec-head .chev { color: var(--muted); transition: transform .25s; font-size: 13px; }
+  .sec-head.collapsed .chev { transform: rotate(-90deg); }
+  .sec-body {
+    padding: 6px 4px 4px; overflow: hidden;
+    max-height: 14000px; transition: max-height .4s ease, opacity .3s;
+  }
+  .sec-body.hidden { max-height: 0; opacity: 0; padding: 0 4px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px; margin: 12px 0;
+    box-shadow: 0 2px 10px var(--shadow);
+  }
+  .card h3 { margin: 0 0 8px; font-size: 15.5px; color: var(--text); }
+  .card h4 { margin: 14px 0 6px; font-size: 13.5px; color: var(--accent); text-transform: uppercase; letter-spacing: .4px; }
+  p { margin: 8px 0; }
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  strong { color: var(--text); }
+  em { color: var(--purple); font-style: normal; font-weight: 600; }
+
+  /* code */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; overflow-x: auto;
+    font-size: 12.5px; line-height: 1.5; margin: 10px 0;
+  }
+  pre.diagram { font-size: 11.5px; line-height: 1.35; color: var(--muted); }
+  code.inline {
+    background: var(--code-bg); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 5px; font-size: 12.5px; color: var(--green);
+  }
+  .cm { color: var(--muted); }
+  .kw { color: var(--accent); }
+  .str { color: var(--green); }
+  .fn { color: var(--orange); }
+
+  /* tables */
+  .tbl-wrap { overflow-x: auto; margin: 12px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 480px; }
+  th, td { text-align: left; padding: 8px 11px; border: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--card2); color: var(--text); font-weight: 700; }
+  td:first-child { font-weight: 600; color: var(--accent); white-space: nowrap; }
+  tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--card2) 40%, transparent); }
+
+  /* callouts */
+  .callout {
+    border-left: 4px solid var(--orange); background: color-mix(in srgb, var(--orange) 9%, var(--card));
+    padding: 10px 14px; border-radius: 0 10px 10px 0; margin: 12px 0;
+  }
+  .callout.probe { border-left-color: var(--purple); background: color-mix(in srgb, var(--purple) 9%, var(--card)); }
+  .callout.gotcha { border-left-color: var(--orange); background: color-mix(in srgb, var(--orange) 9%, var(--card)); }
+  .callout.anchor { border-left-color: var(--green); background: color-mix(in srgb, var(--green) 9%, var(--card)); }
+  .callout .tag {
+    font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px;
+    display: inline-block; margin-bottom: 3px;
+  }
+  .callout.probe .tag { color: var(--purple); }
+  .callout.gotcha .tag { color: var(--orange); }
+  .callout.anchor .tag { color: var(--green); }
+  .callout p { margin: 3px 0; font-size: 13.5px; }
+
+  /* flip cards */
+  .quiz-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 14px; margin: 14px 0; }
+  .flip { perspective: 1400px; min-height: 170px; cursor: pointer; }
+  .flip-inner {
+    position: relative; width: 100%; height: 100%; min-height: 170px;
+    transition: transform .55s; transform-style: preserve-3d;
+  }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .flip-front { background: var(--card); }
+  .flip-front .q { font-weight: 700; font-size: 14.5px; }
+  .flip-front .hint { color: var(--muted); font-size: 11.5px; margin-top: 10px; }
+  .flip-back { background: var(--card2); transform: rotateY(180deg); font-size: 13px; overflow-y: auto; }
+  .flip-back strong { color: var(--green); }
+  .flip-q-label { font-size: 10.5px; font-weight: 800; letter-spacing: .6px; color: var(--accent); text-transform: uppercase; }
+
+  /* reveal animation */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } header.hero h1 { font-size: 23px; } }
+
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 30px 16px; border-top: 1px solid var(--border); }
+  .pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:12px; background:var(--card2); color:var(--muted); border:1px solid var(--border); margin: 1px 2px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">⚙ DataOps &amp; CI/CD</span>
+  <a href="#dataops"><span class="en">DataOps</span><span class="ru">DataOps</span></a>
+  <a href="#vc"><span class="en">Version Control</span><span class="ru">Контроль версий</span></a>
+  <a href="#cicd"><span class="en">CI/CD</span><span class="ru">CI/CD</span></a>
+  <a href="#testing"><span class="en">Testing Pyramid</span><span class="ru">Пирамида тестов</span></a>
+  <a href="#iac"><span class="en">IaC &amp; Docker</span><span class="ru">IaC &amp; Docker</span></a>
+  <a href="#platform"><span class="en">Cloud Platform</span><span class="ru">Облачная платформа</span></a>
+  <a href="#metadata"><span class="en">Metadata &amp; Lineage</span><span class="ru">Метаданные &amp; Lineage</span></a>
+  <a href="#cost"><span class="en">Cost &amp; Perf</span><span class="ru">Стоимость &amp; Производ.</span></a>
+  <a href="#secrets"><span class="en">Promotion &amp; Secrets</span><span class="ru">Промоушен &amp; Секреты</span></a>
+  <a href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Cloud, DataOps &amp; CI/CD — <span style="color:var(--accent)">DE Interview Prep</span></span><span class="ru">Cloud, DataOps &amp; CI/CD — <span style="color:var(--accent)">Подготовка к DE-интервью</span></span></h1>
+  <p class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead Data Engineer roles.</p>
+  <p class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead Data Engineer.</p>
+  <p class="en" style="color:var(--green)">Personal anchors: GCP + BigQuery + Snowflake + dbt (McMakler / Career.io), Azure OpenAI (IU Group), AWS/Azure exposure, dbt code-review standards institutionalised, Airflow CI.</p>
+  <p class="ru" style="color:var(--green)">Личные якоря: GCP + BigQuery + Snowflake + dbt (McMakler / Career.io), Azure OpenAI (IU Group), опыт AWS/Azure, внедрённые стандарты code-review для dbt, CI для Airflow.</p>
+  <div class="badges">
+    <span class="badge a">dbt</span>
+    <span class="badge g">Snowflake</span>
+    <span class="badge g">BigQuery</span>
+    <span class="badge a">Airflow</span>
+    <span class="badge p">Terraform</span>
+    <span class="badge o">Docker</span>
+    <span class="badge p">GCP / AWS / Azure</span>
+    <span class="badge o">Data Catalog / Lineage</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ 1 DATAOPS ============ -->
+<section id="dataops">
+  <div class="sec-head" data-sec>
+    <span class="num">1</span><h2><span class="en">What DataOps Actually Is</span><span class="ru">Что такое DataOps на самом деле</span></h2><span class="chev">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3><span class="en">One-line definition</span><span class="ru">Определение одной строкой</span></h3>
+      <p class="en"><em>DataOps</em> = applying <strong>DevOps + Agile + Lean manufacturing</strong> ideas to the <strong>data lifecycle</strong> so that analytics and data products ship <strong>fast, repeatably, and with quality guarantees</strong>. It is the union of four pillars applied to data:</p>
+      <p class="ru"><em>DataOps</em> = применение идей <strong>DevOps + Agile + Lean manufacturing</strong> к <strong>жизненному циклу данных</strong>, чтобы аналитика и дата-продукты выкатывались <strong>быстро, воспроизводимо и с гарантиями качества</strong>. Это объединение четырёх столпов, примененных к данным:</p>
+      <ul class="en">
+        <li><strong>CI/CD</strong> — automated build, test and deploy of pipelines, transforms and infra.</li>
+        <li><strong>Automated testing</strong> — code tests <em>and</em> data tests (freshness, volume, schema, business rules).</li>
+        <li><strong>Observability / monitoring</strong> — freshness, volume, distribution, lineage and incident alerting (the "data downtime" idea).</li>
+        <li><strong>Collaboration &amp; governance</strong> — version control, code review, environments, catalog, documentation, ownership.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>CI/CD</strong> — автоматизированные сборка, тестирование и деплой пайплайнов, трансформаций и инфраструктуры.</li>
+        <li><strong>Автоматизированное тестирование</strong> — тесты кода <em>и</em> тесты данных (свежесть, объём, схема, бизнес-правила).</li>
+        <li><strong>Наблюдаемость / мониторинг</strong> — свежесть, объём, распределение, lineage и алертинг при инцидентах (концепция «data downtime»).</li>
+        <li><strong>Коллаборация &amp; governance</strong> — контроль версий, code review, окружения, каталог, документация, ownership.</li>
+      </ul>
+      <h4 class="en">Why it matters for an econ-data team</h4>
+      <h4 class="ru">Почему это важно для команды экономических данных</h4>
+      <p class="en">Economic indicators (CPI, payrolls, GDP) are <strong>high-trust, point-in-time</strong> series consumed by clients and trading systems. A bad revision, a late landing, or a silent schema change is a <strong>credibility incident</strong>. DataOps is how you make correctness and timeliness <em>systematic</em> rather than heroic.</p>
+      <p class="ru">Экономические индикаторы (CPI, payrolls, GDP) — это <strong>высокодоверенные, точечные во времени</strong> серии, которые потребляются клиентами и торговыми системами. Плохая ревизия, задержка поступления или тихое изменение схемы — это <strong>инцидент доверия</strong>. DataOps — это способ сделать корректность и своевременность <em>систематическими</em>, а не героическими.</p>
+      <div class="callout anchor">
+        <span class="tag"><span class="en">My story</span><span class="ru">Моя история</span></span>
+        <p class="en">At McMakler/Career.io I treated dbt as the unit of change: every transform was version-controlled, reviewed against a standard I authored, and tested in CI before it could reach prod. That is DataOps in practice — not a tool, a discipline enforced by the pipeline.</p>
+        <p class="ru">В McMakler/Career.io я относился к dbt как к единице изменений: каждая трансформация была под контролем версий, проходила ревью по стандарту, который я написал, и тестировалась в CI перед тем как попасть в прод. Это DataOps на практике — не инструмент, а дисциплина, обеспечиваемая пайплайном.</p>
+      </div>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">DevOps vs DataOps — the key difference</span><span class="ru">DevOps vs DataOps — ключевое отличие</span></h3>
+      <div class="tbl-wrap"><table class="en">
+        <thead><tr><th>Dimension</th><th>DevOps</th><th>DataOps</th></tr></thead>
+        <tbody>
+          <tr><td>Artifact under test</td><td>Code + binaries</td><td>Code <em>and the data flowing through it</em></td></tr>
+          <tr><td>Failure mode</td><td>Service crashes / bug</td><td>Silent wrong numbers ("data downtime")</td></tr>
+          <tr><td>State</td><td>Mostly stateless deploys</td><td>Stateful: history, backfills, revisions</td></tr>
+          <tr><td>Tests</td><td>Unit/integration of code</td><td>+ data quality, contracts, freshness, anomaly</td></tr>
+          <tr><td>Rollback</td><td>Redeploy old binary</td><td>Redeploy + possibly reprocess/restate data</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <thead><tr><th>Аспект</th><th>DevOps</th><th>DataOps</th></tr></thead>
+        <tbody>
+          <tr><td>Тестируемый артефакт</td><td>Код + бинарники</td><td>Код <em>и данные, которые через него текут</em></td></tr>
+          <tr><td>Режим сбоя</td><td>Падение сервиса / баг</td><td>Тихие неправильные цифры («data downtime»)</td></tr>
+          <tr><td>Состояние</td><td>В основном stateless-деплои</td><td>Stateful: история, backfill-ы, ревизии</td></tr>
+          <tr><td>Тесты</td><td>Unit/integration кода</td><td>+ качество данных, контракты, свежесть, аномалии</td></tr>
+          <tr><td>Откат</td><td>Передеплой старого бинарника</td><td>Передеплой + возможная переобработка/restate данных</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout probe">
+        <span class="tag"><span class="en">Interviewer will probe</span><span class="ru">О чём спросит интервьюер</span></span>
+        <p class="en">"How is testing data different from testing code?" → Code tests are deterministic given input; <strong>data tests assert on values you don't control</strong> (the data is the variable). You test <em>properties</em> (not-null, unique, ranges, referential integrity, row-count deltas), not exact outputs.</p>
+        <p class="ru">«Чем тестирование данных отличается от тестирования кода?» → Тесты кода детерминированы при заданном вводе; <strong>тесты данных проверяют значения, которые ты не контролируешь</strong> (данные — это переменная). Проверяешь <em>свойства</em> (not-null, unique, диапазоны, референциальную целостность, дельты числа строк), а не точные выводы.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2 VERSION CONTROL ============ -->
+<section id="vc">
+  <div class="sec-head" data-sec>
+    <span class="num">2</span><h2><span class="en">Version Control for Data &amp; Code</span><span class="ru">Контроль версий для данных и кода</span></h2><span class="chev">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3><span class="en">Git workflow for data teams</span><span class="ru">Git-процесс для дата-команд</span></h3>
+      <p class="en">Everything that defines the pipeline lives in git: dbt models, SQL, Airflow DAGs, Terraform, schema/contract files, tests, docs. Common lightweight flow:</p>
+      <p class="ru">Всё, что определяет пайплайн, живёт в git: dbt-модели, SQL, Airflow DAG-и, Terraform, файлы схем/контрактов, тесты, доки. Типичный лёгкий процесс:</p>
+      <pre><span class="cm"># trunk-based with short-lived feature branches</span>
+<span class="kw">git</span> checkout -b feat/cpi-seasonal-adjust
+<span class="cm"># ... edit dbt model + add tests ...</span>
+<span class="kw">git</span> commit -m "[econ_de] Add seasonally adjusted CPI model + freshness test"
+<span class="kw">git</span> push origin feat/cpi-seasonal-adjust
+<span class="cm"># open PR -> CI runs lint + unit + data tests on a sandbox/CI schema</span>
+<span class="cm"># review (enforced standard) -> squash merge to main -> auto-deploy to stage</span></pre>
+      <h4 class="en">Environments: dev / stage / prod</h4>
+      <h4 class="ru">Окружения: dev / stage / prod</h4>
+      <ul class="en">
+        <li><strong>dev</strong> — engineer's sandbox; dbt builds into a personal schema (<code class="inline">dbt_amal</code>), cheap, fast, dirty.</li>
+        <li><strong>stage</strong> — production-shaped, fed by main branch, full test suite, used for validation and integration tests.</li>
+        <li><strong>prod</strong> — only reached by promoted, tested, reviewed code. No manual edits.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>dev</strong> — песочница инженера; dbt строит в личную схему (<code class="inline">dbt_amal</code>), дёшево, быстро, грязно.</li>
+        <li><strong>stage</strong> — как продакшн, питается из main-ветки, полный набор тестов, используется для валидации и интеграционных тестов.</li>
+        <li><strong>prod</strong> — доступен только для промоушен-кода, протестированного и пройденного ревью. Никаких ручных правок.</li>
+      </ul>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">"Version control for <u>data</u>" — three flavours</span><span class="ru">«Контроль версий для <u>данных</u>» — три вкуса</span></h3>
+      <div class="tbl-wrap"><table class="en">
+        <thead><tr><th>What you version</th><th>How</th><th>Tooling examples</th></tr></thead>
+        <tbody>
+          <tr><td>Transform logic</td><td>Git on SQL/dbt/DAGs</td><td>git, dbt, Airflow</td></tr>
+          <tr><td>Schema / contracts</td><td>Versioned schema files, contract checks in CI</td><td>dbt contracts, JSON Schema, Avro/Protobuf</td></tr>
+          <tr><td>Data itself</td><td>Snapshots, time-travel, table cloning, data versioning</td><td>Snowflake Time Travel + Zero-Copy Clone, BigQuery snapshots/time-travel, dbt snapshots, lakeFS / Iceberg branches</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <thead><tr><th>Что версионируешь</th><th>Как</th><th>Примеры инструментов</th></tr></thead>
+        <tbody>
+          <tr><td>Логика трансформаций</td><td>Git на SQL/dbt/DAG-ах</td><td>git, dbt, Airflow</td></tr>
+          <tr><td>Схемы / контракты</td><td>Версионированные файлы схем, проверки контрактов в CI</td><td>dbt contracts, JSON Schema, Avro/Protobuf</td></tr>
+          <tr><td>Сами данные</td><td>Снапшоты, time-travel, клонирование таблиц, data versioning</td><td>Snowflake Time Travel + Zero-Copy Clone, BigQuery snapshots/time-travel, dbt snapshots, lakeFS / Iceberg branches</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout anchor">
+        <span class="tag"><span class="en">My story</span><span class="ru">Моя история</span></span>
+        <p class="en">For econ series specifically, <strong>dbt snapshots</strong> are how you version <em>data</em>: they capture slowly-changing dimensions / revisions as type-2 history, so you can reconstruct "what did CPI look like as published on 2026-03-10?" — point-in-time correctness, which is everything in economic data.</p>
+        <p class="ru">Для экономических серий в частности, <strong>dbt snapshots</strong> — это способ версионирования <em>данных</em>: они захватывают медленно меняющиеся измерения / ревизии как type-2 историю, так что можно восстановить «как выглядел CPI на момент публикации 2026-03-10?» — точность на момент времени, что является всем в экономических данных.</p>
+      </div>
+      <h4 class="en">Branching for data</h4>
+      <h4 class="ru">Ветвление для данных</h4>
+      <p class="en">Modern pattern: each feature branch gets an <strong>isolated data environment</strong>. In Snowflake you <em>zero-copy clone</em> prod into a branch schema (instant, cheap, no storage duplication) so CI tests run against realistic data without touching prod. Iceberg/lakeFS expose git-like <em>branch/merge on the data</em> itself.</p>
+      <p class="ru">Современный паттерн: каждая feature-ветка получает <strong>изолированное окружение данных</strong>. В Snowflake ты делаешь <em>zero-copy clone</em> прода в ветку-схему (мгновенно, дёшево, без дублирования хранилища), так что тесты CI идут на реалистичных данных без касания прода. Iceberg/lakeFS предоставляют git-подобное <em>ветвление/слияние на самих данных</em>.</p>
+      <div class="callout gotcha">
+        <span class="tag"><span class="en">Gotcha</span><span class="ru">Подводный камень</span></span>
+        <p class="en">Never commit credentials, service-account keys, or large data files to git. Data belongs in the warehouse/object store; git holds <em>code and config</em>. Use a <code class="inline">.gitignore</code> + secret scanning.</p>
+        <p class="ru">Никогда не коммить credentials, ключи сервисных аккаунтов или большие файлы данных в git. Данные принадлежат хранилищу/object store; git хранит <em>код и конфиг</em>. Использовать <code class="inline">.gitignore</code> + сканирование секретов.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 CI/CD ============ -->
+<section id="cicd">
+  <div class="sec-head" data-sec>
+    <span class="num">3</span><h2><span class="en">CI/CD for Data Pipelines</span><span class="ru">CI/CD для дата-пайплайнов</span></h2><span class="chev">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3><span class="en">CI/CD-for-data pipeline (ASCII)</span><span class="ru">CI/CD-пайплайн для данных (ASCII)</span></h3>
+      <pre class="diagram en">
+   DEV                          CI  (on Pull Request)                       CD (on merge)
+ ┌───────┐    git push   ┌──────────────────────────────────┐    merge   ┌──────────────────────┐
+ │ branch│ ────────────► │ 1. LINT     sqlfluff / dbt parse │ ─────────► │  build artifacts     │
+ │ +tests│               │ 2. UNIT     macro / py unit tests│            │  (dbt manifest, DAG, │
+ └───────┘               │ 3. BUILD    dbt build --select   │            │   docker image)      │
+      ▲                  │             state:modified+      │            └──────────┬───────────┘
+      │ fix              │ 4. DATA     dbt test (not_null,  │                       │ deploy
+      │                  │             unique, accepted_*,  │                       ▼
+      │                  │             relationships, fresh)│            ┌──────────────────────┐
+      │   FAIL ◄─────────│ 5. CONTRACT schema/contract check│            │  STAGE  full run +   │
+      │                  │ 6. INTEG    e2e on cloned prod   │            │  full test suite     │
+      └──────────────────│             schema (zero-copy)   │            └──────────┬───────────┘
+                         └──────────────────────────────────┘                       │ promote (green)
+                                                                                     ▼
+                                                                          ┌──────────────────────┐
+                                                                          │  PROD   blue/green or │
+                                                                          │  canary; auto-rollback│
+                                                                          │  on data-quality gate │
+                                                                          └──────────────────────┘
+      </pre>
+      <pre class="diagram ru">
+   DEV                            CI  (при Pull Request)                      CD (при merge)
+ ┌───────┐    git push   ┌──────────────────────────────────┐    merge   ┌──────────────────────┐
+ │ branch│ ────────────► │ 1. LINT     sqlfluff / dbt parse │ ─────────► │  сборка артефактов   │
+ │ +tests│               │ 2. UNIT     macro / py unit tests│            │  (dbt manifest, DAG, │
+ └───────┘               │ 3. BUILD    dbt build --select   │            │   docker image)      │
+      ▲                  │             state:modified+      │            └──────────┬───────────┘
+      │ fix              │ 4. DATA     dbt test (not_null,  │                       │ deploy
+      │                  │             unique, accepted_*,  │                       ▼
+      │                  │             relationships, fresh)│            ┌──────────────────────┐
+      │   FAIL ◄─────────│ 5. CONTRACT schema/contract check│            │  STAGE  full run +   │
+      │                  │ 6. INTEG    e2e на клоне прода   │            │  полный набор тестов │
+      └──────────────────│             (zero-copy)          │            └──────────┬───────────┘
+                         └──────────────────────────────────┘                       │ promote (green)
+                                                                                     ▼
+                                                                          ┌──────────────────────┐
+                                                                          │  PROD   blue/green   │
+                                                                          │  / canary; auto-     │
+                                                                          │  rollback на DQ gate │
+                                                                          └──────────────────────┘
+      </pre>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">What runs in CI (and why)</span><span class="ru">Что запускается в CI (и зачем)</span></h3>
+      <ul class="en">
+        <li><strong>Lint / static checks</strong> — <code class="inline">sqlfluff</code>, <code class="inline">dbt parse</code>, ruff/black for Python DAGs. Catches style + parse errors in seconds, free.</li>
+        <li><strong>Slim / state-aware builds</strong> — <code class="inline">dbt build --select state:modified+</code> only builds models that changed and their downstream. Fast PRs, low compute cost.</li>
+        <li><strong>Unit tests</strong> — dbt <em>unit tests</em> (mock inputs → assert outputs) and Python unit tests for custom logic / operators.</li>
+        <li><strong>Data tests</strong> — generic + singular dbt tests run against the built models.</li>
+        <li><strong>Contract checks</strong> — fail the build if output schema/types drift from the declared contract.</li>
+        <li><strong>Integration / e2e</strong> — full DAG/dbt run on a cloned-prod CI schema to catch cross-model and dependency issues.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Lint / статические проверки</strong> — <code class="inline">sqlfluff</code>, <code class="inline">dbt parse</code>, ruff/black для Python DAG-ов. Ловят стиль + parse-ошибки за секунды, бесплатно.</li>
+        <li><strong>Slim / state-aware сборки</strong> — <code class="inline">dbt build --select state:modified+</code> строит только изменённые модели и их downstream. Быстрые PR-ы, низкая стоимость вычислений.</li>
+        <li><strong>Unit-тесты</strong> — dbt <em>unit tests</em> (мок входов → проверка выходов) и Python unit-тесты для кастомной логики / операторов.</li>
+        <li><strong>Тесты данных</strong> — generic + singular dbt-тесты на построенных моделях.</li>
+        <li><strong>Проверки контрактов</strong> — фейлить сборку, если выходная схема/типы отклоняются от декларированного контракта.</li>
+        <li><strong>Интеграционные / e2e</strong> — полный DAG/dbt run на клоне прода CI-схемы для выявления кросс-модельных и dependency-проблем.</li>
+      </ul>
+      <h4 class="en">Build &amp; deploy of DAGs and dbt models</h4>
+      <h4 class="ru">Сборка &amp; деплой DAG-ов и dbt-моделей</h4>
+      <ul class="en">
+        <li><strong>dbt</strong>: CI produces the <code class="inline">manifest.json</code> artifact; CD deploys compiled models + runs them in the target env. The manifest also powers <em>slim CI</em> via state comparison.</li>
+        <li><strong>Airflow</strong>: DAG files are version-controlled; CI validates them (<code class="inline">DagBag</code> import test catches broken DAGs <em>before</em> they hit the scheduler); CD syncs them to the Airflow environment (git-sync / dags volume / image bake).</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>dbt</strong>: CI производит артефакт <code class="inline">manifest.json</code>; CD деплоит скомпилированные модели + запускает их в целевом окружении. Manifest также питает <em>slim CI</em> через сравнение состояния.</li>
+        <li><strong>Airflow</strong>: файлы DAG-ов под контролем версий; CI валидирует их (тест импорта <code class="inline">DagBag</code> ловит битые DAG-и <em>до</em> того как они попадут в планировщик); CD синхронизирует их в Airflow-окружение (git-sync / dags volume / image bake).</li>
+      </ul>
+      <div class="callout anchor">
+        <span class="tag"><span class="en">My story — Airflow CI</span><span class="ru">Моя история — Airflow CI</span></span>
+        <p class="en">I added a CI gate that imports every DAG (DagBag test) plus a cycle/owner/SLA check, so a syntactically broken or owner-less DAG can never reach the scheduler. Combined with dbt slim-CI it cut PR feedback from "wait for the nightly run" to a few minutes.</p>
+        <p class="ru">Я добавил CI-гейт, который импортирует каждый DAG (DagBag-тест) плюс проверку цикла/owner-а/SLA, так что синтаксически битый или без owner-а DAG никогда не дойдёт до планировщика. В сочетании с dbt slim-CI это сократило обратную связь на PR-ах с «жди ночного запуска» до нескольких минут.</p>
+      </div>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">Deployment strategies for data</span><span class="ru">Стратегии деплоя для данных</span></h3>
+      <div class="tbl-wrap"><table class="en">
+        <thead><tr><th>Strategy</th><th>How it works for data</th><th>When to use</th></tr></thead>
+        <tbody>
+          <tr><td>Blue/green</td><td>Build new version into a parallel schema/table (green), validate, then atomically swap (rename / view repoint / clone). Old (blue) stays for instant rollback.</td><td>Schema or large logic changes to consumed tables</td></tr>
+          <tr><td>Canary</td><td>Route a slice (one partition, one market, small % of downstream) to the new logic, compare metrics vs control, then ramp.</td><td>Risky transform/model changes</td></tr>
+          <tr><td>Audit-then-swap (WAP)</td><td>Write-Audit-Publish: write to staging, run DQ audit, publish only if green.</td><td>Default for critical published series</td></tr>
+          <tr><td>Auto-rollback</td><td>If a post-deploy DQ gate fails (row count drop, null spike, freshness miss), revert the swap / re-point view to last-good.</td><td>Always, as a safety net</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <thead><tr><th>Стратегия</th><th>Как работает для данных</th><th>Когда использовать</th></tr></thead>
+        <tbody>
+          <tr><td>Blue/green</td><td>Строить новую версию в параллельную схему/таблицу (green), валидировать, затем атомарно переключить (rename / переточить view / clone). Старая (blue) остаётся для мгновенного отката.</td><td>Схемные или крупные логические изменения в потребляемых таблицах</td></tr>
+          <tr><td>Canary</td><td>Направить кусочек (одна партиция, один рынок, малый % downstream) на новую логику, сравнить метрики с контролем, затем расширять.</td><td>Рискованные изменения в трансформ/модели</td></tr>
+          <tr><td>Audit-then-swap (WAP)</td><td>Write-Audit-Publish: писать в staging, запускать DQ-аудит, публиковать только если зелёный.</td><td>По умолчанию для критических публикуемых серий</td></tr>
+          <tr><td>Auto-rollback</td><td>Если пост-деплой DQ-гейт фейлится (падение числа строк, скачок null-ов, пропуск freshness), откатить переключение / переточить view на last-good.</td><td>Всегда, как подстраховка</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout probe">
+        <span class="tag"><span class="en">Interviewer will probe</span><span class="ru">О чём спросит интервьюер</span></span>
+        <p class="en">"How do you do blue/green when the artifact is a table other systems query?" → You don't redeploy a binary, you <strong>repoint the consumer abstraction</strong>: build into <code class="inline">table_v2</code>, validate, then swap the <em>view/alias</em> or atomic <code class="inline">RENAME</code> so consumers never see a partial state. Snowflake zero-copy clone makes the "green" copy free.</p>
+        <p class="ru">«Как делать blue/green, когда артефакт — это таблица, которую запрашивают другие системы?» → Ты не передеплоишь бинарник, ты <strong>переточишь абстракцию потребителя</strong>: строишь в <code class="inline">table_v2</code>, валидируешь, затем меняешь <em>view/alias</em> или атомарный <code class="inline">RENAME</code>, так что потребители никогда не видят частичное состояние. Snowflake zero-copy clone делает «зелёную» копию бесплатной.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4 TESTING PYRAMID ============ -->
+<section id="testing">
+  <div class="sec-head" data-sec>
+    <span class="num">4</span><h2><span class="en">The Testing Pyramid for Data</span><span class="ru">Пирамида тестирования для данных</span></h2><span class="chev">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <pre class="diagram en">
+                /\            E2E / pipeline      (few, slow, expensive)
+               /  \          full DAG run on cloned prod, output vs golden
+              /----\
+             /      \        Integration         (cross-model, sources, deps)
+            /--------\
+           /          \      Contract             (schema/type stability, freshness)
+          /------------\
+         /              \    Data-quality tests   (not_null, unique, ranges, ref-integ)
+        /----------------\
+       /                  \  Unit tests           (many, fast, cheap)
+      /____________________\ dbt unit tests + py logic, mocked inputs
+      </pre>
+      <pre class="diagram ru">
+                /\            E2E / pipeline      (мало, медленно, дорого)
+               /  \          полный запуск DAG на клоне прода, вывод vs эталон
+              /----\
+             /      \        Интеграционные      (кросс-модельные, sources, deps)
+            /--------\
+           /          \      Контракты            (стабильность схемы/типов, freshness)
+          /------------\
+         /              \    Тесты качества данных (not_null, unique, диапазоны, ref-integ)
+        /----------------\
+       /                  \  Unit-тесты           (много, быстро, дёшево)
+      /____________________\ dbt unit tests + py-логика, моки входов
+      </pre>
+      <div class="tbl-wrap"><table class="en">
+        <thead><tr><th>Layer</th><th>What it asserts</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Unit</td><td>Transform logic given <em>mocked</em> inputs</td><td>dbt unit test: a SA-CPI macro returns expected value for fixed fixture rows</td></tr>
+          <tr><td>Data quality</td><td>Properties of real data</td><td><code class="inline">not_null</code>, <code class="inline">unique</code>, <code class="inline">accepted_values</code>, custom range test on inflation %</td></tr>
+          <tr><td>Contract</td><td>Output shape/types are stable</td><td>dbt model contract: column set + types enforced at build</td></tr>
+          <tr><td>Integration</td><td>Models fit together; sources behave</td><td><code class="inline">relationships</code> test; source freshness; full <code class="inline">dbt build</code></td></tr>
+          <tr><td>E2E</td><td>Whole pipeline output correct</td><td>Run DAG end-to-end on cloned prod, diff vs golden/reconciliation total</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <thead><tr><th>Уровень</th><th>Что проверяет</th><th>Пример</th></tr></thead>
+        <tbody>
+          <tr><td>Unit</td><td>Логика трансформации на <em>замоканных</em> входах</td><td>dbt unit test: макрос SA-CPI возвращает ожидаемое значение для фиксированных строк-фикстур</td></tr>
+          <tr><td>Качество данных</td><td>Свойства реальных данных</td><td><code class="inline">not_null</code>, <code class="inline">unique</code>, <code class="inline">accepted_values</code>, кастомный range-тест на инфляцию %</td></tr>
+          <tr><td>Контракт</td><td>Стабильность выходной формы/типов</td><td>dbt model contract: набор колонок + типы enforced при сборке</td></tr>
+          <tr><td>Интеграционные</td><td>Модели подходят друг другу; sources ведут себя</td><td><code class="inline">relationships</code> test; source freshness; полный <code class="inline">dbt build</code></td></tr>
+          <tr><td>E2E</td><td>Вывод всего пайплайна корректен</td><td>Запустить DAG end-to-end на клоне прода, diff vs эталон/итого сверки</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">Data-quality gates in CI</span><span class="ru">Гейты качества данных в CI</span></h3>
+      <pre><span class="cm"># dbt schema.yml — declarative data tests + contract</span>
+<span class="kw">models:</span>
+  - <span class="kw">name:</span> fct_cpi_monthly
+    <span class="kw">config:</span> { contract: { enforced: <span class="str">true</span> } }
+    <span class="kw">columns:</span>
+      - <span class="kw">name:</span> period
+        data_type: date
+        tests: [not_null, unique]
+      - <span class="kw">name:</span> cpi_yoy_pct
+        data_type: numeric
+        tests:
+          - not_null
+          - dbt_utils.accepted_range: { min_value: <span class="str">-20</span>, max_value: <span class="str">50</span> }
+    <span class="cm"># freshness so a stale upstream feed fails CI/monitoring</span>
+<span class="kw">sources:</span>
+  - <span class="kw">name:</span> bls_raw
+    freshness: { warn_after: {count: <span class="str">26</span>, period: hour}, error_after: {count: <span class="str">48</span>, period: hour} }</pre>
+      <ul class="en">
+        <li><strong>Block the merge</strong> on test failure — a failing data test is a red CI = no deploy.</li>
+        <li><strong>Severity:</strong> <code class="inline">warn</code> for soft anomalies, <code class="inline">error</code> for hard gates. Tune to avoid alert fatigue.</li>
+        <li><strong>Reconciliation tests</strong> — assert totals match the source-of-truth (e.g. sum of components = published headline).</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Блокировать merge</strong> при фейле теста — фейлящий тест данных = красный CI = нет деплоя.</li>
+        <li><strong>Severity:</strong> <code class="inline">warn</code> для мягких аномалий, <code class="inline">error</code> для жёстких гейтов. Настраивать, чтобы избегать усталости от алертов.</li>
+        <li><strong>Тесты сверки</strong> — проверять, что итоги совпадают с источником истины (например, сумма компонентов = опубликованный headline).</li>
+      </ul>
+      <div class="callout gotcha">
+        <span class="tag"><span class="en">Gotcha</span><span class="ru">Подводный камень</span></span>
+        <p class="en">Don't run heavy data tests on <em>full prod volume</em> in every PR — it's slow and costly. Use <strong>slim CI</strong> (only changed models + downstream) on a sampled or cloned schema; save full-volume suites for stage / nightly.</p>
+        <p class="ru">Не запускать тяжёлые тесты данных на <em>полном объёме прода</em> в каждом PR — это медленно и дорого. Использовать <strong>slim CI</strong> (только изменённые модели + downstream) на сэмплированной или клонированной схеме; оставить полнообъёмные наборы для stage / ночных запусков.</p>
+      </div>
+      <div class="callout probe">
+        <span class="tag"><span class="en">Interviewer will probe</span><span class="ru">О чём спросит интервьюер</span></span>
+        <p class="en">"A test fails at 2am for a published series — what happens?" → Pipeline halts at the DQ gate (WAP: never publishes bad data), alert fires to oncall with the failing test + lineage of impacted downstream, last-good version stays served, you triage. Quality gate protects the consumer first.</p>
+        <p class="ru">«Тест фейлится в 2 часа ночи для публикуемой серии — что происходит?» → Пайплайн останавливается на DQ-гейте (WAP: никогда не публикуется плохой датасет), алерт срабатывает на oncall с фейлящим тестом + lineage затронутого downstream, last-good версия остаётся отдаваемой, ты разбираешься. Гейт качества защищает потребителя в первую очередь.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 IaC + DOCKER ============ -->
+<section id="iac">
+  <div class="sec-head" data-sec>
+    <span class="num">5</span><h2><span class="en">Infrastructure as Code, Docker &amp; Orchestration</span><span class="ru">Infrastructure as Code, Docker и оркестрация</span></h2><span class="chev">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3><span class="en">Infrastructure as Code (Terraform basics)</span><span class="ru">Infrastructure as Code (основы Terraform)</span></h3>
+      <p class="en"><em>IaC</em> = declare infra in version-controlled config so environments are <strong>reproducible, reviewable, and diff-able</strong>. Terraform is declarative + cloud-agnostic.</p>
+      <p class="ru"><em>IaC</em> = декларировать инфраструктуру в версионированном конфиге, чтобы окружения были <strong>воспроизводимыми, reviewable и diff-able</strong>. Terraform декларативен + облачно-агностичен.</p>
+      <pre><span class="cm"># declare a warehouse + dataset; plan -> review -> apply</span>
+<span class="kw">resource</span> <span class="str">"snowflake_warehouse"</span> <span class="str">"transform"</span> {
+  name           = <span class="str">"WH_TRANSFORM"</span>
+  warehouse_size = <span class="str">"SMALL"</span>
+  auto_suspend   = <span class="str">60</span>          <span class="cm"># suspend after 60s idle = cost control</span>
+  auto_resume    = <span class="str">true</span>
+}
+<span class="kw">resource</span> <span class="str">"google_bigquery_dataset"</span> <span class="str">"econ"</span> {
+  dataset_id = <span class="str">"econ_marts"</span>
+  location   = <span class="str">"EU"</span>
+}</pre>
+      <ul class="en">
+        <li><strong>Core verbs:</strong> <code class="inline">init</code> → <code class="inline">plan</code> (preview diff) → <code class="inline">apply</code>. <code class="inline">plan</code> in CI on every PR = no surprise infra changes.</li>
+        <li><strong>State</strong> lives in a remote backend (GCS/S3) with locking, so the team shares one source of truth.</li>
+        <li><strong>Modules</strong> = reusable building blocks; <strong>workspaces/var files</strong> parametrise dev/stage/prod.</li>
+        <li><strong>Idempotent &amp; declarative</strong>: you describe desired state, Terraform computes the delta.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Основные команды:</strong> <code class="inline">init</code> → <code class="inline">plan</code> (preview diff) → <code class="inline">apply</code>. <code class="inline">plan</code> в CI на каждом PR = нет внезапных изменений инфры.</li>
+        <li><strong>State</strong> живёт в remote backend (GCS/S3) с блокировкой, так что команда разделяет один источник истины.</li>
+        <li><strong>Модули</strong> = переиспользуемые строительные блоки; <strong>workspaces/var-файлы</strong> параметризуют dev/stage/prod.</li>
+        <li><strong>Идемпотентный &amp; декларативный</strong>: ты описываешь желаемое состояние, Terraform вычисляет дельту.</li>
+      </ul>
+      <div class="callout gotcha">
+        <span class="tag"><span class="en">Gotcha</span><span class="ru">Подводный камень</span></span>
+        <p class="en">Never edit infra in the cloud console by hand once it's under Terraform — that causes <em>state drift</em>. Either import it or change it through code.</p>
+        <p class="ru">Никогда не редактировать инфру в консоли облака вручную, если она под Terraform — это вызывает <em>state drift</em>. Либо импортировать её, либо менять через код.</p>
+      </div>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">Containerization + orchestration (high level)</span><span class="ru">Контейнеризация + оркестрация (высокий уровень)</span></h3>
+      <ul class="en">
+        <li><strong>Docker</strong> packages code + dependencies + runtime into one immutable <em>image</em> → "runs the same on my laptop, CI, and prod". For data: a pinned dbt/Python image kills "works on my machine" version drift.</li>
+        <li><strong>Image as artifact</strong>: CI builds and tags the image; CD deploys that exact tag → reproducible runs and easy rollback (deploy previous tag).</li>
+        <li><strong>Orchestration</strong> (Kubernetes / managed runners): schedules and scales containers, restarts on failure, handles secrets/config injection. Airflow's <code class="inline">KubernetesPodOperator</code> runs each task in its own container.</li>
+        <li><strong>Airflow itself</strong> is the <em>workflow</em> orchestrator (dependencies, schedules, retries, backfills, SLAs); Kubernetes is the <em>container</em> orchestrator underneath.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Docker</strong> упаковывает код + зависимости + runtime в один неизменяемый <em>image</em> → «запускается одинаково на моём ноутбуке, CI и проде». Для данных: закреплённый dbt/Python image убивает «работает на моей машине» версионный дрейф.</li>
+        <li><strong>Image как артефакт</strong>: CI строит и тегирует image; CD деплоит этот точный тег → воспроизводимые запуски и лёгкий откат (деплой предыдущего тега).</li>
+        <li><strong>Оркестрация</strong> (Kubernetes / managed runners): планирует и масштабирует контейнеры, рестартует при падении, обрабатывает инъекцию секретов/конфига. Airflow <code class="inline">KubernetesPodOperator</code> запускает каждую задачу в своём контейнере.</li>
+        <li><strong>Сам Airflow</strong> — это оркестратор <em>workflow</em> (зависимости, расписания, ретраи, backfill-ы, SLA); Kubernetes — оркестратор <em>контейнеров</em> под ним.</li>
+      </ul>
+      <div class="callout probe">
+        <span class="tag"><span class="en">Interviewer will probe</span><span class="ru">О чём спросит интервьюер</span></span>
+        <p class="en">"Why containerize a dbt run?" → Pin dbt + adapter + Python deps to an exact, tested version so CI and prod are byte-identical; isolate per-task deps; make rollback = redeploy old image tag. Reproducibility is the whole point.</p>
+        <p class="ru">«Зачем контейнеризировать dbt run?» → Закрепить dbt + adapter + Python deps на точной, протестированной версии, чтобы CI и прод были побайтово идентичны; изолировать зависимости на задачу; сделать откат = передеплой старого image tag. Воспроизводимость — вся суть.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6 CLOUD PLATFORM ============ -->
+<section id="platform">
+  <div class="sec-head" data-sec>
+    <span class="num">6</span><h2><span class="en">Cloud Data Platform Building Blocks</span><span class="ru">Строительные блоки облачной дата-платформы</span></h2><span class="chev">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3><span class="en">The five layers</span><span class="ru">Пять слоёв</span></h3>
+      <div class="tbl-wrap"><table class="en">
+        <thead><tr><th>Layer</th><th>Role</th><th>GCP</th><th>AWS</th><th>Azure</th></tr></thead>
+        <tbody>
+          <tr><td>Object storage</td><td>Cheap durable landing/raw zone</td><td>GCS</td><td>S3</td><td>ADLS / Blob</td></tr>
+          <tr><td>Warehouse / lakehouse</td><td>Query + transform engine</td><td>BigQuery</td><td>Redshift / Athena</td><td>Synapse / Fabric</td></tr>
+          <tr><td>Compute</td><td>Elastic processing</td><td>Dataproc / BQ slots</td><td>EMR / Glue</td><td>Databricks / Synapse</td></tr>
+          <tr><td>Orchestration</td><td>Schedule + dependencies</td><td>Cloud Composer (Airflow)</td><td>MWAA</td><td>Data Factory</td></tr>
+          <tr><td>Catalog / governance</td><td>Metadata, lineage, access</td><td>Dataplex / Data Catalog</td><td>Glue Catalog / DataZone</td><td>Purview</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <thead><tr><th>Слой</th><th>Роль</th><th>GCP</th><th>AWS</th><th>Azure</th></tr></thead>
+        <tbody>
+          <tr><td>Object storage</td><td>Дешёвая надёжная зона landing/raw</td><td>GCS</td><td>S3</td><td>ADLS / Blob</td></tr>
+          <tr><td>Warehouse / lakehouse</td><td>Движок запросов + трансформаций</td><td>BigQuery</td><td>Redshift / Athena</td><td>Synapse / Fabric</td></tr>
+          <tr><td>Compute</td><td>Эластичная обработка</td><td>Dataproc / BQ slots</td><td>EMR / Glue</td><td>Databricks / Synapse</td></tr>
+          <tr><td>Оркестрация</td><td>Расписания + зависимости</td><td>Cloud Composer (Airflow)</td><td>MWAA</td><td>Data Factory</td></tr>
+          <tr><td>Каталог / governance</td><td>Метаданные, lineage, доступ</td><td>Dataplex / Data Catalog</td><td>Glue Catalog / DataZone</td><td>Purview</td></tr>
+        </tbody>
+      </table></div>
+      <p class="en" style="color:var(--green)"><strong>Snowflake</strong> sits cross-cloud as a managed warehouse/lakehouse that runs <em>on top of</em> GCS/S3/Blob — which is why my GCP→Snowflake migration was about moving the <em>engine</em>, not the storage paradigm.</p>
+      <p class="ru" style="color:var(--green)"><strong>Snowflake</strong> сидит кросс-облачно как управляемый warehouse/lakehouse, который работает <em>поверх</em> GCS/S3/Blob — поэтому моя миграция GCP→Snowflake была о переносе <em>движка</em>, а не парадигмы хранения.</p>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">Warehouse vs Lakehouse</span><span class="ru">Warehouse vs Lakehouse</span></h3>
+      <div class="tbl-wrap"><table class="en">
+        <thead><tr><th></th><th>Data Warehouse</th><th>Lakehouse</th></tr></thead>
+        <tbody>
+          <tr><td>Data</td><td>Structured, schema-on-write</td><td>Structured + semi/unstructured, schema-on-read+write</td></tr>
+          <tr><td>Storage</td><td>Proprietary/managed columnar</td><td>Open formats on object store (Parquet + Delta/Iceberg/Hudi)</td></tr>
+          <tr><td>Strength</td><td>BI/SQL, governance, performance</td><td>ML + BI on one copy, open, cheap storage</td></tr>
+          <tr><td>ACID</td><td>Native</td><td>Via table format (Delta/Iceberg)</td></tr>
+          <tr><td>Examples</td><td>BigQuery, Snowflake, Redshift</td><td>Databricks, Snowflake (Iceberg), Fabric</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <thead><tr><th></th><th>Data Warehouse</th><th>Lakehouse</th></tr></thead>
+        <tbody>
+          <tr><td>Данные</td><td>Структурированные, schema-on-write</td><td>Структурированные + полу-/неструктурированные, schema-on-read+write</td></tr>
+          <tr><td>Хранение</td><td>Проприетарное/управляемое колоночное</td><td>Открытые форматы на object store (Parquet + Delta/Iceberg/Hudi)</td></tr>
+          <tr><td>Сильная сторона</td><td>BI/SQL, governance, производительность</td><td>ML + BI на одной копии, открыто, дешёвое хранение</td></tr>
+          <tr><td>ACID</td><td>Нативный</td><td>Через табличный формат (Delta/Iceberg)</td></tr>
+          <tr><td>Примеры</td><td>BigQuery, Snowflake, Redshift</td><td>Databricks, Snowflake (Iceberg), Fabric</td></tr>
+        </tbody>
+      </table></div>
+      <h3 style="margin-top:18px;"><span class="en">Snowflake vs BigQuery at a glance</span><span class="ru">Snowflake vs BigQuery кратко</span></h3>
+      <div class="tbl-wrap"><table class="en">
+        <thead><tr><th></th><th>Snowflake</th><th>BigQuery</th></tr></thead>
+        <tbody>
+          <tr><td>Compute model</td><td>Virtual warehouses (sized, you start/suspend)</td><td>Serverless slots (auto / reservations)</td></tr>
+          <tr><td>Pricing</td><td>Per-second credits by warehouse size</td><td>Per-TB scanned (on-demand) or flat-rate slots</td></tr>
+          <tr><td>Cloud</td><td>Multi-cloud (AWS/GCP/Azure)</td><td>GCP-native</td></tr>
+          <tr><td>Scaling</td><td>Resize / multi-cluster for concurrency</td><td>Fully managed, automatic</td></tr>
+          <tr><td>Killer features</td><td>Zero-copy clone, Time Travel, data sharing</td><td>Serverless, BQML, cheap storage, GIS</td></tr>
+          <tr><td>Cost lever</td><td>Right-size + auto-suspend warehouses</td><td>Partition/cluster to scan less; cap with reservations</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <thead><tr><th></th><th>Snowflake</th><th>BigQuery</th></tr></thead>
+        <tbody>
+          <tr><td>Модель compute</td><td>Виртуальные warehouses (размерные, ты start/suspend)</td><td>Serverless slots (авто / резервирования)</td></tr>
+          <tr><td>Ценообразование</td><td>По секундам кредитов по размеру warehouse</td><td>За TB сканирования (on-demand) или flat-rate slots</td></tr>
+          <tr><td>Облако</td><td>Multi-cloud (AWS/GCP/Azure)</td><td>GCP-native</td></tr>
+          <tr><td>Масштабирование</td><td>Resize / multi-cluster для конкуренции</td><td>Полностью управляемо, автоматически</td></tr>
+          <tr><td>Убийственные фичи</td><td>Zero-copy clone, Time Travel, data sharing</td><td>Serverless, BQML, дешёвое хранилище, GIS</td></tr>
+          <tr><td>Рычаг стоимости</td><td>Right-size + auto-suspend warehouses</td><td>Partition/cluster, чтобы сканировать меньше; cap с резервированиями</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout anchor">
+        <span class="tag"><span class="en">My story — GCP → Snowflake</span><span class="ru">Моя история — GCP → Snowflake</span></span>
+        <p class="en">I led/contributed to migrating transforms from BigQuery to Snowflake. The mindset shift: BigQuery cost = <em>bytes scanned</em> (so partition + cluster aggressively), Snowflake cost = <em>warehouse uptime</em> (so right-size warehouses + auto-suspend, and exploit zero-copy clones for cheap CI/dev environments). Same dbt models, different cost-optimisation playbook.</p>
+        <p class="ru">Я вёл/участвовал в миграции трансформаций с BigQuery на Snowflake. Сдвиг мышления: стоимость BigQuery = <em>сканируемые байты</em> (поэтому партиционируй + кластеризуй агрессивно), стоимость Snowflake = <em>uptime warehouse</em> (поэтому right-size warehouses + auto-suspend, и используй zero-copy clone-ы для дешёвых CI/dev-окружений). Те же dbt-модели, разный плейбук оптимизации стоимости.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7 METADATA + LINEAGE ============ -->
+<section id="metadata">
+  <div class="sec-head" data-sec>
+    <span class="num">7</span><h2><span class="en">Metadata Management, Catalog &amp; Lineage</span><span class="ru">Управление метаданными, каталог &amp; Lineage</span></h2><span class="chev">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3><span class="en">Metadata management &amp; the data catalog</span><span class="ru">Управление метаданными &amp; каталог данных</span></h3>
+      <p class="en"><em>Metadata</em> = data about the data: schemas, owners, descriptions, freshness, quality scores, classifications (PII/sensitivity), usage. A <strong>data catalog</strong> is the searchable inventory of all that — so people can <em>find, trust, and understand</em> data without asking the original engineer.</p>
+      <p class="ru"><em>Metadata</em> = данные о данных: схемы, владельцы, описания, свежесть, оценки качества, классификации (PII/чувствительность), использование. <strong>Каталог данных</strong> — это поисковая инвентаризация всего этого — чтобы люди могли <em>найти, доверять и понимать</em> данные без обращения к исходному инженеру.</p>
+      <div class="tbl-wrap"><table class="en">
+        <thead><tr><th>Metadata type</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td>Technical</td><td>Schema, types, partitions, row counts, location</td></tr>
+          <tr><td>Operational</td><td>Last run, freshness, job status, SLA</td></tr>
+          <tr><td>Business</td><td>Definitions, owner, glossary terms, certification</td></tr>
+          <tr><td>Governance</td><td>PII tags, access policies, retention, classification</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <thead><tr><th>Тип метаданных</th><th>Примеры</th></tr></thead>
+        <tbody>
+          <tr><td>Технические</td><td>Схема, типы, партиции, число строк, расположение</td></tr>
+          <tr><td>Операционные</td><td>Последний запуск, свежесть, статус задачи, SLA</td></tr>
+          <tr><td>Бизнесовые</td><td>Определения, владелец, термины глоссария, сертификация</td></tr>
+          <tr><td>Governance</td><td>Теги PII, политики доступа, хранение, классификация</td></tr>
+        </tbody>
+      </table></div>
+      <p class="en">Tools: <strong>dbt docs</strong> (descriptions + auto DAG), Dataplex/Data Catalog, Snowflake's metadata views + Horizon, DataHub, OpenMetadata, Collibra, Purview.</p>
+      <p class="ru">Инструменты: <strong>dbt docs</strong> (описания + авто-DAG), Dataplex/Data Catalog, Snowflake metadata views + Horizon, DataHub, OpenMetadata, Collibra, Purview.</p>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">Data lineage — technical vs business</span><span class="ru">Data lineage — технический vs бизнесовый</span></h3>
+      <pre class="diagram en">
+ bls_raw.cpi ─┐
+              ├─► stg_cpi ─► int_cpi_seasonal ─► fct_cpi_monthly ─► dashboard / API / client export
+ fred.weights─┘                                         │
+                                                        └─► alert: if this breaks, ALL downstream is impacted
+      </pre>
+      <pre class="diagram ru">
+ bls_raw.cpi ─┐
+              ├─► stg_cpi ─► int_cpi_seasonal ─► fct_cpi_monthly ─► dashboard / API / клиентский экспорт
+ fred.weights─┘                                         │
+                                                        └─► алерт: если это сломается, ВСЕ downstream затронуты
+      </pre>
+      <div class="tbl-wrap"><table class="en">
+        <thead><tr><th></th><th>Technical lineage</th><th>Business lineage</th></tr></thead>
+        <tbody>
+          <tr><td>Granularity</td><td>Table/column-level, system-derived</td><td>Concept/report-level, human-readable</td></tr>
+          <tr><td>Answers</td><td>"Which columns feed this field?"</td><td>"Which business reports use CPI?"</td></tr>
+          <tr><td>Source</td><td>Parsed from SQL/dbt/queries</td><td>Curated + glossary mapping</td></tr>
+          <tr><td>Primary user</td><td>Engineers</td><td>Analysts, governance, stakeholders</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl-wrap"><table class="ru">
+        <thead><tr><th></th><th>Технический lineage</th><th>Бизнесовый lineage</th></tr></thead>
+        <tbody>
+          <tr><td>Гранулярность</td><td>Уровень таблицы/колонки, выводится системой</td><td>Уровень концепта/отчёта, читаемый человеком</td></tr>
+          <tr><td>Отвечает на</td><td>«Какие колонки питают это поле?»</td><td>«Какие бизнес-отчёты используют CPI?»</td></tr>
+          <tr><td>Источник</td><td>Парсится из SQL/dbt/запросов</td><td>Кураторский + маппинг глоссария</td></tr>
+          <tr><td>Основной пользователь</td><td>Инженеры</td><td>Аналитики, governance, стейкхолдеры</td></tr>
+        </tbody>
+      </table></div>
+      <h4 class="en">Why lineage matters</h4>
+      <h4 class="ru">Почему lineage важен</h4>
+      <ul class="en">
+        <li><strong>Impact analysis</strong> — before changing a model, see every downstream table/dashboard/consumer that breaks. (dbt: <code class="inline">dbt ls --select fct_cpi_monthly+</code>.)</li>
+        <li><strong>Root-cause</strong> — when a number looks wrong, walk lineage <em>upstream</em> to find the bad source/transform.</li>
+        <li><strong>Governance &amp; compliance</strong> — prove provenance of a published figure; trace PII propagation; audit "where did this number come from".</li>
+        <li><strong>Trust</strong> — column-level lineage + tests + freshness = a data product clients can rely on.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Анализ влияния</strong> — перед изменением модели увидеть каждую downstream-таблицу/дашборд/потребителя, которые сломаются. (dbt: <code class="inline">dbt ls --select fct_cpi_monthly+</code>.)</li>
+        <li><strong>Root-cause</strong> — когда число выглядит неправильно, пройти lineage <em>upstream</em>, чтобы найти плохой source/transform.</li>
+        <li><strong>Governance &amp; compliance</strong> — доказать происхождение опубликованной цифры; проследить распространение PII; аудит «откуда взялось это число».</li>
+        <li><strong>Доверие</strong> — lineage на уровне колонок + тесты + свежесть = дата-продукт, на который клиенты могут положиться.</li>
+      </ul>
+      <div class="callout anchor">
+        <span class="tag"><span class="en">My story</span><span class="ru">Моя история</span></span>
+        <p class="en">dbt gives column-level lineage for free from the model graph, and my code-review standard required descriptions + tests on every new model — so the catalog/lineage stayed accurate as a side-effect of how we shipped, not as a separate documentation chore.</p>
+        <p class="ru">dbt даёт column-level lineage бесплатно из графа модели, а мой стандарт code-review требовал описания + тесты на каждой новой модели — поэтому каталог/lineage оставались точными как побочный эффект того, как мы выкатывали, а не как отдельная обязанность по документации.</p>
+      </div>
+      <div class="callout probe">
+        <span class="tag"><span class="en">Interviewer will probe</span><span class="ru">О чём спросит интервьюер</span></span>
+        <p class="en">"A client reports a wrong CPI value — walk me through it." → Lineage upstream from <code class="inline">fct_cpi_monthly</code> to find which source/transform; check freshness + DQ test history at each hop; reproduce with time-travel/snapshot for the published point-in-time; fix + add a regression test; impact-analyse downstream via lineage to notify affected consumers.</p>
+        <p class="ru">«Клиент сообщает о неправильном значении CPI — пройди меня через это.» → Lineage upstream от <code class="inline">fct_cpi_monthly</code>, чтобы найти какой source/transform; проверить freshness + DQ test history на каждом хопе; воспроизвести с time-travel/snapshot для опубликованного момента времени; пофиксить + добавить регрессионный тест; провести impact-анализ downstream через lineage, чтобы уведомить затронутых потребителей.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8 COST + PERF ============ -->
+<section id="cost">
+  <div class="sec-head" data-sec>
+    <span class="num">8</span><h2><span class="en">Cost &amp; Performance in Cloud Warehouses</span><span class="ru">Стоимость &amp; производительность в облачных хранилищах</span></h2><span class="chev">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <div class="grid2">
+        <div>
+          <h4 class="en">BigQuery (pay per scan)</h4>
+          <h4 class="ru">BigQuery (плата за сканирование)</h4>
+          <ul class="en">
+            <li><strong>Partition</strong> on date (e.g. <code class="inline">period</code>) → prune scans.</li>
+            <li><strong>Cluster</strong> on common filter cols (market, series).</li>
+            <li>Avoid <code class="inline">SELECT *</code>; select only needed columns (columnar = scan = $).</li>
+            <li>Materialize heavy repeated subqueries; use incremental models.</li>
+            <li>Set <strong>bytes-billed limits</strong> + cost alerts; flat-rate slots for predictable load.</li>
+          </ul>
+          <ul class="ru">
+            <li><strong>Партиционировать</strong> по дате (например <code class="inline">period</code>) → прунинг сканов.</li>
+            <li><strong>Кластеризовать</strong> по частым фильтр-колонкам (рынок, серия).</li>
+            <li>Избегать <code class="inline">SELECT *</code>; выбирать только нужные колонки (колоночное = скан = $).</li>
+            <li>Материализовать тяжёлые повторяющиеся подзапросы; использовать инкрементальные модели.</li>
+            <li>Ставить <strong>лимиты bytes-billed</strong> + алерты стоимости; flat-rate slots для предсказуемой нагрузки.</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="en">Snowflake (pay per warehouse uptime)</h4>
+          <h4 class="ru">Snowflake (плата за uptime warehouse)</h4>
+          <ul class="en">
+            <li><strong>Right-size</strong> warehouses; bigger ≠ always cheaper, but faster can be.</li>
+            <li><strong>auto_suspend</strong> (e.g. 60s) + <strong>auto_resume</strong>.</li>
+            <li><strong>Multi-cluster</strong> only for concurrency, not single big jobs.</li>
+            <li>Use <strong>result cache</strong> + clustering keys on big tables.</li>
+            <li><strong>Zero-copy clone</strong> for dev/CI = no storage cost.</li>
+          </ul>
+          <ul class="ru">
+            <li><strong>Right-size</strong> warehouses; больше ≠ всегда дешевле, но быстрее может быть.</li>
+            <li><strong>auto_suspend</strong> (например 60s) + <strong>auto_resume</strong>.</li>
+            <li><strong>Multi-cluster</strong> только для конкуренции, не для одной большой задачи.</li>
+            <li>Использовать <strong>result cache</strong> + clustering keys на больших таблицах.</li>
+            <li><strong>Zero-copy clone</strong> для dev/CI = нет стоимости хранения.</li>
+          </ul>
+        </div>
+      </div>
+      <h4 class="en">Universal levers</h4>
+      <h4 class="ru">Универсальные рычаги</h4>
+      <ul class="en">
+        <li><strong>Incremental models</strong> (dbt <code class="inline">incremental</code>) — only process new/changed rows, not full refresh.</li>
+        <li><strong>Slim CI</strong> — only build changed + downstream models.</li>
+        <li><strong>Tag &amp; attribute</strong> compute by team/pipeline for showback/chargeback.</li>
+        <li><strong>Monitor</strong> query/warehouse cost dashboards; kill runaway queries.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Инкрементальные модели</strong> (dbt <code class="inline">incremental</code>) — обрабатывать только новые/изменённые строки, не full refresh.</li>
+        <li><strong>Slim CI</strong> — строить только изменённые + downstream модели.</li>
+        <li><strong>Тегировать &amp; атрибутировать</strong> compute по команде/пайплайну для showback/chargeback.</li>
+        <li><strong>Мониторить</strong> дашборды стоимости запросов/warehouse; убивать убегающие запросы.</li>
+      </ul>
+      <div class="callout probe">
+        <span class="tag"><span class="en">Interviewer will probe</span><span class="ru">О чём спросит интервьюер</span></span>
+        <p class="en">"How would you cut warehouse cost without hurting freshness?" → Profile the most expensive queries; switch full-refresh models to incremental; tighten <code class="inline">auto_suspend</code>; right-size the warehouse to the workload; move dev/CI to zero-copy clones on a small warehouse; partition/cluster the hot tables. Measure before/after in the cost dashboard.</p>
+        <p class="ru">«Как бы ты сократил стоимость warehouse, не навредив свежести?» → Профилировать самые дорогие запросы; переключить full-refresh модели на инкрементальные; ужесточить <code class="inline">auto_suspend</code>; right-size warehouse под workload; перенести dev/CI на zero-copy clone-ы на маленьком warehouse; партиционировать/кластеризовать горячие таблицы. Измерить до/после в дашборде стоимости.</p>
+      </div>
+      <div class="callout gotcha">
+        <span class="tag"><span class="en">Gotcha</span><span class="ru">Подводный камень</span></span>
+        <p class="en">Incremental models drift: a bug in the incremental logic silently accumulates. Schedule periodic <strong>full-refresh reconciliation</strong> and a row-count/sum reconciliation test to catch silent divergence.</p>
+        <p class="ru">Инкрементальные модели дрейфуют: баг в инкрементальной логике тихо накапливается. Планировать периодическую <strong>full-refresh сверку</strong> и тест сверки row-count/sum, чтобы ловить тихое расхождение.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9 PROMOTION + SECRETS ============ -->
+<section id="secrets">
+  <div class="sec-head" data-sec>
+    <span class="num">9</span><h2><span class="en">Environment Promotion &amp; Secrets Management</span><span class="ru">Промоушен окружений &amp; управление секретами</span></h2><span class="chev">▼</span>
+  </div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3><span class="en">Promotion path</span><span class="ru">Путь промоушена</span></h3>
+      <pre class="diagram en">
+ commit ─► PR (CI: lint+tests on dev/CI clone) ─► merge ─► STAGE (full run+tests)
+        ─► manual/auto gate (green only) ─► PROD (blue/green swap, monitored, rollback-ready)
+      </pre>
+      <pre class="diagram ru">
+ commit ─► PR (CI: lint+tests на dev/CI clone) ─► merge ─► STAGE (full run+tests)
+        ─► ручной/авто-гейт (только зелёный) ─► PROD (blue/green swap, мониторится, готов к откату)
+      </pre>
+      <ul class="en">
+        <li><strong>Same code, different targets</strong>: dbt <em>targets</em> / Airflow <em>connections</em> swap the schema/warehouse/project per env — no code forks.</li>
+        <li><strong>Promotion = moving the artifact</strong> (manifest/image/DAG), never re-writing logic per env.</li>
+        <li><strong>Gate on green</strong>: a promotion can only happen if the prior stage's tests passed.</li>
+        <li><strong>Immutable artifacts</strong>: prod runs the exact image/manifest that passed stage.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Тот же код, разные таргеты</strong>: dbt <em>targets</em> / Airflow <em>connections</em> меняют схему/warehouse/проект на окружение — никаких форков кода.</li>
+        <li><strong>Промоушен = перемещение артефакта</strong> (manifest/image/DAG), никогда не переписывать логику под окружение.</li>
+        <li><strong>Гейт на зелёном</strong>: промоушен возможен только если тесты предыдущего stage прошли.</li>
+        <li><strong>Неизменяемые артефакты</strong>: прод запускает точный image/manifest, прошедший stage.</li>
+      </ul>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">Secrets management</span><span class="ru">Управление секретами</span></h3>
+      <ul class="en">
+        <li><strong>Never in git or code.</strong> Use a secrets manager: GCP Secret Manager, AWS Secrets Manager, Azure Key Vault, Vault.</li>
+        <li><strong>Inject at runtime</strong> as env vars / mounted secrets / Airflow connections+variables (backed by a secrets backend).</li>
+        <li><strong>Least privilege</strong> service accounts per env; prod creds never reachable from dev.</li>
+        <li><strong>Rotation</strong> + audit logging; prefer short-lived/federated identity (workload identity, OIDC) over long-lived keys.</li>
+        <li><strong>Secret scanning</strong> in CI (pre-commit / detect-secrets) to block accidental commits.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Никогда в git или коде.</strong> Использовать менеджер секретов: GCP Secret Manager, AWS Secrets Manager, Azure Key Vault, Vault.</li>
+        <li><strong>Инжектить во время выполнения</strong> как env vars / mounted secrets / Airflow connections+variables (backed секрет-бэкендом).</li>
+        <li><strong>Least privilege</strong> сервисные аккаунты на окружение; прод-креды никогда не достижимы из dev.</li>
+        <li><strong>Ротация</strong> + audit logging; предпочитать short-lived/federated identity (workload identity, OIDC) вместо long-lived ключей.</li>
+        <li><strong>Сканирование секретов</strong> в CI (pre-commit / detect-secrets) для блокировки случайных коммитов.</li>
+      </ul>
+      <pre><span class="cm"># dbt profiles use env vars, not literals</span>
+prod:
+  type: snowflake
+  account: <span class="str">"{{ env_var('SF_ACCOUNT') }}"</span>
+  user:    <span class="str">"{{ env_var('SF_USER') }}"</span>
+  password: <span class="str">"{{ env_var('SF_PASSWORD') }}"</span>   <span class="cm"># injected from Secret Manager at runtime</span></pre>
+      <div class="callout anchor">
+        <span class="tag"><span class="en">My story</span><span class="ru">Моя история</span></span>
+        <p class="en">Across IU Group's Azure OpenAI work and the GCP/Snowflake stacks, the same rule held: credentials lived in the cloud secret store, were injected at runtime by service identity, and CI failed on any committed secret. Promotion moved <em>code</em>; secrets stayed bound to the environment.</p>
+        <p class="ru">Через работу IU Group с Azure OpenAI и GCP/Snowflake-стеки действовало одно правило: credentials жили в облачном хранилище секретов, инжектились во время выполнения сервисной идентичностью, и CI фейлился на любом закоммиченном секрете. Промоушен перемещал <em>код</em>; секреты оставались привязаны к окружению.</p>
+      </div>
+      <div class="callout probe">
+        <span class="tag"><span class="en">Interviewer will probe</span><span class="ru">О чём спросит интервьюер</span></span>
+        <p class="en">"How do you stop a dev job from touching prod data?" → Separate service accounts/roles per env with least privilege; prod credentials only in the prod secret store; env-scoped connections in Airflow; network/role isolation so dev identity literally cannot authenticate to prod.</p>
+        <p class="ru">«Как остановить dev-задачу от касания прод-данных?» → Отдельные сервисные аккаунты/роли на окружение с least privilege; прод-креды только в прод-хранилище секретов; env-scoped connections в Airflow; сетевая/ролевая изоляция, чтобы dev-идентичность буквально не могла аутентифицироваться в прод.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz">
+  <div class="sec-head" data-sec>
+    <span class="num">★</span><h2><span class="en">Self-Quiz — Flip to Reveal</span><span class="ru">Самопроверка — Нажми чтобы открыть</span></h2><span class="chev">▼</span>
+  </div>
+  <div class="sec-body">
+    <p class="en" style="color:var(--muted)">Tap any card to reveal the answer.</p>
+    <p class="ru" style="color:var(--muted)">Нажми на любую карточку, чтобы открыть ответ.</p>
+    <div class="quiz-grid">
+
+      <div class="flip reveal">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <span class="flip-q-label"><span class="en">Q1 · DataOps</span><span class="ru">В1 · DataOps</span></span>
+            <div class="q"><span class="en">How is testing data fundamentally different from testing code?</span><span class="ru">Чем тестирование данных фундаментально отличается от тестирования кода?</span></div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">нажми чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back">
+            <span class="en">Code tests are deterministic given input — the data is fixed, you assert exact output. <strong>Data tests assert on values you don't control</strong>: the data is the variable. So you test <strong>properties</strong> (not-null, unique, ranges, referential integrity, freshness, row-count deltas, reconciliation), not exact equality. Failure mode is silent-wrong-numbers, not a crash.</span>
+            <span class="ru">Тесты кода детерминированы при заданном вводе — данные фиксированы, ты проверяешь точный вывод. <strong>Тесты данных проверяют значения, которые ты не контролируешь</strong>: данные — переменная. Поэтому ты тестируешь <strong>свойства</strong> (not-null, unique, диапазоны, референциальная целостность, свежесть, дельты числа строк, сверка), а не точное равенство. Режим сбоя — тихие неправильные цифры, а не падение.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip reveal">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <span class="flip-q-label"><span class="en">Q2 · CI/CD</span><span class="ru">В2 · CI/CD</span></span>
+            <div class="q"><span class="en">What is "slim CI" in dbt and why use it?</span><span class="ru">Что такое «slim CI» в dbt и зачем его использовать?</span></div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">нажми чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back">
+            <span class="en">Using the previous <strong>manifest.json</strong> as state to build/test <strong>only changed models + their downstream</strong> (<code>--select state:modified+</code>). Gives fast PR feedback and low compute cost instead of rebuilding the whole project on every commit. Full-volume suites move to stage/nightly.</span>
+            <span class="ru">Использование предыдущего <strong>manifest.json</strong> как состояния для сборки/тестирования <strong>только изменённых моделей + их downstream</strong> (<code>--select state:modified+</code>). Даёт быструю обратную связь на PR и низкую стоимость вычислений вместо пересборки всего проекта на каждом коммите. Полнообъёмные наборы переходят на stage/ночные запуски.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip reveal">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <span class="flip-q-label"><span class="en">Q3 · Deployment</span><span class="ru">В3 · Деплой</span></span>
+            <div class="q"><span class="en">How do you do blue/green when the artifact is a queried table?</span><span class="ru">Как делать blue/green, когда артефакт — запрашиваемая таблица?</span></div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">нажми чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back">
+            <span class="en">Build the new version into a parallel table (<code>table_v2</code>), validate with DQ tests, then <strong>atomically repoint the consumer abstraction</strong> — swap the view/alias or <code>RENAME</code> — so consumers never see a partial state. Old version stays for instant rollback. Snowflake <strong>zero-copy clone</strong> makes the green copy effectively free.</span>
+            <span class="ru">Построить новую версию в параллельную таблицу (<code>table_v2</code>), валидировать DQ-тестами, затем <strong>атомарно переточить абстракцию потребителя</strong> — поменять view/alias или <code>RENAME</code> — чтобы потребители никогда не видели частичное состояние. Старая версия остаётся для мгновенного отката. Snowflake <strong>zero-copy clone</strong> делает зелёную копию эффективно бесплатной.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip reveal">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <span class="flip-q-label"><span class="en">Q4 · Cost</span><span class="ru">В4 · Стоимость</span></span>
+            <div class="q"><span class="en">BigQuery vs Snowflake — what's the cost lever in each?</span><span class="ru">BigQuery vs Snowflake — в чём рычаг стоимости в каждом?</span></div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">нажми чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back">
+            <span class="en"><strong>BigQuery</strong> bills per <strong>bytes scanned</strong> → partition + cluster + select-only-needed-columns + incremental models to scan less. <strong>Snowflake</strong> bills per <strong>warehouse uptime</strong> → right-size warehouses + aggressive <code>auto_suspend</code> + zero-copy clones for dev/CI. Same dbt models, different optimisation playbook — the core of my GCP→Snowflake migration.</span>
+            <span class="ru"><strong>BigQuery</strong> билит за <strong>сканируемые байты</strong> → партиционировать + кластеризовать + выбирать-только-нужные-колонки + инкрементальные модели, чтобы сканировать меньше. <strong>Snowflake</strong> билит за <strong>uptime warehouse</strong> → right-size warehouses + агрессивный <code>auto_suspend</code> + zero-copy clone-ы для dev/CI. Те же dbt-модели, разный плейбук оптимизации — ядро моей миграции GCP→Snowflake.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip reveal">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <span class="flip-q-label"><span class="en">Q5 · Lineage</span><span class="ru">В5 · Lineage</span></span>
+            <div class="q"><span class="en">Why does lineage matter, and what are the two kinds?</span><span class="ru">Почему lineage важен, и какие два вида?</span></div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">нажми чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back">
+            <span class="en"><strong>Technical lineage</strong> (table/column-level, parsed from SQL/dbt) for engineers; <strong>business lineage</strong> (concept/report-level, curated) for analysts &amp; governance. It powers <strong>impact analysis</strong> (what breaks if I change this), <strong>root-cause</strong> (walk upstream to the bad source), <strong>compliance/provenance</strong>, and <strong>trust</strong>.</span>
+            <span class="ru"><strong>Технический lineage</strong> (уровень таблицы/колонки, парсится из SQL/dbt) для инженеров; <strong>бизнесовый lineage</strong> (уровень концепта/отчёта, кураторский) для аналитиков &amp; governance. Он питает <strong>анализ влияния</strong> (что сломается, если я изменю это), <strong>root-cause</strong> (пройти upstream к плохому source), <strong>compliance/происхождение</strong> и <strong>доверие</strong>.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip reveal">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <span class="flip-q-label"><span class="en">Q6 · Secrets</span><span class="ru">В6 · Секреты</span></span>
+            <div class="q"><span class="en">Where do secrets live and how do they reach a job?</span><span class="ru">Где живут секреты и как они достигают задачи?</span></div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">нажми чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back">
+            <span class="en">In a <strong>secrets manager</strong> (Secret Manager / Key Vault / Vault), never in git or code. <strong>Injected at runtime</strong> via env vars / Airflow connections / mounted secrets, scoped by <strong>least-privilege per-env service identity</strong> (prefer short-lived OIDC/workload identity over long-lived keys). CI runs <strong>secret scanning</strong> to block accidental commits. Promotion moves code; secrets stay bound to the env.</span>
+            <span class="ru">В <strong>менеджере секретов</strong> (Secret Manager / Key Vault / Vault), никогда в git или коде. <strong>Инжектятся во время выполнения</strong> через env vars / Airflow connections / mounted secrets, с scope по <strong>least-privilege per-env сервисной идентичности</strong> (предпочитать short-lived OIDC/workload identity вместо long-lived ключей). CI запускает <strong>сканирование секретов</strong> для блокировки случайных коммитов. Промоушен перемещает код; секреты остаются привязаны к env.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="card reveal" style="border-color:var(--accent)">
+  <h3><span class="en">30-second framing for the interview</span><span class="ru">30-секундный фрейминг для интервью</span></h3>
+  <p class="en">"I think of DataOps as DevOps for data products: <strong>version control + CI/CD + automated testing + observability + a catalog/lineage layer</strong>, all enforced by the pipeline rather than by discipline. Concretely, at McMakler/Career.io I version-controlled every dbt model, ran lint + unit + data tests in CI (with slim CI and a DagBag gate for Airflow), promoted immutable artifacts dev→stage→prod, and used a code-review standard I authored to keep tests, contracts and lineage accurate as a side-effect of shipping. On the platform side I migrated transforms GCP/BigQuery→Snowflake and re-tuned the cost model from bytes-scanned to warehouse-uptime."</p>
+  <p class="ru">«Я думаю о DataOps как о DevOps для дата-продуктов: <strong>контроль версий + CI/CD + автоматизированное тестирование + наблюдаемость + слой каталога/lineage</strong>, всё обеспечиваемое пайплайном, а не дисциплиной. Конкретно, в McMakler/Career.io я держал каждую dbt-модель под контролем версий, запускал lint + unit + data tests в CI (с slim CI и DagBag-гейтом для Airflow), промоутил неизменяемые артефакты dev→stage→prod и использовал стандарт code-review, который я написал, чтобы тесты, контракты и lineage оставались точными как побочный эффект выката. Со стороны платформы я мигрировал трансформы GCP/BigQuery→Snowflake и перенастроил модель стоимости с bytes-scanned на warehouse-uptime.»</p>
+</div>
+
+</main>
+
+<footer>
+  <span class="en">Cloud, DataOps &amp; CI/CD — Data Engineering Interview Prep · Built for Amal Imangulov · self-contained, offline-ready cheatsheet</span>
+  <span class="ru">Cloud, DataOps &amp; CI/CD — Подготовка к Data Engineering интервью · Сделано для Amal Imangulov · автономная, готовая к оффлайну шпаргалка</span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  // ---- theme toggle ----
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+  }
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('de_cheat_theme'); } catch (e) {}
+  applyTheme(savedTheme || 'dark');
+  themeBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('de_cheat_theme', next); } catch (e) {}
+  });
+
+  // ---- language toggle ----
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l) {
+    root.setAttribute('data-lang', l);
+    root.setAttribute('lang', l);
+    langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+  }
+  var savedLang = null;
+  try { savedLang = localStorage.getItem('de_cheat_lang'); } catch (e) {}
+  applyLang(savedLang || 'en');
+  langBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+    applyLang(next);
+    try { localStorage.setItem('de_cheat_lang', next); } catch (e) {}
+  });
+
+  // ---- collapsible sections ----
+  document.querySelectorAll('[data-sec]').forEach(function (head) {
+    head.addEventListener('click', function () {
+      head.classList.toggle('collapsed');
+      var body = head.nextElementSibling;
+      if (body) body.classList.toggle('hidden');
+    });
+  });
+
+  // ---- scroll reveal ----
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+  // ---- flip cards ----
+  document.querySelectorAll('.flip').forEach(function (card) {
+    card.addEventListener('click', function () { card.classList.toggle('flipped'); });
+  });
+})();
+</script>
+</body>
+</html>

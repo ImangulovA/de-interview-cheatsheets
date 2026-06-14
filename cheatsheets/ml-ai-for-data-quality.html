@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI/ML, Anomaly Detection & LLM Workflows — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a; --card: #151d30; --card2: #1b2540; --text: #e6ecf5; --muted: #93a1bd;
+    --accent: #1877F2; --green: #02e2ac; --orange: #f59e0b; --purple: #a855f7;
+    --border: #243150; --code-bg: #0d1424; --shadow: rgba(0,0,0,0.4);
+  }
+  [data-theme="light"] {
+    --bg: #f4f7fb; --card: #ffffff; --card2: #eef3fa; --text: #14213d; --muted: #5b6b8c;
+    --accent: #1877F2; --green: #06a37e; --orange: #c47a06; --purple: #8b3fd6;
+    --border: #d4deec; --code-bg: #eef2f8; --shadow: rgba(20,40,80,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6; font-size: 15px; transition: background .3s, color .3s;
+  }
+  code, pre, .mono { font-family: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100; background: rgba(10,14,26,0.92);
+    backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 4px; padding: 10px 16px; flex-wrap: wrap;
+  }
+  [data-theme="light"] nav { background: rgba(244,247,251,0.92); }
+  nav .brand { font-weight: 700; color: var(--accent); margin-right: 10px; font-size: 14px; white-space: nowrap; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 12.5px; padding: 5px 9px;
+    border-radius: 6px; transition: all .2s; white-space: nowrap;
+  }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 80px; }
+  header.hero { padding: 28px 0 12px; }
+  header.hero h1 { font-size: 27px; line-height: 1.25; margin-bottom: 8px; }
+  header.hero h1 .grad {
+    background: linear-gradient(90deg, var(--accent), var(--purple)); -webkit-background-clip: text;
+    background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  header.hero .sub { color: var(--muted); font-size: 14.5px; max-width: 760px; }
+  .pillrow { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--card); color: var(--muted); }
+  .pill.a { border-color: var(--accent); color: var(--accent); }
+  .pill.g { border-color: var(--green); color: var(--green); }
+  .pill.o { border-color: var(--orange); color: var(--orange); }
+  .pill.p { border-color: var(--purple); color: var(--purple); }
+
+  section { margin-top: 30px; }
+  .sec-h {
+    display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;
+    border-left: 3px solid var(--accent); padding-left: 12px; margin-bottom: 14px;
+  }
+  .sec-h h2 { font-size: 20px; }
+  .sec-h .chev { margin-left: auto; color: var(--muted); transition: transform .25s; font-size: 13px; }
+  .sec-h.collapsed .chev { transform: rotate(-90deg); }
+  .sec-body { transition: opacity .25s; }
+  .sec-body.hidden { display: none; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 2px 8px var(--shadow);
+  }
+  .card h3 { font-size: 16px; margin-bottom: 8px; }
+  .card h4 { font-size: 14px; margin: 12px 0 6px; color: var(--accent); }
+  .card p { margin-bottom: 8px; }
+  .card ul, .card ol { margin: 6px 0 8px 20px; }
+  .card li { margin-bottom: 5px; }
+  .lead { color: var(--green); font-weight: 600; }
+  strong { color: var(--text); }
+  em { color: var(--muted); font-style: italic; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+  tbody tr:hover { background: var(--card2); }
+  td code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; overflow-x: auto; font-size: 12.8px; line-height: 1.5; margin: 8px 0;
+  }
+  .kw { color: var(--purple); } .fn { color: var(--accent); } .str { color: var(--green); }
+  .num { color: var(--orange); } .cm { color: var(--muted); font-style: italic; }
+
+  .callout { border-radius: 10px; padding: 12px 14px; margin: 10px 0; border: 1px solid; font-size: 13.8px; }
+  .callout .tag { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 4px; }
+  .probe { background: rgba(245,158,11,0.08); border-color: var(--orange); }
+  .probe .tag { color: var(--orange); }
+  .gotcha { background: rgba(168,85,247,0.08); border-color: var(--purple); }
+  .gotcha .tag { color: var(--purple); }
+  .bridge { background: rgba(2,226,172,0.07); border-color: var(--green); }
+  .bridge .tag { color: var(--green); }
+
+  .diagram {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px; font-size: 12.2px; line-height: 1.45; overflow-x: auto; color: var(--muted);
+    white-space: pre; margin: 10px 0;
+  }
+  .diagram b { color: var(--green); }
+
+  /* FLIP CARDS */
+  .flips { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .flips { grid-template-columns: 1fr; } }
+  .flip { perspective: 1400px; height: 200px; cursor: pointer; }
+  .flip-inner { position: relative; width: 100%; height: 100%; transition: transform .55s; transform-style: preserve-3d; }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face {
+    position: absolute; inset: 0; backface-visibility: hidden; border-radius: 12px;
+    border: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column;
+    overflow-y: auto;
+  }
+  .flip-front { background: var(--card); }
+  .flip-front .q { font-weight: 600; font-size: 14.5px; }
+  .flip-front .hint { margin-top: auto; color: var(--muted); font-size: 11.5px; }
+  .flip-back { background: var(--card2); transform: rotateY(180deg); font-size: 13px; }
+  .flip-back .a { color: var(--text); }
+  .flip-tag { font-size: 10.5px; color: var(--purple); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  .tl-flag { display: inline-block; font-size: 10px; font-weight: 700; color: var(--orange);
+    border: 1px solid var(--orange); border-radius: 5px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
+  .diff { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 5px; padding: 1px 6px; margin-left: 6px; }
+  .d-e { color: var(--green); border: 1px solid var(--green); }
+  .d-m { color: var(--orange); border: 1px solid var(--orange); }
+  .d-h { color: var(--purple); border: 1px solid var(--purple); }
+
+  footer { margin-top: 40px; color: var(--muted); font-size: 12.5px; text-align: center; }
+  .ladder span { display: inline-block; padding: 4px 10px; border-radius: 6px; margin: 2px; font-size: 12.5px; border: 1px solid var(--border); }
+  .ladder .arrow { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand"><span class="en">AI/ML for DQ</span><span class="ru">AI/ML для DQ</span></span>
+  <a href="#why"><span class="en">Why</span><span class="ru">Зачем</span></a>
+  <a href="#ladder"><span class="en">Method ladder</span><span class="ru">Лестница методов</span></a>
+  <a href="#anomaly"><span class="en">Anomaly</span><span class="ru">Аномалии</span></a>
+  <a href="#drift"><span class="en">Drift</span><span class="ru">Дрифт</span></a>
+  <a href="#nlp"><span class="en">NLP/Enrich</span><span class="ru">NLP/Обогащение</span></a>
+  <a href="#llm"><span class="en">LLM workflows</span><span class="ru">LLM-воркфлоу</span></a>
+  <a href="#prod"><span class="en">Production</span><span class="ru">Продакшн</span></a>
+  <a href="#cv"><span class="en">Your stories</span><span class="ru">Твои истории</span></a>
+  <a href="#quiz"><span class="en">Self-quiz</span><span class="ru">Самопроверка</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<div class="wrap">
+
+<header class="hero reveal">
+  <h1 class="en"><span class="grad">AI/ML, Anomaly Detection & LLM-Assisted Data Workflows</span><br><span class="k">DE Interview Prep</span></h1>
+  <h1 class="ru"><span class="grad">AI/ML, детекция аномалий и LLM-воркфлоу для данных</span><br><span class="k">Подготовка к DE-интервью</span></h1>
+  <p class="sub en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead Data Management Professional / Data Engineer roles focused on automation/AI/ML/statistical techniques for ingestion, enrichment, validation, and monitoring.</p>
+  <p class="sub ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead Data Management Professional / Data Engineer роли с фокусом на автоматизацию/AI/ML/статистические методы для приёма, обогащения, валидации и мониторинга данных.</p>
+  <div class="pillrow">
+    <span class="pill a">z-score · IQR · STL · S-H-ESD</span>
+    <span class="pill g">Prophet / SARIMA <span class="en">range checks</span><span class="ru">проверки диапазонов</span></span>
+    <span class="pill o"><span class="en">drift</span><span class="ru">дрифт</span>: PSI · KS · chi-sq</span>
+    <span class="pill p">LLM <span class="en">in prod</span><span class="ru">в продакшне</span> · human-in-loop</span>
+    <span class="pill">Untangler · Syntea GPT-4</span>
+  </div>
+</header>
+
+<!-- WHY -->
+<section id="why" class="reveal">
+  <div class="sec-h"><h2><span class="en">The one-paragraph framing</span><span class="ru">Ключевой фрейминг (один параграф)</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="card">
+      <p class="lead en">Lead every answer here with the same meta-point: DQ is a layered system, and you climb from cheap deterministic checks to expensive AI only when the cheaper layer demonstrably fails.</p>
+      <p class="lead ru">Начинай каждый ответ с общего тезиса: DQ — это многослойная система, ты поднимаешься от дешёвых детерминистских проверок к дорогому AI только тогда, когда более дешёвый слой наглядно не справляется.</p>
+      <p class="en">Frame every technique around <strong>client-facing reliability</strong>: the failure you prevent is "a wrong economic indicator / data point reaches a client." Bring up <strong>false-positive cost</strong> and <strong>human-in-the-loop</strong> unprompted; that is what separates someone who has run AI in production (you: Syntea, Untangler) from someone who has only read about it.</p>
+      <p class="ru">Обрамляй каждую технику в контексте <strong>надёжности для клиента</strong>: сбой, который ты предотвращаешь — это «неверный экономический показатель / точка данных доходит до клиента». Упоминай <strong>цену ложных срабатываний</strong> и <strong>human-in-the-loop</strong> без подсказки; это отличает того, кто запускал AI в продакшне (ты: Syntea, Untangler), от того, кто только читал.</p>
+      <div class="callout bridge"><span class="tag"><span class="en">Your honest angle</span><span class="ru">Твой честный угол</span></span><span class="en">You may not have worked this specific data domain before. Say it once, then pivot to the transferable rigor: point-in-time correctness, handling revisions, and sizing monitoring by downstream blast radius (the 6.2B-record entity-resolution fix at Meta).</span><span class="ru">Возможно, ты раньше не работал с этим конкретным доменом данных. Скажи это один раз, затем переходи к переносимой строгости: точность на момент времени, обработка ревизий и калибровка мониторинга по радиусу поражения downstream (фикс entity-resolution 6.2B записей в Meta).</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- LADDER -->
+<section id="ladder" class="reveal">
+  <div class="sec-h"><h2><span class="en">The method ladder (the meta-answer)</span><span class="ru">Лестница методов (мета-ответ)</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="card">
+      <p class="en">When asked "how would you add AI/ML to validation," do not name one algorithm. Show the ladder and say you climb only when forced.</p>
+      <p class="ru">Когда спрашивают «как бы ты добавил AI/ML к валидации», не называй один алгоритм. Покажи лестницу и скажи, что ты поднимаешься только когда вынужден.</p>
+      <div class="ladder" style="margin:10px 0;">
+        <span style="border-color:var(--green);color:var(--green)"><span class="en">1. Deterministic rules</span><span class="ru">1. Детерминистские правила</span></span><span class="arrow"> → </span>
+        <span style="border-color:var(--accent);color:var(--accent)"><span class="en">2. Robust statistics</span><span class="ru">2. Робастная статистика</span></span><span class="arrow"> → </span>
+        <span style="border-color:var(--orange);color:var(--orange)"><span class="en">3. Classical ML</span><span class="ru">3. Классический ML</span></span><span class="arrow"> → </span>
+        <span style="border-color:var(--purple);color:var(--purple)"><span class="en">4. Embeddings / NN</span><span class="ru">4. Embeddings / NN</span></span><span class="arrow"> → </span>
+        <span style="border-color:var(--purple);color:var(--purple)">5. LLM</span>
+      </div>
+      <table class="en">
+        <thead><tr><th>Rung</th><th>What it handles</th><th>Cost / explainability</th></tr></thead>
+        <tbody>
+          <tr><td><b style="color:var(--green)">Rules</b></td><td>Schema, not-null, type, freshness, row-count, referential, arithmetic identities (components sum to total)</td><td>Free, fully explainable, auditable</td></tr>
+          <tr><td><b style="color:var(--accent)">Robust stats</b></td><td>Value outliers per series: median+MAD, IQR, STL residual, S-H-ESD, forecast intervals</td><td>Cheap, explainable thresholds</td></tr>
+          <tr><td><b style="color:var(--orange)">Classical ML</b></td><td>Text classification / mapping with labels (TF-IDF + LogReg/GBM), Isolation Forest for multivariate</td><td>Cheap, mostly explainable, needs labels</td></tr>
+          <tr><td><b style="color:var(--purple)">Embeddings</b></td><td>Semantic mapping when surface forms differ (vendor desc → canonical series)</td><td>Moderate, less explainable</td></tr>
+          <tr><td><b style="color:var(--purple)">LLM</b></td><td>Ambiguous residual: schema mapping, doc gen, anomaly triage, code refactor</td><td>Expensive, non-deterministic, needs guardrails</td></tr>
+        </tbody>
+      </table>
+      <table class="ru">
+        <thead><tr><th>Ступень</th><th>Что обрабатывает</th><th>Цена / объяснимость</th></tr></thead>
+        <tbody>
+          <tr><td><b style="color:var(--green)">Правила</b></td><td>Схема, not-null, тип, свежесть, row-count, ссылочная целостность, арифметические тождества (компоненты дают сумму)</td><td>Бесплатно, полностью объяснимо, аудируемо</td></tr>
+          <tr><td><b style="color:var(--accent)">Робастная статистика</b></td><td>Выбросы значений на серию: median+MAD, IQR, остаток STL, S-H-ESD, интервалы прогноза</td><td>Дёшево, объяснимые пороги</td></tr>
+          <tr><td><b style="color:var(--orange)">Классический ML</b></td><td>Текстовая классификация / маппинг с метками (TF-IDF + LogReg/GBM), Isolation Forest для многомерных</td><td>Дёшево, в основном объяснимо, нужны метки</td></tr>
+          <tr><td><b style="color:var(--purple)">Embeddings</b></td><td>Семантический маппинг, когда поверхностные формы различаются (описание вендора → канонический ряд)</td><td>Умеренно, менее объяснимо</td></tr>
+          <tr><td><b style="color:var(--purple)">LLM</b></td><td>Неоднозначный остаток: маппинг схем, генерация документации, триаж аномалий, рефакторинг кода</td><td>Дорого, недетерминистично, нужны ограничители</td></tr>
+        </tbody>
+      </table>
+      <div class="callout probe"><span class="tag"><span class="en">Interviewer will probe</span><span class="ru">О чём спросит интервьюер</span></span><span class="en">"When would you NOT use ML?" Answer: whenever a rule solves it, when you cannot tolerate non-determinism on a client value, when you lack labels to measure precision/recall, or when LLM-per-row cost exceeds value. Most DQ value is in good rules.</span><span class="ru">«Когда ты НЕ использовал бы ML?» Ответ: когда правило решает задачу, когда ты не можешь допустить недетерминизм на клиентском значении, когда нет меток для измерения precision/recall, либо когда цена LLM-на-строку превышает ценность. Большая часть пользы DQ — в хороших правилах.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ANOMALY -->
+<section id="anomaly" class="reveal">
+  <div class="sec-h"><h2><span class="en">Statistical anomaly / outlier detection</span><span class="ru">Статистическая детекция аномалий / выбросов</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="card">
+      <h3><span class="en">Pick the method by series shape</span><span class="ru">Выбор метода по форме ряда</span></h3>
+      <table class="en">
+        <thead><tr><th>Method</th><th>Idea</th><th>Use when</th><th>Watch out</th></tr></thead>
+        <tbody>
+          <tr><td><b>Z-score</b></td><td><code>z=(x-μ)/σ</code>, flag |z|&gt;3</td><td>Roughly normal, stationary</td><td>Skew breaks it; outliers inflate σ and hide themselves</td></tr>
+          <tr><td><b>Robust z</b></td><td>median + MAD instead of μ,σ</td><td>Same, but outlier-resistant</td><td>Still assumes stationarity</td></tr>
+          <tr><td><b>IQR fences</b></td><td>Q1−1.5·IQR, Q3+1.5·IQR</td><td>Skewed, distribution-free default</td><td>Flags normal seasonal peaks</td></tr>
+          <tr><td><b>STL residual</b></td><td>Split trend+seasonal+resid, test resid</td><td>Seasonal econ series (employment, retail)</td><td>Needs enough history per period</td></tr>
+          <tr><td><b>S-H-ESD</b></td><td>De-seasonalize → Generalized ESD on resid</td><td>Seasonal + multiple anomalies</td><td>More params; Twitter's method</td></tr>
+          <tr><td><b>Forecast interval</b></td><td>Prophet/SARIMA predict + flag outside band</td><td>Forecastable, "expected-range" check</td><td>Refit on revisions; cold start</td></tr>
+          <tr><td><b>Isolation Forest</b></td><td>Tree-based, isolates rare points</td><td>Multivariate (each field fine alone)</td><td>Less explainable; harder threshold</td></tr>
+        </tbody>
+      </table>
+      <table class="ru">
+        <thead><tr><th>Метод</th><th>Идея</th><th>Когда использовать</th><th>Подводные камни</th></tr></thead>
+        <tbody>
+          <tr><td><b>Z-score</b></td><td><code>z=(x-μ)/σ</code>, флаг |z|&gt;3</td><td>Примерно нормальное, стационарное</td><td>Скошенность ломает; выбросы раздувают σ и прячут себя</td></tr>
+          <tr><td><b>Robust z</b></td><td>median + MAD вместо μ,σ</td><td>То же, но устойчиво к выбросам</td><td>Всё ещё предполагает стационарность</td></tr>
+          <tr><td><b>IQR fences</b></td><td>Q1−1.5·IQR, Q3+1.5·IQR</td><td>Скошенное, distribution-free по умолчанию</td><td>Флагает нормальные сезонные пики</td></tr>
+          <tr><td><b>STL residual</b></td><td>Разделить тренд+сезон+остаток, тестить остаток</td><td>Сезонные эконом. ряды (занятость, розница)</td><td>Нужно достаточно истории на период</td></tr>
+          <tr><td><b>S-H-ESD</b></td><td>Десезонализация → Generalized ESD на остатке</td><td>Сезонность + множественные аномалии</td><td>Больше параметров; метод Twitter</td></tr>
+          <tr><td><b>Forecast interval</b></td><td>Prophet/SARIMA прогноз + флаг вне полосы</td><td>Прогнозируемое, проверка «ожидаемого диапазона»</td><td>Переобучение на ревизиях; холодный старт</td></tr>
+          <tr><td><b>Isolation Forest</b></td><td>На деревьях, изолирует редкие точки</td><td>Многомерное (каждое поле само по себе ОК)</td><td>Менее объяснимо; сложнее порог</td></tr>
+        </tbody>
+      </table>
+      <p class="lead en">Rule of thumb: stationary → robust z / IQR · seasonal/trending → STL residual or S-H-ESD · forecastable → prediction interval · multivariate combos → Isolation Forest.</p>
+      <p class="lead ru">Эмпирика: стационарное → robust z / IQR · сезонное/с трендом → остаток STL или S-H-ESD · прогнозируемое → интервал прогноза · многомерные комбо → Isolation Forest.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h4><span class="en">Robust z-score (the safe default)</span><span class="ru">Robust z-score (безопасное по умолчанию)</span></h4>
+        <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">def</span> <span class="fn">robust_z_flags</span>(x, k=<span class="num">3.5</span>):
+    med = np.median(x)
+    mad = np.median(np.<span class="fn">abs</span>(x - med))
+    <span class="cm en"># 0.6745 makes MAD comparable to σ</span><span class="cm ru"># 0.6745 делает MAD сопоставимым с σ</span>
+    z = <span class="num">0.6745</span> * (x - med) / (mad <span class="kw">or</span> <span class="num">1e-9</span>)
+    <span class="kw">return</span> np.<span class="fn">abs</span>(z) &gt; k</pre>
+      </div>
+      <div class="card">
+        <h4><span class="en">STL → residual outliers</span><span class="ru">STL → выбросы остатка</span></h4>
+        <pre><span class="kw">from</span> statsmodels.tsa.seasonal <span class="kw">import</span> STL
+res = STL(series, period=<span class="num">12</span>).<span class="fn">fit</span>()
+resid = res.resid
+<span class="cm en"># IQR on the residual, not the raw series</span><span class="cm ru"># IQR на остатке, а не на сыром ряде</span>
+q1, q3 = np.<span class="fn">percentile</span>(resid, [<span class="num">25</span>,<span class="num">75</span>])
+iqr = q3 - q1
+flags = (resid &lt; q1-<span class="num">1.5</span>*iqr) | (resid &gt; q3+<span class="num">1.5</span>*iqr)</pre>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4><span class="en">Forecast-interval ("expected-range") check</span><span class="ru">Проверка интервалом прогноза («ожидаемый диапазон»)</span></h4>
+      <div class="diagram en">history ──► fit Prophet/SARIMA ──► <b>forecast next obs + 95% interval</b>
+                                              │
+   actual lands ───────────────────────────► compare
+                                              │
+              inside band → OK · outside band → <b>FLAG (severity by distance)</b></div>
+      <div class="diagram ru">история ──► фит Prophet/SARIMA ──► <b>прогноз след. наблюдение + 95% интервал</b>
+                                                │
+   факт пришёл ─────────────────────────────► сравнение
+                                                │
+          внутри полосы → OK · вне полосы → <b>FLAG (серьёзность по дистанции)</b></div>
+      <div class="callout gotcha"><span class="tag">Gotcha</span><span class="en">Economic series revise. If you refit on the latest, still-unrevised points you bake error into the band. Down-weight or exclude the most recent unrevised observations, and refit on a schedule. New series have no history → fall back to IQR until enough data (cold start).</span><span class="ru">Экономические ряды ревизируются. Если переобучаешь на последних, ещё не ревизированных точках, ты запекаешь ошибку в интервал. Понижай вес или исключай последние неревизированные наблюдения, переобучай по расписанию. Новые ряды без истории → фолбэк на IQR до достаточного объёма (холодный старт).</span></div>
+      <div class="callout bridge"><span class="tag"><span class="en">CV bridge</span><span class="ru">Мост в CV</span></span><span class="en">"Same discipline as the default-prediction model I owned end-to-end at Front Tier (Scala/Spark on Hadoop + Flask API, 50% loss reduction): a model in production where a wrong output has money attached, so I care about point-in-time correctness and not leaking future/revised data."</span><span class="ru">«Та же дисциплина, что и в модели предсказания дефолта, которую я владел полностью в Front Tier (Scala/Spark на Hadoop + Flask API, −50% потерь): модель в продакшне, где неверный вывод имеет денежные последствия, поэтому я забочусь о точности на момент времени и не допускаю утечку будущих/ревизированных данных.»</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- DRIFT -->
+<section id="drift" class="reveal">
+  <div class="sec-h"><h2><span class="en">Drift detection (different from anomaly)</span><span class="ru">Детекция дрифта (отличается от аномалий)</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="card">
+      <p class="en">Keep these cleanly separate; conflating them is a junior tell.</p>
+      <p class="ru">Держи их чётко раздельно; их смешение — признак джуна.</p>
+      <table class="en">
+        <thead><tr><th></th><th>Anomaly / outlier</th><th>Drift</th></tr></thead>
+        <tbody>
+          <tr><td><b>Grain</b></td><td>Point / window</td><td>Distribution over a batch</td></tr>
+          <tr><td><b>Question</b></td><td>"Is this observation unexpected vs the series's own history?"</td><td>"Did the shape of incoming data change vs a reference?"</td></tr>
+          <tr><td><b>Catches</b></td><td>Fat-finger value, spike, missing release</td><td>Vendor changed units (% → bps), rescaled, methodology revision, schema/semantic shift, rebasing</td></tr>
+          <tr><td><b>Methods</b></td><td>z / IQR / STL / forecast interval</td><td>PSI, KS test, chi-square, mean/variance shift</td></tr>
+          <tr><td><b>Reaction</b></td><td>Can auto-reject/quarantine</td><td>Fires a <em>review</em> — drift may be real regime change</td></tr>
+        </tbody>
+      </table>
+      <table class="ru">
+        <thead><tr><th></th><th>Аномалия / выброс</th><th>Дрифт</th></tr></thead>
+        <tbody>
+          <tr><td><b>Зерно</b></td><td>Точка / окно</td><td>Распределение на батче</td></tr>
+          <tr><td><b>Вопрос</b></td><td>«Это наблюдение неожиданно относительно собственной истории ряда?»</td><td>«Изменилась ли форма входящих данных относительно эталона?»</td></tr>
+          <tr><td><b>Ловит</b></td><td>Опечатка в значении, всплеск, пропущенный релиз</td><td>Вендор поменял единицы (% → б.п.), пересчитал, ревизия методологии, сдвиг схемы/семантики, ребейзинг</td></tr>
+          <tr><td><b>Методы</b></td><td>z / IQR / STL / интервал прогноза</td><td>PSI, тест KS, chi-square, сдвиг mean/variance</td></tr>
+          <tr><td><b>Реакция</b></td><td>Может авто-отклонить/карантин</td><td>Запускает <em>ревью</em> — дрифт может быть настоящей сменой режима</td></tr>
+        </tbody>
+      </table>
+      <div class="callout gotcha"><span class="tag">Gotcha</span><span class="en">Drift is not always an error. A recession is genuine drift; a vendor silently switching units is a defect. So drift triggers human review, not auto-reject. An anomaly check on one GDP print will not notice the whole series was rebased to a new base year; a drift check will. You want both, watching different things.</span><span class="ru">Дрифт — не всегда ошибка. Рецессия — подлинный дрифт; вендор молча поменявший единицы — дефект. Поэтому дрифт запускает человеческое ревью, а не авто-отклонение. Проверка аномалий на одном принте GDP не заметит, что весь ряд ребейзировали на новый базовый год; проверка дрифта заметит. Нужны оба, следят за разными вещами.</span></div>
+      <h4><span class="en">PSI (Population Stability Index) — the workhorse</span><span class="ru">PSI (Population Stability Index) — рабочая лошадка</span></h4>
+      <pre class="en"><span class="cm"># bin both windows, compare proportions</span>
+PSI = Σ (actual% − expected%) * ln(actual% / expected%)
+<span class="cm"># &lt;0.10 stable · 0.10–0.25 moderate shift · &gt;0.25 significant</span></pre>
+      <pre class="ru"><span class="cm"># разбиваем оба окна, сравниваем пропорции</span>
+PSI = Σ (actual% − expected%) * ln(actual% / expected%)
+<span class="cm"># &lt;0.10 стабильно · 0.10–0.25 умеренный сдвиг · &gt;0.25 значимый</span></pre>
+      <p class="en"><strong>KS test</strong> for continuous distributions, <strong>chi-square</strong> for categorical. For an ML model add <em>feature drift</em>, <em>prediction drift</em> (early warning when labels are delayed), and <em>concept drift</em> (input→output relationship changed — the textbook driver in finance is regime change).</p>
+      <p class="ru"><strong>Тест KS</strong> для непрерывных распределений, <strong>chi-square</strong> для категориальных. Для ML-модели добавь <em>feature drift</em>, <em>prediction drift</em> (раннее предупреждение, когда метки запаздывают) и <em>concept drift</em> (изменилось отношение вход→выход — в финансах типичный драйвер — смена режима).</p>
+    </div>
+  </div>
+</section>
+
+<!-- NLP -->
+<section id="nlp" class="reveal">
+  <div class="sec-h"><h2><span class="en">NLP / classification for enrichment & mapping</span><span class="ru">NLP / классификация для обогащения и маппинга</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="card">
+      <h3><span class="en">Mapping messy vendor feeds to a canonical model</span><span class="ru">Маппинг грязных вендорских фидов на канонический модель</span></h3>
+      <p class="en">Use cases: map a vendor's free-text series description → standard indicator/country/frequency; resolve entities across vendors; parse units / seasonal-adjustment flags from text; dedupe near-identical series.</p>
+      <p class="ru">Кейсы: маппинг текстового описания ряда вендора → стандартный индикатор/страна/частота; резолв сущностей между вендорами; парсинг единиц / флагов сезонной корректировки из текста; дедупликация почти идентичных рядов.</p>
+      <div class="diagram en">vendor label ─┬─► <b>rules / lookup</b>      (high-freq, stable cases)   auto-accept
+              ├─► <b>fuzzy match</b>         (Levenshtein, token-set)    auto if &gt; θ
+              ├─► <b>classifier</b>          (TF-IDF + LogReg/GBM)       auto if conf &gt; θ
+              ├─► <b>embeddings + NN</b>      (semantic, diff surface)    auto if conf &gt; θ
+              └─► <b>LLM</b> (residual only)  (constrained to taxonomy)   → human review
+                                                                          │
+                                          human corrections ◄─────────────┘  (retrain labels)</div>
+      <div class="diagram ru">метка вендора ─┬─► <b>rules / lookup</b>      (частые, стабильные)   авто-приём
+               ├─► <b>fuzzy match</b>         (Levenshtein, token-set)    авто если &gt; θ
+               ├─► <b>classifier</b>          (TF-IDF + LogReg/GBM)       авто если conf &gt; θ
+               ├─► <b>embeddings + NN</b>      (семантика, разные формы)   авто если conf &gt; θ
+               └─► <b>LLM</b> (только остаток) (ограничен таксономией)     → ручное ревью
+                                                                           │
+                                         исправления человеком ◄────────────┘  (переобучение меток)</div>
+      <p class="en">Auto-accept above a confidence threshold; route low confidence to a human; feed corrections back as training labels. Track mapping accuracy as a DQ metric.</p>
+      <p class="ru">Авто-приём выше порога уверенности; направляй низкую уверенность на человека; подавай исправления обратно как обучающие метки. Отслеживай точность маппинга как метрику DQ.</p>
+      <div class="callout bridge"><span class="tag"><span class="en">CV bridge</span><span class="ru">Мост в CV</span></span><span class="en">"This is entity resolution across 6.2B records at Meta, and forcing convergence on a shared customer/account spine across 8 brands at Career.io. Mapping heterogeneous sources to one canonical model is exactly this work."</span><span class="ru">«Это entity resolution по 6.2B записей в Meta и принуждение к конвергенции на общий customer/account spine через 8 брендов в Career.io. Маппинг гетерогенных источников на единую каноническую модель — ровно эта работа.»</span></div>
+      <div class="callout probe"><span class="tag"><span class="en">Interviewer will probe</span><span class="ru">О чём спросит интервьюер</span></span><span class="en">"Why not just use an LLM for all of it?" → Cost and non-determinism at scale; LLM-per-row does not scale, and you cannot audit a black-box mapping for a client-facing series. LLM handles only the ambiguous residual the cheaper rungs could not.</span><span class="ru">«Почему не использовать LLM на всё?» → Цена и недетерминизм на масштабе; LLM-на-строку не масштабируется, и ты не можешь аудировать чёрный ящик маппинга для клиентского ряда. LLM обрабатывает только неоднозначный остаток, с которым не справились более дешёвые ступени.»</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- LLM -->
+<section id="llm" class="reveal">
+  <div class="sec-h"><h2><span class="en">LLM-assisted data-engineering workflows</span><span class="ru">LLM-воркфлоу для дата-инженерии</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="card">
+      <h3><span class="en">Where an LLM earns its place (and where it must not)</span><span class="ru">Где LLM зарабатывает своё место (и где ему нельзя)</span></h3>
+      <div class="grid2">
+        <div>
+          <h4 style="color:var(--green)"><span class="en">Good fits (propose, don't decide)</span><span class="ru">Хорошие кейсы (предлагает, не решает)</span></h4>
+          <ul class="en">
+            <li><strong>Schema / field mapping</strong> of new vendor feeds</li>
+            <li><strong>Documentation</strong> generation from code/lineage</li>
+            <li><strong>Anomaly triage</strong>: draft a root-cause hypothesis (revision vs vendor error vs real move) for the human</li>
+            <li><strong>Code refactoring</strong> of legacy pipelines</li>
+            <li><strong>Fuzzy categorization</strong> of unstructured fields</li>
+          </ul>
+          <ul class="ru">
+            <li><strong>Маппинг схем / полей</strong> новых вендорских фидов</li>
+            <li>Генерация <strong>документации</strong> из кода/lineage</li>
+            <li><strong>Триаж аномалий</strong>: черновик гипотезы о первопричине (ревизия vs ошибка вендора vs реальное движение) для человека</li>
+            <li><strong>Рефакторинг кода</strong> legacy-пайплайнов</li>
+            <li><strong>Нечёткая категоризация</strong> неструктурированных полей</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color:var(--orange)"><span class="en">Never let the LLM</span><span class="ru">Никогда не позволяй LLM</span></h4>
+          <ul class="en">
+            <li>Be the source of truth for a published client value</li>
+            <li>Run per-row at scale in the hot path</li>
+            <li>Emit free-form output you don't validate against a schema</li>
+            <li>Decide high-blast-radius cases without human approval</li>
+          </ul>
+          <ul class="ru">
+            <li>Быть источником истины для опубликованного клиентского значения</li>
+            <li>Работать построчно на масштабе в горячем пути</li>
+            <li>Выдавать свободный вывод, который ты не валидируешь против схемы</li>
+            <li>Решать кейсы с высоким радиусом поражения без одобрения человеком</li>
+          </ul>
+        </div>
+      </div>
+      <p class="lead en">One-liner: an LLM is a high-recall, low-precision <em>proposer</em>; you wrap it in deterministic precision (schema constraints, validation, or a human).</p>
+      <p class="lead ru">Одной строкой: LLM — это <em>proposer</em> с высоким recall, низким precision; ты оборачиваешь его в детерминистский precision (ограничения схемы, валидация или человек).</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="en">Production controls (this is the senior signal)</span><span class="ru">Контроли в продакшне (это senior-сигнал)</span></h3>
+      <table class="en">
+        <thead><tr><th>Risk</th><th>Control</th></tr></thead>
+        <tbody>
+          <tr><td>Non-determinism</td><td>Low temperature; <strong>pin model + prompt versions</strong> in version control; reproducible enough to audit</td></tr>
+          <tr><td>Hallucination</td><td>Constrain to schema (function calling / JSON mode); reject off-schema; validate against deterministic check or cross-source</td></tr>
+          <tr><td>Cost & latency</td><td>Batch, cache; invoke LLM only on the residual cheap heuristics couldn't resolve</td></tr>
+          <tr><td>Model drift (vendor changes API model)</td><td>Pin versions; run an <strong>eval set</strong> on every model/prompt bump</td></tr>
+          <tr><td>Wrong value to client</td><td><strong>Human-in-the-loop</strong> for anything client-facing until measured accuracy + safe fallback justify automation</td></tr>
+        </tbody>
+      </table>
+      <table class="ru">
+        <thead><tr><th>Риск</th><th>Контроль</th></tr></thead>
+        <tbody>
+          <tr><td>Недетерминизм</td><td>Низкая temperature; <strong>закрепить версии модели + промпта</strong> в version control; достаточно воспроизводимо для аудита</td></tr>
+          <tr><td>Галлюцинации</td><td>Ограничить схемой (function calling / JSON mode); отклонять вне схемы; валидировать против детерминистской проверки или перекрёстного источника</td></tr>
+          <tr><td>Цена и задержка</td><td>Батчинг, кеш; вызывать LLM только на остаток, который не разрешили дешёвые эвристики</td></tr>
+          <tr><td>Дрифт модели (вендор меняет API-модель)</td><td>Закрепить версии; прогонять <strong>eval-набор</strong> на каждом изменении модели/промпта</td></tr>
+          <tr><td>Неверное значение клиенту</td><td><strong>Human-in-the-loop</strong> для всего клиентского, пока измеренная точность + безопасный фолбэк не оправдают автоматизацию</td></tr>
+        </tbody>
+      </table>
+      <div class="callout bridge"><span class="tag"><span class="en">CV bridge — Syntea</span><span class="ru">Мост в CV — Syntea</span></span><span class="en">"I led Kafka ingestion and analytics for Syntea at IU Group, one of the first university-scale GPT-4 production deployments, 80,000+ students, featured by Microsoft as an Azure OpenAI case study. I have run LLMs in production at scale, not just prototyped."</span><span class="ru">«Я вёл Kafka ingestion и аналитику для Syntea в IU Group, одно из первых GPT-4 развёртываний в продакшне на университетском масштабе, 80 000+ студентов, отмечено Microsoft как Azure OpenAI кейс. Я запускал LLM в продакшне на масштабе, а не только прототипировал.»</span></div>
+      <div class="callout bridge"><span class="tag"><span class="en">CV bridge — Untangler (lead with this)</span><span class="ru">Мост в CV — Untangler (лидируй этим)</span></span><span class="en">"I won Meta's EMEA Data Engineering Hackathon 2026 with Untangler, a multi-agent AI methodology for pipeline restructuring, selected for internal tooling. Multi-agent matters because a <strong>critic agent</strong> catches the proposer's mistakes — that is the precision wrapper around a non-deterministic LLM, applied to the exact tech-debt/modernization work this role describes."</span><span class="ru">«Я выиграл Meta EMEA Data Engineering Hackathon 2026 с Untangler, multi-agent AI методологией для реструктуризации пайплайнов, выбранной для внутренних инструментов. Multi-agent важен, потому что <strong>agent-критик</strong> ловит ошибки proposer — это precision-обёртка вокруг недетерминистского LLM, применённая ровно к tech-debt/модернизации, которую описывает эта роль.»</span></div>
+    </div>
+
+    <div class="card">
+      <h4><span class="en">LLM schema-mapping pattern (onboarding a vendor feed)</span><span class="ru">Паттерн LLM schema-маппинга (онбординг вендорского фида)</span></h4>
+      <div class="diagram en">vendor columns + sample values + docs
+        │
+        ▼
+  <b>LLM proposes</b> mapping → your canonical schema  (output constrained to schema)
+        │
+        ▼
+  validation pass (types, value ranges)  →  <b>human approves once</b>
+        │
+        ▼
+  approved mapping = <b>deterministic config</b>   (LLM NOT in per-row hot path)</div>
+      <div class="diagram ru">колонки вендора + примеры значений + доки
+        │
+        ▼
+  <b>LLM предлагает</b> маппинг → твоя канонич. схема  (вывод ограничен схемой)
+        │
+        ▼
+  проход валидации (типы, диапазоны)  →  <b>человек одобряет один раз</b>
+        │
+        ▼
+  одобренный маппинг = <b>детерминистский конфиг</b>   (LLM НЕ в построчном горячем пути)</div>
+      <p class="en">Days of manual mapping collapse into a reviewed draft; once approved it is plain config. This is the Untangler propose-then-critique idea applied to ingestion.</p>
+      <p class="ru">Дни ручного маппинга сворачиваются в отревьюенный черновик; после одобрения это просто конфиг. Это идея Untangler «предложить, затем скритиковать», применённая к ingestion.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTION -->
+<section id="prod" class="reveal">
+  <div class="sec-h"><h2><span class="en">Productionization: false positives, monitoring, human-in-loop</span><span class="ru">Продакшнизация: ложные срабатывания, мониторинг, human-in-loop</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="card">
+      <h3><span class="en">False positives are the real failure mode of DQ</span><span class="ru">Ложные срабатывания — настоящий режим сбоя DQ</span></h3>
+      <p class="en">Alert fatigue means the monitor is effectively offline. Put false-positive cost in the objective, not the footnotes. If a monitor fires too much:</p>
+      <p class="ru">Усталость от алертов означает, что монитор фактически офлайн. Ставь цену ложных срабатываний в цель, а не в сноски. Если монитор срабатывает слишком часто:</p>
+      <ol class="en">
+        <li><strong>Right method for the shape</strong> — z-score on a seasonal series fires constantly; switch to STL / forecast interval.</li>
+        <li><strong>Tune threshold per series</strong>, calibrated to a tolerable alert <em>rate</em>, not a global sigma.</li>
+        <li><strong>Robust stats</strong> (median + MAD) so past outliers don't inflate the band.</li>
+        <li><strong>Require persistence / corroboration</strong> — N consecutive breaches, or two independent checks agree.</li>
+        <li><strong>Severity tiering + routing</strong> — warn-only vs page; page only on high-precision checks.</li>
+        <li><strong>Feedback loop</strong> — humans label true/false; track the monitor's own precision/recall as an SLO.</li>
+      </ol>
+      <ol class="ru">
+        <li><strong>Правильный метод для формы</strong> — z-score на сезонном ряду срабатывает постоянно; переключись на STL / интервал прогноза.</li>
+        <li><strong>Настрой порог на серию</strong>, откалиброванный на допустимую <em>частоту</em> алертов, а не глобальную сигму.</li>
+        <li><strong>Робастная статистика</strong> (median + MAD), чтобы прошлые выбросы не раздували интервал.</li>
+        <li><strong>Требуй персистентности / подтверждения</strong> — N последовательных нарушений или два независимых чека согласны.</li>
+        <li><strong>Градация серьёзности + маршрутизация</strong> — только предупреждение vs пейдж; пейдж только на высокоточных проверках.</li>
+        <li><strong>Петля обратной связи</strong> — люди размечают true/false; отслеживай собственную precision/recall монитора как SLO.</li>
+      </ol>
+      <div class="callout probe"><span class="tag"><span class="en">Interviewer will probe</span><span class="ru">О чём спросит интервьюер</span></span><span class="en">"How do you evaluate an anomaly detector with almost no labels?" → accuracy is useless (predict 'normal' → 99%). Use <strong>precision@k</strong> (ops review a budget), inject known past incidents to estimate recall, and treat the first weeks in production as the real labeling exercise via the feedback loop.</span><span class="ru">«Как оцениваешь детектор аномалий почти без меток?» → accuracy бесполезна (предсказывай 'normal' → 99%). Используй <strong>precision@k</strong> (ops ревью ограниченного бюджета), впрыскивай известные прошлые инциденты для оценки recall, и относись к первым неделям в продакшне как к настоящей разметке через петлю обратной связи.</span></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="en">End-to-end ML-assisted DQ for hundreds of data feeds</span><span class="ru">End-to-end ML-ассистируемый DQ для сотен фидов данных</span></h3>
+      <div class="diagram en">land raw immutably (audit + replay, capture load_ts for revisions)
+   │
+   ▼  <b>Layer 0</b> rules: schema, not-null, freshness, row-count, referential
+   ▼  <b>Layer 1</b> per-series anomaly: robust-z / STL / forecast interval
+   ▼  <b>Layer 2</b> batch drift: PSI / KS / chi-square
+   │
+   ▼  flag → queue (severity + owner) → <b>LLM drafts triage hypothesis</b>
+   │
+   ▼  policy: block-on-fail (quarantine before client) vs warn-only
+   │
+   ▼  observability: freshness/completeness SLAs, dedup+rate-limit alerts,
+                     monitor precision/recall as SLOs
+   │
+   ▼  <b>human-in-loop</b> for client-facing → corrections retune thresholds/labels
+   │
+   ▼  lineage: every value traceable vendor source → client-facing print</div>
+      <div class="diagram ru">пишем сырое неизменяемо (аудит + replay, захватываем load_ts для ревизий)
+   │
+   ▼  <b>Уровень 0</b> правила: схема, not-null, свежесть, row-count, реф.целостность
+   ▼  <b>Уровень 1</b> аномалии на серию: robust-z / STL / интервал прогноза
+   ▼  <b>Уровень 2</b> дрифт батча: PSI / KS / chi-square
+   │
+   ▼  флаг → очередь (серьёзность + владелец) → <b>LLM черновик гипотезы триажа</b>
+   │
+   ▼  политика: block-on-fail (карантин до клиента) vs только предупреждение
+   │
+   ▼  observability: SLA свежести/полноты, дедуп+rate-limit алертов,
+                     precision/recall монитора как SLO
+   │
+   ▼  <b>human-in-loop</b> для клиентского → коррекции перенастраивают пороги/метки
+   │
+   ▼  lineage: каждое значение прослеживается источник вендора → клиентский принт</div>
+      <p class="en">Config-driven so adding a feed is config, not code. Block-on-fail vs warn-only is a per-check policy decision sized by blast radius.</p>
+      <p class="ru">Управляется конфигом, поэтому добавить фид — это конфиг, а не код. Block-on-fail vs warn-only — решение политики на проверку, калибруемое по радиусу поражения.</p>
+      <div class="callout gotcha"><span class="tag">Gotcha <span class="en">— idempotency</span><span class="ru">— идемпотентность</span></span><span class="en">Make the ML/anomaly step a pure function of (input snapshot, pinned model/config version) and persist the version with the result. Re-runs and backfills then produce identical flags. Avoid detectors that depend on wall-clock or a live-updating baseline unless that baseline is itself snapshotted. Reproducibility is a DQ property too.</span><span class="ru">Сделай ML/аномалию-этап чистой функцией (снэпшот входа, закреплённая версия модели/конфига) и персисть версию с результатом. Повторные запуски и backfill тогда дают идентичные флаги. Избегай детекторов, зависящих от wall-clock или живо обновляемого baseline, если baseline сам не снэпшотирован. Воспроизводимость — тоже свойство DQ.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CV STORIES -->
+<section id="cv" class="reveal">
+  <div class="sec-h"><h2><span class="en">Your stories, mapped to this topic</span><span class="ru">Твои истории, привязанные к этой теме</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <div class="card">
+      <table class="en">
+        <thead><tr><th>Story</th><th>Lead number</th><th>Use it for</th></tr></thead>
+        <tbody>
+          <tr><td><b>Untangler</b> (multi-agent AI)</td><td>Hackathon win, adopted internally</td><td>"AI applied to data workflows" — your flagship LLM story</td></tr>
+          <tr><td><b>Syntea</b> GPT-4 ingestion</td><td>80,000+ students, MS case study</td><td>LLM in production at scale; Kafka/streaming/semi-structured</td></tr>
+          <tr><td><b>Entity-resolution fix</b></td><td>6.2B records, 100+ metrics/ML features restored</td><td>Silent DQ defect, blast-radius thinking, consumer-facing validation</td></tr>
+          <tr><td><b>10-system consolidation</b></td><td>3.6B events/day, 47% redundancy cut</td><td>DQ monitors on a consolidated model; canonical mapping</td></tr>
+          <tr><td><b>Default-prediction model</b></td><td>50% loss reduction</td><td>End-to-end ML in prod; point-in-time correctness; money attached</td></tr>
+          <tr><td><b>Telco segmentation/uplift</b></td><td>+20% ARPU, 40+ campaigns</td><td>Rigorous measurement; concept drift via regime change</td></tr>
+        </tbody>
+      </table>
+      <table class="ru">
+        <thead><tr><th>История</th><th>Главная цифра</th><th>Использовать для</th></tr></thead>
+        <tbody>
+          <tr><td><b>Untangler</b> (multi-agent AI)</td><td>Победа на хакатоне, принят внутренне</td><td>«AI применённый к дата-воркфлоу» — твоя флагманская LLM-история</td></tr>
+          <tr><td><b>Syntea</b> GPT-4 ingestion</td><td>80 000+ студентов, кейс MS</td><td>LLM в продакшне на масштабе; Kafka/streaming/полуструктурированное</td></tr>
+          <tr><td><b>Фикс entity-resolution</b></td><td>6.2B записей, 100+ метрик/ML-фич восстановлено</td><td>Тихий дефект DQ, мышление радиусом поражения, валидация для потребителей</td></tr>
+          <tr><td><b>Консолидация 10 систем</b></td><td>3.6B событий/день, −47% избыточности</td><td>Мониторы DQ на консолидированной модели; канонический маппинг</td></tr>
+          <tr><td><b>Модель предсказания дефолта</b></td><td>−50% потерь</td><td>End-to-end ML в продакшне; точность на момент времени; деньги привязаны</td></tr>
+          <tr><td><b>Сегментация/uplift в телекоме</b></td><td>+20% ARPU, 40+ кампаний</td><td>Строгие измерения; concept drift через смену режима</td></tr>
+        </tbody>
+      </table>
+      <div class="callout bridge"><span class="tag"><span class="en">Sequence to use</span><span class="ru">Последовательность использования</span></span><span class="en">AI-in-pipelines prompt → lead Untangler, support with Syntea. DQ/anomaly prompt → entity-resolution defect + the layered monitor design. End-to-end ML prompt → default-prediction model. Always close on client-facing reliability.</span><span class="ru">Промпт AI-в-пайплайнах → лидируй Untangler, поддержка Syntea. Промпт DQ/аномалии → дефект entity-resolution + слоёный дизайн мониторов. Промпт end-to-end ML → модель предсказания дефолта. Всегда закрывай на надёжность для клиента.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" class="reveal">
+  <div class="sec-h"><h2><span class="en">Self-quiz — flip to reveal</span><span class="ru">Самопроверка — тапни, чтобы перевернуть</span></h2><span class="chev">▼</span></div>
+  <div class="sec-body">
+    <p style="color:var(--muted);margin-bottom:12px;" class="en">Tap a card to flip. Answer out loud first.</p>
+    <p style="color:var(--muted);margin-bottom:12px;" class="ru">Тапни карточку, чтобы перевернуть. Сначала ответь вслух.</p>
+    <div class="flips">
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-tag"><span class="en">Anomaly</span><span class="ru">Аномалия</span></div>
+            <div class="q en">When does a plain z-score betray you, and what do you switch to?</div>
+            <div class="q ru">Когда обычный z-score тебя подводит, и на что переключиться?</div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">тапни чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back"><div class="a en">Skewed/non-normal data, trending or seasonal series, and when outliers inflate σ and hide themselves. Switch to <strong>robust z (median + MAD)</strong>, <strong>IQR</strong>, or detrend/deseasonalize first via <strong>STL residual</strong> / <strong>forecast interval</strong>.</div><div class="a ru">Скошенные/ненормальные данные, ряды с трендом или сезонностью, и когда выбросы раздувают σ и прячут себя. Переключись на <strong>robust z (median + MAD)</strong>, <strong>IQR</strong> или сначала удали тренд/сезон через <strong>остаток STL</strong> / <strong>интервал прогноза</strong>.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-tag"><span class="en">Drift vs anomaly</span><span class="ru">Дрифт vs аномалия</span></div>
+            <div class="q en">A vendor switches a rate from % to basis points but no single value looks wrong. Which check catches it?</div>
+            <div class="q ru">Вендор переключил ставку из % в базисные пункты, но ни одно значение не выглядит неправильным. Какая проверка это поймает?</div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">тапни чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back"><div class="a en"><strong>Drift detection</strong> (PSI / KS), not anomaly detection. The population shifted even though no individual point is an outlier vs the series's history. Drift fires a <em>review</em>, since it could also be a real regime change.</div><div class="a ru"><strong>Детекция дрифта</strong> (PSI / KS), а не детекция аномалий. Популяция сдвинулась, хотя ни одна точка не выброс относительно истории ряда. Дрифт запускает <em>ревью</em>, так как это может быть и настоящая смена режима.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-tag"><span class="en">LLM in prod</span><span class="ru">LLM в продакшне</span></div>
+            <div class="q en">Three controls that prove you've actually run an LLM in a pipeline?</div>
+            <div class="q ru">Три контроля, которые доказывают, что ты реально запускал LLM в пайплайне?</div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">тапни чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back"><div class="a en"><strong>Pin model + prompt versions</strong> (reproducible/auditable), <strong>constrain output to a schema</strong> + validate (no hallucinated client values), and <strong>human-in-the-loop + an eval set on every bump</strong>. Anchor with Syntea + Untangler.</div><div class="a ru"><strong>Закрепить версии модели + промпта</strong> (воспроизводимо/аудируемо), <strong>ограничить вывод схемой</strong> + валидация (никаких галлюцинированных клиентских значений), и <strong>human-in-the-loop + eval-набор на каждом изменении</strong>. Якорь: Syntea + Untangler.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-tag"><span class="en">False positives</span><span class="ru">Ложные срабатывания</span></div>
+            <div class="q en">A DQ monitor fires so much the team ignores it. First move?</div>
+            <div class="q ru">Монитор DQ срабатывает так часто, что команда его игнорирует. Первый шаг?</div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">тапни чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back"><div class="a en">Check it's the <strong>right method for the series shape</strong> (z on a seasonal series fires constantly → STL/forecast interval), then tune the threshold to a tolerable <strong>alert rate per series</strong>, use robust stats, require persistence/corroboration, tier severity, and add a feedback loop. Treat the monitor's own precision as an SLO.</div><div class="a ru">Проверь, что это <strong>правильный метод для формы ряда</strong> (z на сезонном ряду срабатывает постоянно → STL/интервал прогноза), затем настрой порог на допустимую <strong>частоту алертов на серию</strong>, используй робастную статистику, требуй персистентности/подтверждения, градируй серьёзность и добавь петлю обратной связи. Относись к собственной precision монитора как к SLO.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-tag"><span class="en">Evaluation</span><span class="ru">Оценка</span></div>
+            <div class="q en">Why is accuracy the wrong metric for an anomaly detector, and what do you use?</div>
+            <div class="q ru">Почему accuracy — неверная метрика для детектора аномалий, и что использовать?</div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">тапни чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back"><div class="a en">Anomalies are rare, so "always normal" scores ~99% accurate and 0% useful. Use <strong>precision/recall/F1</strong>, <strong>precision@k</strong> (ops review a fixed budget), inject <strong>known past incidents</strong> to estimate recall, and track live alert precision via the feedback loop.</div><div class="a ru">Аномалии редки, поэтому «всегда normal» даёт ~99% accuracy и 0% пользы. Используй <strong>precision/recall/F1</strong>, <strong>precision@k</strong> (ops ревью фиксированного бюджета), впрыскивай <strong>известные прошлые инциденты</strong> для оценки recall и отслеживай precision живых алертов через петлю обратной связи.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-tag"><span class="en">Forecasting</span><span class="ru">Прогнозирование</span></div>
+            <div class="q en">One gotcha when using Prophet/SARIMA for expected-range checks on macro data?</div>
+            <div class="q ru">Один подводный камень при использовании Prophet/SARIMA для проверок ожидаемого диапазона на макроданных?</div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">тапни чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back"><div class="a en"><strong>Revisions.</strong> Refitting on the latest, still-unrevised observations bakes error into the band. Down-weight/exclude recent unrevised points, refit on a schedule, and pair with drift detection (the interval assumes no regime change). New series → cold-start fallback to IQR.</div><div class="a ru"><strong>Ревизии.</strong> Переобучение на последних, ещё не ревизированных наблюдениях запекает ошибку в интервал. Понижай вес / исключай недавние неревизированные точки, переобучай по расписанию и пари с детекцией дрифта (интервал предполагает отсутствие смены режима). Новые ряды → холодный старт на IQR.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-tag"><span class="en">When NOT to use ML</span><span class="ru">Когда НЕ использовать ML</span></div>
+            <div class="q en">Name three situations where you reject ML/LLM for a DQ task.</div>
+            <div class="q ru">Назови три ситуации, когда ты отказываешься от ML/LLM для задачи DQ.</div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">тапни чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back"><div class="a en">A deterministic rule solves it (schema/freshness/arithmetic identity); you can't tolerate non-determinism on a client-facing value; you lack labels/history to measure precision-recall; or operational cost (LLM-per-row) exceeds value. Climb the ladder only when forced.</div><div class="a ru">Детерминистское правило решает задачу (схема/свежесть/арифметическое тождество); ты не можешь допустить недетерминизм на клиентском значении; нет меток/истории для измерения precision-recall; либо операционная цена (LLM-на-строку) превышает ценность. Поднимайся по лестнице только когда вынужден.</div></div>
+        </div>
+      </div>
+
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front">
+            <div class="flip-tag">Multi-agent</div>
+            <div class="q en">Why was Untangler multi-agent rather than a single LLM call?</div>
+            <div class="q ru">Почему Untangler был multi-agent, а не одиночным вызовом LLM?</div>
+            <div class="hint"><span class="en">tap to flip</span><span class="ru">тапни чтобы перевернуть</span></div>
+          </div>
+          <div class="flip-face flip-back"><div class="a en">Separation of concerns: one agent understands the existing pipeline, one proposes the new structure, one <strong>critiques/validates</strong>. The critic is the precision wrapper around the non-deterministic proposer — the same propose-then-validate pattern you'd use for LLM schema mapping on vendor feeds.</div><div class="a ru">Разделение ответственности: один агент понимает существующий пайплайн, один предлагает новую структуру, один <strong>критикует/валидирует</strong>. Критик — это precision-обёртка вокруг недетерминистского proposer — тот же паттерн «предложить, затем валидировать», который ты использовал бы для LLM schema-маппинга вендорских фидов.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p class="en">Built for Amal Imangulov — Data Engineering interview prep. Companion question bank: <code>questions/ml-ai-for-data-quality.md</code>. Self-contained; no external dependencies.</p>
+  <p class="ru">Создано для Amal Imangulov — подготовка к Data Engineering интервью. Сопутствующий банк вопросов: <code>questions/ml-ai-for-data-quality.md</code>. Самодостаточно; никаких внешних зависимостей.</p>
+</footer>
+
+</div>
+
+<script>
+  // THEME + LANG (shared localStorage keys)
+  (function(){
+    const root = document.documentElement;
+    const langBtn = document.getElementById('langBtn');
+    const themeBtn = document.getElementById('themeBtn');
+
+    const savedTheme = localStorage.getItem('de_cheat_theme') || 'dark';
+    const savedLang = localStorage.getItem('de_cheat_lang') || 'en';
+
+    root.setAttribute('data-theme', savedTheme);
+    root.setAttribute('data-lang', savedLang);
+
+    function syncButtons(){
+      const theme = root.getAttribute('data-theme');
+      const lang = root.getAttribute('data-lang');
+      themeBtn.textContent = theme === 'dark' ? '🌙 Dark' : '☀️ Light';
+      langBtn.textContent = lang === 'en' ? '🌐 RU' : '🌐 EN';
+    }
+    syncButtons();
+
+    langBtn.addEventListener('click', () => {
+      const next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+      root.setAttribute('data-lang', next);
+      localStorage.setItem('de_cheat_lang', next);
+      syncButtons();
+    });
+
+    themeBtn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('de_cheat_theme', next);
+      syncButtons();
+    });
+  })();
+
+  // COLLAPSIBLE SECTIONS
+  document.querySelectorAll('.sec-h').forEach(h => {
+    h.addEventListener('click', () => {
+      h.classList.toggle('collapsed');
+      const body = h.nextElementSibling;
+      if (body && body.classList.contains('sec-body')) body.classList.toggle('hidden');
+    });
+  });
+
+  // SCROLL REVEAL
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

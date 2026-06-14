@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legacy Modernization &amp; Migrations — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #151d30;
+    --card2: #1b2641;
+    --text: #e7ecf5;
+    --muted: #94a3b8;
+    --border: #25304d;
+    --accent: #1877F2;
+    --green: #02e2ac;
+    --orange: #f59e0b;
+    --purple: #a855f7;
+    --code-bg: #0d1322;
+    --shadow: rgba(0,0,0,0.45);
+  }
+  [data-theme="light"] {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --card2: #eef2fa;
+    --text: #14213d;
+    --muted: #5b6b86;
+    --border: #d6deec;
+    --accent: #1877F2;
+    --green: #058f6e;
+    --orange: #c2790a;
+    --purple: #8b3fd6;
+    --code-bg: #f0f3fa;
+    --shadow: rgba(40,60,100,0.12);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    transition: background .25s, color .25s;
+  }
+  code, pre, .mono { font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, "Courier New", monospace; }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* ---- Nav ---- */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 4px;
+    padding: 8px 14px; overflow-x: auto; white-space: nowrap;
+  }
+  nav .brand { font-weight: 700; color: var(--accent); margin-right: 10px; font-size: 14px; flex-shrink:0; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 12.5px;
+    padding: 5px 9px; border-radius: 7px; transition: .15s; flex-shrink:0;
+  }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  /* ---- Layout ---- */
+  header.hero {
+    padding: 34px 20px 22px; max-width: 1080px; margin: 0 auto;
+  }
+  header.hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: -.5px; }
+  header.hero .sub { color: var(--muted); font-size: 15px; }
+  header.hero .pill {
+    display:inline-block; background: var(--card2); border:1px solid var(--border);
+    color: var(--green); font-size:12px; padding:3px 10px; border-radius: 20px; margin-top:10px; margin-right:6px;
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 0 20px 80px; }
+
+  section { margin: 26px 0; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px; margin: 14px 0;
+    box-shadow: 0 4px 18px var(--shadow);
+  }
+  h2 {
+    font-size: 21px; margin: 30px 0 4px; letter-spacing: -.3px;
+    display:flex; align-items:center; gap:9px;
+  }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size: 16px; margin: 16px 0 6px; }
+  h4 { font-size: 14px; margin: 14px 0 6px; }
+  p { margin: 8px 0; }
+  ul { margin: 8px 0; padding-left: 20px; }
+  ol { margin: 8px 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+  strong { color: var(--text); }
+  em { font-style: italic; }
+  .k { color: var(--accent); font-weight:600; }
+  .g { color: var(--green); font-weight:600; }
+  .o { color: var(--orange); font-weight:600; }
+  .pu { color: var(--purple); font-weight:600; }
+  .muted { color: var(--muted); }
+
+  /* collapsible */
+  details.collapse {
+    border: 1px solid var(--border); border-radius: 12px;
+    margin: 12px 0; background: var(--card); overflow: hidden;
+    box-shadow: 0 4px 18px var(--shadow);
+  }
+  details.collapse > summary {
+    cursor: pointer; padding: 14px 18px; font-weight: 650; font-size: 16px;
+    list-style: none; display:flex; align-items:center; gap:10px;
+    user-select: none;
+  }
+  details.collapse > summary::-webkit-details-marker { display:none; }
+  details.collapse > summary::before {
+    content: "▸"; color: var(--accent); transition: transform .2s; font-size:13px;
+  }
+  details.collapse[open] > summary::before { transform: rotate(90deg); }
+  details.collapse > summary:hover { background: var(--card2); }
+  .collapse-body { padding: 2px 18px 16px; border-top: 1px solid var(--border); }
+
+  /* code */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 13px 15px; overflow-x: auto;
+    font-size: 13px; line-height: 1.5; margin: 10px 0;
+  }
+  pre .cm { color: var(--muted); }       /* comment */
+  pre .kw { color: var(--purple); }      /* keyword */
+  pre .st { color: var(--green); }       /* string/value */
+  pre .nm { color: var(--orange); }      /* number */
+  pre .pr { color: var(--accent); }      /* property */
+  code.inline {
+    background: var(--code-bg); border:1px solid var(--border);
+    border-radius: 5px; padding: 1px 6px; font-size: 12.5px; color: var(--green);
+  }
+
+  /* ascii diagram */
+  .ascii {
+    background: var(--code-bg); border:1px solid var(--border);
+    border-radius:10px; padding: 14px; overflow-x:auto;
+    font-size: 12.5px; line-height: 1.4; color: var(--text); white-space: pre;
+  }
+
+  /* table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--accent); font-weight: 650; border-bottom: 2px solid var(--border); }
+  tr:hover td { background: var(--card2); }
+
+  /* callouts */
+  .callout {
+    border-left: 4px solid var(--orange); background: color-mix(in srgb, var(--orange) 9%, var(--card));
+    border-radius: 0 10px 10px 0; padding: 11px 15px; margin: 12px 0; font-size: 14px;
+  }
+  .callout.probe { border-color: var(--purple); background: color-mix(in srgb, var(--purple) 9%, var(--card)); }
+  .callout.anchor { border-color: var(--green); background: color-mix(in srgb, var(--green) 9%, var(--card)); }
+  .callout.gap { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--card)); }
+  .callout .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .callout.probe .lbl { color: var(--purple); }
+  .callout .lbl.warn { color: var(--orange); }
+  .callout.anchor .lbl { color: var(--green); }
+  .callout.gap .lbl { color: var(--accent); }
+
+  /* flip cards */
+  .flip-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin: 14px 0; }
+  .flip {
+    perspective: 1200px; height: 170px; cursor: pointer;
+  }
+  .flip-inner {
+    position: relative; width:100%; height:100%; transition: transform .5s;
+    transform-style: preserve-3d;
+  }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face {
+    position:absolute; inset:0; backface-visibility: hidden;
+    border:1px solid var(--border); border-radius: 12px; padding: 16px;
+    display:flex; flex-direction:column; justify-content:center;
+    box-shadow: 0 4px 18px var(--shadow);
+  }
+  .flip-front { background: var(--card); }
+  .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color: var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background: var(--card2); transform: rotateY(180deg); font-size: 13px; overflow-y:auto; }
+  .flip-back .a { color: var(--text); }
+
+  .reveal { opacity:0; transform: translateY(18px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+
+  .tag { font-size:11px; padding:2px 8px; border-radius:20px; border:1px solid var(--border); margin-left:6px; }
+  .tag.easy { color: var(--green); }
+  .tag.med { color: var(--orange); }
+  .tag.hard { color: var(--purple); }
+
+  footer { text-align:center; color: var(--muted); font-size:12.5px; padding: 30px 20px; border-top:1px solid var(--border); }
+
+  @media (max-width: 600px) {
+    header.hero h1 { font-size: 24px; }
+    .flip { height: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">⚙️ <span class="en">Legacy Modernization</span><span class="ru">Миграции устаревших систем</span></span>
+  <a href="#assess"><span class="en">Assess</span><span class="ru">Оценка</span></a>
+  <a href="#debt"><span class="en">Tech Debt</span><span class="ru">Тех. долг</span></a>
+  <a href="#strategies"><span class="en">Strategies</span><span class="ru">Стратегии</span></a>
+  <a href="#diagram"><span class="en">Strangler/Parallel</span><span class="ru">Strangler/Parallel</span></a>
+  <a href="#datamech"><span class="en">Data Mechanics</span><span class="ru">Механики данных</span></a>
+  <a href="#recon"><span class="en">Reconciliation</span><span class="ru">Сверка</span></a>
+  <a href="#cutover"><span class="en">Cutover</span><span class="ru">Переключение</span></a>
+  <a href="#risk"><span class="en">Risk</span><span class="ru">Риск</span></a>
+  <a href="#decompose"><span class="en">Decompose</span><span class="ru">Декомпозиция</span></a>
+  <a href="#fail"><span class="en">Failure Modes</span><span class="ru">Режимы сбоев</span></a>
+  <a href="#success"><span class="en">Measure</span><span class="ru">Измерение</span></a>
+  <a href="#stories"><span class="en">Worked Examples</span><span class="ru">Примеры</span></a>
+  <a href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Legacy Modernization &amp; Data Migrations — <span class="k">DE Interview Prep</span></span><span class="ru">Миграции устаревших систем и данных — <span class="k">Подготовка к DE-интервью</span></span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE. Core theme: modernize legacy processes, reduce technical debt, own data migrations, workflow redesigns, technical transformation.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE. Основная тема: модернизация устаревших процессов, снижение технического долга, управление миграциями данных, переработка рабочих процессов, техническая трансформация.</span>
+  </div>
+  <span class="pill"><span class="en">Anchor story: McMakler — three concurrent platform migrations, EUR 1M+ saved/yr, zero downtime for 200+ business users</span><span class="ru">Якорь: McMakler — три параллельные миграции платформ, экономия 1M+ EUR/год, ноль простоев для 200+ бизнес-пользователей</span></span>
+  <span class="pill"><span class="en">Meta — consolidating 10 logging systems into one model</span><span class="ru">Meta — консолидация 10 систем логирования в одну модель</span></span>
+</header>
+
+<main>
+
+<!-- ASSESS -->
+<section id="assess">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. Assess &amp; inventory a legacy system</span><span class="ru">1. Оценка и инвентаризация устаревшей системы</span></h2>
+  <div class="card reveal">
+    <h3 class="en">You can't migrate what you haven't mapped</h3>
+    <h3 class="ru">Нельзя мигрировать то, что не отобразил на карте</h3>
+    <p class="en">Before touching anything, build a factual inventory. Most failed migrations fail here: a hidden consumer, an undocumented job, a side-effect nobody owned.</p>
+    <p class="ru">Прежде чем что-то трогать, составь фактическую инвентаризацию. Большинство провалившихся миграций падают здесь: скрытый потребитель, недокументированная задача, побочный эффект, которым никто не владеет.</p>
+
+    <h4 class="en">What to inventory</h4>
+    <h4 class="ru">Что инвентаризировать</h4>
+    <ul class="en">
+      <li><strong>Inputs / sources</strong>: upstream feeds, files, APIs, vendor data, schedules.</li>
+      <li><strong>Transforms</strong>: every pipeline/job, its logic, owner, runtime, cost.</li>
+      <li><strong>Outputs / consumers</strong>: tables, dashboards, exports, downstream pipelines, <em>humans</em>. Map by querying access logs, not by asking.</li>
+      <li><strong>Contracts</strong>: schemas, SLAs, freshness, precision/units, semantics.</li>
+      <li><strong>Hidden state</strong>: manual steps, cron on someone's box, Excel macros, "the one person who knows".</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Входы / источники</strong>: входящие фиды, файлы, API, данные вендоров, расписания.</li>
+      <li><strong>Трансформации</strong>: каждый пайплайн/джоба, его логика, владелец, время работы, стоимость.</li>
+      <li><strong>Выходы / потребители</strong>: таблицы, дашборды, экспорты, нижележащие пайплайны, <em>люди</em>. Составляй карту через логи доступа, не через опросы.</li>
+      <li><strong>Контракты</strong>: схемы, SLA, свежесть, точность/единицы, семантика.</li>
+      <li><strong>Скрытое состояние</strong>: ручные шаги, cron на чьей-то машине, Excel-макросы, «тот один человек, кто в курсе».</li>
+    </ul>
+
+    <h4 class="en">How to discover real usage</h4>
+    <h4 class="ru">Как обнаружить реальное использование</h4>
+    <ul class="en">
+      <li><strong>Query / access logs</strong>: who actually read each table in last 90d? Drop the zero-read tables from scope.</li>
+      <li><strong>Lineage tooling</strong>: trace column-level dependencies; find orphan consumers.</li>
+      <li><strong>Network/auth logs</strong>: which services call which endpoints.</li>
+      <li><strong>Interviews as confirmation, not source of truth</strong> — people forget; logs don't.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Логи запросов / доступа</strong>: кто реально читал каждую таблицу за последние 90 дней? Убери из скоупа таблицы с нулевыми чтениями.</li>
+      <li><strong>Lineage-инструменты</strong>: трассируй зависимости на уровне колонок; ищи осиротевших потребителей.</li>
+      <li><strong>Сетевые/auth логи</strong>: какие сервисы вызывают какие эндпоинты.</li>
+      <li><strong>Интервью — подтверждение, а не источник истины</strong> — люди забывают; логи нет.</li>
+    </ul>
+
+    <div class="callout anchor en">
+      <span class="lbl">Amal anchor</span>
+      McMakler: Step 0 across all three migrations was a usage census. We found ~40% of "critical" reports had zero reads in 90 days. Cutting them from scope shrank the migration and was the single biggest risk reduction.
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">Якорь Amal</span>
+      McMakler: Шаг 0 для всех трёх миграций — перепись использования. Мы обнаружили, что ~40% «критических» отчётов имели ноль чтений за 90 дней. Исключение их из скоупа сократило миграцию и стало самым большим снижением риска.
+    </div>
+  </div>
+  <div class="callout probe reveal en">
+    <span class="lbl">Interviewer will probe</span>
+    "How did you know you'd captured every consumer?" Answer: I trust access logs over tribal knowledge, then run in parallel so any missed consumer surfaces as a diff before cutover (defense in depth, not perfect upfront discovery).
+  </div>
+  <div class="callout probe reveal ru">
+    <span class="lbl">О чём спросит интервьюер</span>
+    «Откуда ты знал, что захватил всех потребителей?» Ответ: я доверяю логам доступа больше, чем племенным знаниям, затем запускаю параллельно, чтобы любой пропущенный потребитель всплыл как diff до переключения (многоуровневая защита, а не идеальное обнаружение на старте).
+  </div>
+</section>
+
+<!-- TECH DEBT -->
+<section id="debt">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Quantify &amp; prioritize technical debt</span><span class="ru">2. Количественная оценка и приоритизация технического долга</span></h2>
+  <div class="card reveal">
+    <h3 class="en">Treat debt like a loan: principal + interest</h3>
+    <h3 class="ru">Относись к долгу как к кредиту: тело + проценты</h3>
+    <p class="en">Not all debt is worth paying. The decision is economic: <strong>interest-bearing debt</strong> (compounding pain) gets paid first; <strong>cheap/dormant debt</strong> can wait.</p>
+    <p class="ru">Не весь долг стоит отдавать. Решение экономическое: <strong>долг с процентами</strong> (растущая боль) отдаётся первым; <strong>дешёвый/спящий долг</strong> может подождать.</p>
+
+    <h4 class="en">How to quantify "interest"</h4>
+    <h4 class="ru">Как количественно оценить «проценты»</h4>
+    <ul class="en">
+      <li><strong>$ cost</strong>: licensing, compute, storage burned by the legacy path.</li>
+      <li><strong>Toil hours</strong>: manual reruns, on-call pages, firefighting per month.</li>
+      <li><strong>Velocity tax</strong>: how much does every new feature cost extra because of this debt?</li>
+      <li><strong>Risk</strong>: incident frequency, data-quality defects, single points of failure.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>$ стоимость</strong>: лицензии, вычисления, хранилище, сжигаемое устаревшим путём.</li>
+      <li><strong>Часы рутинной работы (toil)</strong>: ручные перезапуски, дежурные вызовы, пожаротушение в месяц.</li>
+      <li><strong>Налог на скорость</strong>: насколько дороже обходится каждая новая фича из-за этого долга?</li>
+      <li><strong>Риск</strong>: частота инцидентов, дефекты качества данных, единые точки отказа.</li>
+    </ul>
+
+    <h4 class="en">Prioritize: impact vs effort</h4>
+    <h4 class="ru">Приоритизация: влияние vs усилия</h4>
+    <table class="en">
+      <tr><th>&nbsp;</th><th>Low effort</th><th>High effort</th></tr>
+      <tr><th>High impact</th><td><span class="g">Do now</span> (quick wins)</td><td><span class="o">Plan / project</span></td></tr>
+      <tr><th>Low impact</th><td>Backlog (batch)</td><td class="muted">Don't (won't fix)</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>&nbsp;</th><th>Малые усилия</th><th>Большие усилия</th></tr>
+      <tr><th>Большое влияние</th><td><span class="g">Делать сейчас</span> (быстрые победы)</td><td><span class="o">Планировать / проект</span></td></tr>
+      <tr><th>Малое влияние</th><td>Бэклог (батч)</td><td class="muted">Не делать (won't fix)</td></tr>
+    </table>
+    <p class="en muted">Pay down debt that bears interest <em>and</em> blocks the roadmap. Ignore debt that's stable, isolated, and cheap.</p>
+    <p class="ru muted">Отдавай долг, который несёт проценты <em>и</em> блокирует роадмап. Игнорируй долг, который стабилен, изолирован и дёшев.</p>
+
+    <div class="callout anchor en">
+      <span class="lbl">Amal anchor (honest)</span>
+      The McMakler triple migration was a debt-paydown thesis: proprietary orchestration was <em>interest-bearing</em> (100s of K EUR/yr licensing + vendor lock-in + slow feature delivery). That's exactly the debt you pay first. The Postgres analytical layer was high-impact too (no tests, no lineage, slow). We bundled them because they shared the same cutover surface.
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">Якорь Amal (честно)</span>
+      Тройная миграция McMakler была тезисом о выплате долга: проприетарная оркестрация была <em>долгом с процентами</em> (сотни тысяч EUR/год лицензии + vendor lock-in + медленная доставка фичей). Это именно тот долг, который отдаёшь первым. Postgres-слой аналитики тоже был высокоимпактным (нет тестов, нет lineage, медленно). Мы объединили их, потому что они делили одну поверхность переключения.
+    </div>
+  </div>
+  <div class="callout reveal en">
+    <span class="lbl warn">Gotcha</span>
+    Don't "rewrite everything" because it's ugly. Ugliness isn't debt. Debt is what costs you measurably. Refactoring stable, isolated, cheap code is negative ROI — it adds risk for no return.
+  </div>
+  <div class="callout reveal ru">
+    <span class="lbl warn">Подвох</span>
+    Не «переписывай всё», потому что уродливо. Уродливость — не долг. Долг — это то, что измеримо стоит денег. Рефакторинг стабильного, изолированного, дёшевого кода — отрицательная окупаемость инвестиций (ROI) — он добавляет риск без отдачи.
+  </div>
+</section>
+
+<!-- STRATEGIES -->
+<section id="strategies">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">3. Migration strategies &amp; tradeoffs</span><span class="ru">3. Стратегии миграции и компромиссы</span></h2>
+  <div class="card reveal">
+    <h3 class="en">The strategy menu</h3>
+    <h3 class="ru">Меню стратегий</h3>
+    <table class="en">
+      <tr><th>Pattern</th><th>What it is</th><th>Best for</th><th>Risk</th></tr>
+      <tr><td><span class="k">Strangler Fig</span></td><td>Route traffic through a facade; replace pieces one at a time until the old system is "strangled" and removed.</td><td>Large systems you can decompose; can't stop the business.</td><td><span class="g">Low</span> — incremental, reversible per slice.</td></tr>
+      <tr><td><span class="k">Parallel-run / Dual-write</span></td><td>Run old + new together; write to both, compare outputs continuously.</td><td>Correctness-critical data (finance, econ). Validation engine.</td><td><span class="g">Low risk</span>, higher cost (2x compute for a window).</td></tr>
+      <tr><td><span class="k">Branch by abstraction</span></td><td>Insert an abstraction layer in-place, build the new impl behind it, flip a flag.</td><td>Replacing a component <em>inside</em> a codebase without a long-lived fork.</td><td><span class="g">Low</span> — keeps trunk green throughout.</td></tr>
+      <tr><td><span class="o">Big-bang</span></td><td>Build new fully, cut over everyone at once.</td><td>Small/simple systems, hard deadlines, schemas that can't coexist.</td><td><span class="o">High</span> — no incremental validation; rollback is all-or-nothing.</td></tr>
+      <tr><td><span class="k">Incremental</span></td><td>Migrate by slice (table, domain, consumer group, time-range).</td><td>Almost everything large. Default posture.</td><td><span class="g">Low per step</span>; longer total timeline.</td></tr>
+      <tr><td><span class="k">Lift &amp; shift</span></td><td>Move as-is to new infra, change as little as possible.</td><td>Speed, deadline (data-center exit), de-risk infra first.</td><td class="muted">Carries debt over; cheap and fast.</td></tr>
+      <tr><td><span class="pu">Re-architect</span></td><td>Redesign data model / processing while moving.</td><td>When the old design is the actual problem.</td><td><span class="o">Highest</span> — two big variables (infra + design) at once.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Паттерн</th><th>Что это</th><th>Лучше всего для</th><th>Риск</th></tr>
+      <tr><td><span class="k">Strangler Fig</span></td><td>Направляй трафик через фасад; заменяй по кусочкам, пока старая система не «задушена» и удалена.</td><td>Большие системы, которые можно декомпозировать; нельзя остановить бизнес.</td><td><span class="g">Низкий</span> — инкрементально, обратимо по срезу.</td></tr>
+      <tr><td><span class="k">Parallel-run / Dual-write</span></td><td>Запускай старую + новую вместе; пиши в обе, непрерывно сравнивай выходы.</td><td>Данные критичные по корректности (финансы, экономика). Движок валидации.</td><td><span class="g">Низкий риск</span>, выше стоимость (2x compute на окно).</td></tr>
+      <tr><td><span class="k">Branch by abstraction</span></td><td>Вставь слой абстракции на месте, построй новую реализацию за ним, переключи флаг.</td><td>Замена компонента <em>внутри</em> кодовой базы без долгоживущей ветки.</td><td><span class="g">Низкий</span> — держит trunk зелёным всё время.</td></tr>
+      <tr><td><span class="o">Big-bang</span></td><td>Построй новую полностью, переключи всех сразу.</td><td>Маленькие/простые системы, жёсткие дедлайны, схемы, которые не могут сосуществовать.</td><td><span class="o">Высокий</span> — нет инкрементальной валидации; откат всё-или-ничего.</td></tr>
+      <tr><td><span class="k">Incremental</span></td><td>Мигрируй по срезу (таблица, домен, группа потребителей, временной диапазон).</td><td>Почти всё большое. Позиция по умолчанию.</td><td><span class="g">Низкий на шаг</span>; дольше общий таймлайн.</td></tr>
+      <tr><td><span class="k">Lift &amp; shift</span></td><td>Перенеси как есть на новую инфру, меняй как можно меньше.</td><td>Скорость, дедлайн (выход из дата-центра), снизь риск инфры сначала.</td><td class="muted">Переносит долг; дёшево и быстро.</td></tr>
+      <tr><td><span class="pu">Re-architect</span></td><td>Переделай модель данных / обработку в процессе переноса.</td><td>Когда старый дизайн — настоящая проблема.</td><td><span class="o">Самый высокий</span> — две большие переменные (инфра + дизайн) сразу.</td></tr>
+    </table>
+    <div class="callout en">
+      <span class="lbl warn">Gotcha</span>
+      Don't combine re-architect + big-bang. Changing both the platform and the data model in a single all-at-once cutover is how migrations make headlines. If you must re-architect, do it incrementally with parallel-run validation.
+    </div>
+    <div class="callout ru">
+      <span class="lbl warn">Подвох</span>
+      Не комбинируй re-architect + big-bang. Менять и платформу, и модель данных в одном переключении всех сразу — так миграции попадают в заголовки. Если нужна переделка архитектуры, делай её инкрементально с валидацией parallel-run.
+    </div>
+  </div>
+  <div class="card reveal">
+    <h3 class="en">Lift-and-shift first, re-architect later (the pragmatic combo)</h3>
+    <h3 class="ru">Сначала lift-and-shift, потом re-architect (прагматичная комбо)</h3>
+    <p class="en">A strong general answer: <strong>de-risk infra with a near-lift-and-shift</strong>, prove parity, cut over, <em>then</em> re-architect on the new stable platform where each improvement is independently testable. One variable at a time.</p>
+    <p class="ru">Сильный общий ответ: <strong>снизь риск инфры почти-lift-and-shift</strong>, докажи паритет, переключись, <em>затем</em> переделывай архитектуру на новой стабильной платформе, где каждое улучшение независимо тестируемо. Одна переменная за раз.</p>
+    <div class="callout probe en">
+      <span class="lbl">Interviewer will probe</span>
+      "When would you choose big-bang?" Good answer: tiny scope, schemas that genuinely can't coexist, a hard external deadline, or where running two systems costs more than the blast radius of a clean cut. Then I de-risk with a full dress-rehearsal cutover in staging and a tested rollback.
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">О чём спросит интервьюер</span>
+      «Когда ты выберешь big-bang?» Хороший ответ: крошечный скоуп, схемы, которые реально не могут сосуществовать, жёсткий внешний дедлайн, или когда работа двух систем стоит дороже, чем радиус поражения чистого разреза. Тогда я снижаю риск полной генеральной репетицией переключения в staging и протестированным откатом.
+    </div>
+  </div>
+</section>
+
+<!-- DIAGRAM -->
+<section id="diagram">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">4. Strangler fig + parallel-run (diagram)</span><span class="ru">4. Strangler fig + parallel-run (диаграмма)</span></h2>
+  <div class="card reveal">
+    <h3 class="en">How the facade, dual-write and diff fit together</h3>
+    <h3 class="ru">Как фасад, dual-write и diff работают вместе</h3>
+    <div class="ascii en">┌──────────────────────────────────────────────────────────┐
+│                    CONSUMERS (200+ users, dashboards,     │
+│                    downstream pipelines)                   │
+└───────────────────────────┬──────────────────────────────┘
+                             │  reads
+                  ┌──────────▼───────────┐
+                  │   FACADE / ROUTER     │  strangler fig:
+                  │  (view, flag, proxy)  │  flips per-slice
+                  └─────┬───────────┬─────┘
+      read old (default)│           │ read new (per migrated slice)
+                        │           │
+       ┌────────────────▼──┐   ┌────▼───────────────────┐
+       │   LEGACY system    │   │   NEW system           │
+       │   (old WH /        │   │   (new WH /            │
+       │    old orch /      │   │    new orch /          │
+       │    old analytics)  │   │    new analytics)      │
+       └────────────┬───────┘   └───────────┬────────────┘
+        WRITES go to BOTH (dual-write) during parallel-run
+                    │                       │
+                    └───────────┬───────────┘
+                                │
+                      ┌─────────▼──────────┐
+                      │   RECONCILER/DIFF  │  row counts, hashes,
+                      │   old  ⟷  new      │  null/precision checks,
+                      └─────────┬──────────┘  business KPIs
+                                │
+              diffs ≈ 0 for N consecutive days  ──► CUTOVER slice
+              diffs spike / SLA breach          ──► ROLLBACK slice (flip flag)</div>
+    <div class="ascii ru">┌──────────────────────────────────────────────────────────┐
+│            ПОТРЕБИТЕЛИ (200+ пользователей, дашборды,     │
+│                    нижележащие пайплайны)                  │
+└───────────────────────────┬──────────────────────────────┘
+                             │  чтения
+                  ┌──────────▼───────────┐
+                  │   ФАСАД / РОУТЕР      │  strangler fig:
+                  │  (view, флаг, proxy)  │  переключает по срезу
+                  └─────┬───────────┬─────┘
+      читать старое      │           │ читать новое (по мигрированному срезу)
+        (по умолчанию)   │           │
+       ┌────────────────▼──┐   ┌────▼───────────────────┐
+       │   LEGACY система   │   │   НОВАЯ система        │
+       │   (старое WH /     │   │   (новое WH /          │
+       │    старая орк. /   │   │    новая орк. /        │
+       │    старая аналит.) │   │    новая аналитика)    │
+       └────────────┬───────┘   └───────────┬────────────┘
+        ЗАПИСИ идут В ОБЕ (dual-write) во время parallel-run
+                    │                       │
+                    └───────────┬───────────┘
+                                │
+                      ┌─────────▼──────────┐
+                      │  RECONCILER/DIFF   │  счётчики строк, хеши,
+                      │   старое ⟷ новое   │  проверки null/точности,
+                      └─────────┬──────────┘  бизнес KPI
+                                │
+              diff ≈ 0 N дней подряд             ──► ПЕРЕКЛЮЧИТЬ срез
+              diff выросли / нарушен SLA         ──► ОТКАТ среза (флаг обратно)</div>
+    <p class="en muted">Each slice (a table, a domain, a consumer group) walks the loop independently: dual-write → diff → green for N days → flip facade → decommission that legacy piece. The facade is the single control point; flipping a flag is the entire cutover <em>and</em> the entire rollback.</p>
+    <p class="ru muted">Каждый срез (таблица, домен, группа потребителей) проходит цикл независимо: dual-write → diff → зелено N дней → переключить фасад → списать этот legacy-кусок. Фасад — единая точка управления; переключение флага — это всё переключение <em>и</em> весь откат.</p>
+    <div class="callout anchor en">
+      <span class="lbl">Why it wins</span>
+      Zero downtime falls out for free: consumers always read through the facade, which always points at a live system. Rollback is one flag, not a restore-from-backup fire drill.
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">Почему это выигрывает</span>
+      Ноль простоев получается бесплатно: потребители всегда читают через фасад, который всегда указывает на живую систему. Откат — один флаг, а не пожарное восстановление из бэкапа.
+    </div>
+  </div>
+</section>
+
+<!-- DATA MECHANICS -->
+<section id="datamech">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">5. Data migration mechanics</span><span class="ru">5. Механики миграции данных</span></h2>
+
+  <details class="collapse reveal" open>
+    <summary><span class="en">Schema mapping &amp; type/precision pitfalls</span><span class="ru">Маппинг схем и ловушки типов/точности</span></summary>
+    <div class="collapse-body">
+      <h4 class="en">Schema mapping</h4>
+      <h4 class="ru">Маппинг схемы</h4>
+      <ul class="en">
+        <li>Build an explicit <strong>source→target column map</strong>: name, type, nullability, units, semantics. Versioned, reviewed.</li>
+        <li>Handle <strong>renames, splits, merges, derived columns</strong> deliberately — not silently.</li>
+        <li>Decide policy for columns that exist in only one side (drop / default / compute).</li>
+      </ul>
+      <ul class="ru">
+        <li>Построй явный <strong>маппинг колонок источник→цель</strong>: имя, тип, nullability, единицы, семантика. Версионированный, проревьюенный.</li>
+        <li>Обрабатывай <strong>переименования, разбиения, слияния, вычисляемые колонки</strong> осознанно — не молча.</li>
+        <li>Определи политику для колонок, которые есть только на одной стороне (drop / default / compute).</li>
+      </ul>
+
+      <h4 class="en">Type &amp; precision traps (econ data!)</h4>
+      <h4 class="ru">Ловушки типов и точности (данные по экономике!)</h4>
+      <ul class="en">
+        <li><strong>Float vs DECIMAL/NUMERIC</strong>: never store money/rates as float. Rounding diffs will fail your diff and corrupt KPIs.</li>
+        <li><strong>Timestamps &amp; timezones</strong>: TZ-naive vs UTC, DST, epoch vs ISO. A favourite silent corruptor.</li>
+        <li><strong>Integer width / overflow</strong>, <strong>string truncation</strong> (varchar length), <strong>charset/collation</strong>.</li>
+        <li><strong>NULL vs empty-string vs 0</strong>, sentinel values, default semantics.</li>
+        <li><strong>Rounding/precision</strong> differences between engines (Postgres vs Snowflake) — pin precision explicitly.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Float vs DECIMAL/NUMERIC</strong>: никогда не храни деньги/ставки как float. Различия округления провалят твой diff и повредят KPI.</li>
+        <li><strong>Timestamps &amp; таймзоны</strong>: TZ-naive vs UTC, DST, epoch vs ISO. Любимый тихий повреждатель.</li>
+        <li><strong>Ширина integer / переполнение</strong>, <strong>обрезка строк</strong> (длина varchar), <strong>charset/collation</strong>.</li>
+        <li><strong>NULL vs пустая строка vs 0</strong>, сентинельные значения, семантика дефолтов.</li>
+        <li><strong>Различия округления/точности</strong> между движками (Postgres vs Snowflake) — закрепи точность явно.</li>
+      </ul>
+      <div class="callout en">
+        <span class="lbl warn">Gotcha</span>
+        The diff that "won't go to zero". Usually it's not a logic bug — it's float rounding, timezone shift, or NULL-vs-empty. Build the reconciler to <em>bucket</em> diffs by type so you can tell a real defect from a representation difference, and define a tolerance band for floats.
+      </div>
+      <div class="callout ru">
+        <span class="lbl warn">Подвох</span>
+        Diff, который «не идёт к нулю». Обычно это не логическая ошибка — это округление float, сдвиг таймзоны или NULL-vs-пустая. Построй reconciler так, чтобы он <em>группировал</em> diff по типу, чтобы ты мог отличить реальный дефект от различия представления, и определи полосу допуска для floats.
+      </div>
+    </div>
+  </details>
+
+  <details class="collapse reveal">
+    <summary><span class="en">Idempotent backfills</span><span class="ru">Идемпотентные backfill'ы</span></summary>
+    <div class="collapse-body">
+      <ul class="en">
+        <li><strong>Idempotent = re-runnable.</strong> Running a backfill partition twice must yield the same result, never duplicate. Use <code class="inline">MERGE</code>/upsert keyed on a natural/business key, or partition-level <code class="inline">INSERT OVERWRITE</code> — never blind <code class="inline">INSERT</code>.</li>
+        <li><strong>Partition / chunk</strong> by date or key range; checkpoint progress so a failure resumes, not restarts.</li>
+        <li><strong>Throttle</strong> to protect source &amp; target; backfill during low-traffic windows.</li>
+        <li><strong>Watermark</strong> the boundary between historical backfill and live CDC so they meet exactly once.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Идемпотентный = перезапускаемый.</strong> Запуск backfill партиции дважды должен давать тот же результат, никогда не дублировать. Используй <code class="inline">MERGE</code>/upsert на натуральном/бизнес-ключе или <code class="inline">INSERT OVERWRITE</code> на уровне партиции — никогда слепой <code class="inline">INSERT</code>.</li>
+        <li><strong>Партиционируй / чанкуй</strong> по дате или диапазону ключей; чекпойнти прогресс, чтобы сбой возобновлял, а не рестартовал.</li>
+        <li><strong>Троттли</strong>, чтобы защитить источник и цель; делай backfill в окна малого трафика.</li>
+        <li><strong>Водяной знак (watermark)</strong> границы между историческим backfill и живым CDC, чтобы они встретились ровно раз.</li>
+      </ul>
+      <pre class="en"><span class="cm">-- idempotent partition backfill (re-run safe)</span>
+<span class="kw">MERGE INTO</span> target_econ_series <span class="kw">AS</span> tgt
+<span class="kw">USING</span> staged_backfill_partition <span class="kw">AS</span> src
+  <span class="kw">ON</span> tgt.series_id = src.series_id
+ <span class="kw">AND</span> tgt.observation_date = src.observation_date
+<span class="kw">WHEN MATCHED THEN UPDATE SET</span> value = src.value, load_ts = src.load_ts
+<span class="kw">WHEN NOT MATCHED THEN INSERT</span> (series_id, observation_date, value, load_ts)
+<span class="kw">VALUES</span> (src.series_id, src.observation_date, src.value, src.load_ts);</pre>
+      <pre class="ru"><span class="cm">-- идемпотентный backfill партиции (безопасно перезапускать)</span>
+<span class="kw">MERGE INTO</span> target_econ_series <span class="kw">AS</span> tgt
+<span class="kw">USING</span> staged_backfill_partition <span class="kw">AS</span> src
+  <span class="kw">ON</span> tgt.series_id = src.series_id
+ <span class="kw">AND</span> tgt.observation_date = src.observation_date
+<span class="kw">WHEN MATCHED THEN UPDATE SET</span> value = src.value, load_ts = src.load_ts
+<span class="kw">WHEN NOT MATCHED THEN INSERT</span> (series_id, observation_date, value, load_ts)
+<span class="kw">VALUES</span> (src.series_id, src.observation_date, src.observation_date, src.value, src.load_ts);</pre>
+    </div>
+  </details>
+
+  <details class="collapse reveal">
+    <summary><span class="en">CDC (Change Data Capture) &amp; the backfill/live handoff</span><span class="ru">CDC (Change Data Capture) и передача backfill→live</span></summary>
+    <div class="collapse-body">
+      <p class="en">For low-downtime data moves you combine a <strong>bulk historical backfill</strong> with <strong>ongoing CDC</strong> so the new system stays in sync while you validate.</p>
+      <p class="ru">Для переносов данных с малыми простоями ты комбинируешь <strong>массовый исторический backfill</strong> с <strong>непрерывным CDC</strong>, чтобы новая система оставалась в синхроне, пока ты валидируешь.</p>
+      <ul class="en">
+        <li><strong>CDC sources</strong>: log/WAL-based (best — captures deletes, low load), trigger-based, or query/timestamp-based (misses deletes).</li>
+        <li><strong>Pattern</strong>: snapshot at time T → backfill everything ≤ T → start CDC stream from T → new system converges to live → flip reads.</li>
+        <li><strong>Order matters</strong>: handle out-of-order events and the snapshot/stream overlap; dedupe on primary key + version.</li>
+        <li>CDC keeps the parallel-run window <em>live</em>, not stale, so the diff stays meaningful right up to cutover.</li>
+      </ul>
+      <ul class="ru">
+        <li><strong>Источники CDC</strong>: на базе лога/WAL (лучше всего — захватывает удаления, малая нагрузка), на базе триггеров или на базе запросов/timestamp (пропускает удаления).</li>
+        <li><strong>Паттерн</strong>: снимок в момент T → backfill всего ≤ T → стартуй поток CDC с T → новая система конвергирует к live → переключай чтения.</li>
+        <li><strong>Порядок важен</strong>: обрабатывай события вне порядка и пересечение снимка/потока; дедуплицируй на первичном ключе + версии.</li>
+        <li>CDC держит окно parallel-run <em>живым</em>, а не устаревшим, поэтому diff остаётся значимым вплоть до переключения.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<!-- RECONCILIATION -->
+<section id="recon">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">6. Reconciliation, validation &amp; cutover criteria</span><span class="ru">6. Сверка, валидация и критерии переключения</span></h2>
+  <div class="card reveal">
+    <h3 class="en">Parallel-run is your validation engine</h3>
+    <h3 class="ru">Parallel-run — твой движок валидации</h3>
+    <p class="en">Old and new run side by side; you diff their outputs continuously. The diff is the proof you cut over on — not vibes, not "looks right".</p>
+    <p class="ru">Старое и новое работают бок о бок; ты непрерывно сравниваешь их выходы. Diff — это доказательство, на котором ты переключаешься — не «ощущения», не «выглядит правильно».</p>
+
+    <h4 class="en">Layered reconciliation checks (cheap → strict)</h4>
+    <h4 class="ru">Многослойные проверки сверки (дёшево → строго)</h4>
+    <ol class="en">
+      <li><strong>Row counts</strong> per partition — catches gross loss/dupes fast.</li>
+      <li><strong>Aggregate checksums</strong> — SUM/MIN/MAX/COUNT per column &amp; per partition; cheap, catches most drift.</li>
+      <li><strong>Row-level hash diff</strong> — hash each row both sides, set-diff; pinpoints exact rows.</li>
+      <li><strong>Business KPI parity</strong> — the metrics consumers actually look at must match within tolerance.</li>
+      <li><strong>Distribution checks</strong> — nulls %, cardinality, min/max/percentiles per column.</li>
+    </ol>
+    <ol class="ru">
+      <li><strong>Счётчики строк</strong> на партицию — быстро ловит грубые потери/дубли.</li>
+      <li><strong>Агрегированные чексуммы</strong> — SUM/MIN/MAX/COUNT на колонку и партицию; дёшево, ловит большинство сдвигов.</li>
+      <li><strong>Хеш-diff на уровне строк</strong> — хешируй каждую строку с обеих сторон, set-diff; точно указывает строки.</li>
+      <li><strong>Паритет бизнес-KPI</strong> — метрики, на которые реально смотрят потребители, должны совпадать в пределах допуска.</li>
+      <li><strong>Проверки распределений</strong> — % nulls, cardinality, min/max/процентили на колонку.</li>
+    </ol>
+    <div class="callout anchor en">
+      <span class="lbl">Tolerance</span>
+      Define tolerance up front. Exact match for keys/counts; small epsilon for floats; documented, sign-off'd exceptions for known representation diffs. A diff that's "explained and bounded" is green.
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">Допуск</span>
+      Определи допуск заранее. Точное совпадение для ключей/счётчиков; малый эпсилон для floats; задокументированные, согласованные исключения для известных различий представления. Diff, который «объяснён и ограничен» — зелёный.
+    </div>
+  </div>
+
+  <div class="card reveal">
+    <h3 class="en">Cutover criteria &amp; rollback plan</h3>
+    <h3 class="ru">Критерии переключения и план отката</h3>
+
+    <h4 class="en">Go criteria (write them down)</h4>
+    <h4 class="ru">Критерии Go (запиши их)</h4>
+    <ul class="en">
+      <li>Diffs within tolerance for <strong>N consecutive days/runs</strong>.</li>
+      <li>New system meets <strong>SLA/freshness/latency</strong> at full load.</li>
+      <li>Consumers have <strong>validated their own reports</strong> on new.</li>
+      <li>Rollback tested, runbook written, owner + comms ready.</li>
+    </ul>
+    <ul class="ru">
+      <li>Diff в пределах допуска <strong>N дней/запусков подряд</strong>.</li>
+      <li>Новая система выполняет <strong>SLA/свежесть/задержку</strong> на полной нагрузке.</li>
+      <li>Потребители <strong>провалидировали свои отчёты</strong> на новой.</li>
+      <li>Откат протестирован, runbook написан, владелец + коммуникации готовы.</li>
+    </ul>
+
+    <h4 class="en">Rollback plan</h4>
+    <h4 class="ru">План отката</h4>
+    <ul class="en">
+      <li><strong>Keep legacy warm</strong> through a soak period after cutover — don't decommission day one.</li>
+      <li><strong>One-flag rollback</strong> via the facade; tested before cutover, not improvised.</li>
+      <li>Define <strong>rollback triggers</strong> (diff spike, SLA breach, consumer escalation) and who calls it.</li>
+      <li>Keep <strong>dual-write</strong> running during soak so rolling back loses no data.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Держи legacy тёплым</strong> в течение периода отмачивания (soak) после переключения — не списывай в первый день.</li>
+      <li><strong>Откат одним флагом</strong> через фасад; протестирован до переключения, а не импровизирован.</li>
+      <li>Определи <strong>триггеры отката</strong> (скачок diff, нарушение SLA, эскалация потребителя) и кто его вызывает.</li>
+      <li>Держи <strong>dual-write</strong> работающим во время soak, чтобы откат не терял данные.</li>
+    </ul>
+    <div class="callout probe en">
+      <span class="lbl">Interviewer will probe</span>
+      "What's your rollback story if you cut over and it's wrong at 2am?" Answer: facade flag flips reads back to legacy in seconds; dual-write means legacy never went stale; soak period means it's still warm. Rollback is a flag, not a restore.
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">О чём спросит интервьюер</span>
+      «Какой у тебя сценарий отката, если переключил, а в 2 часа ночи не так?» Ответ: флаг фасада переключает чтения обратно на legacy за секунды; dual-write означает, что legacy никогда не устарел; период soak означает, что он ещё тёплый. Откат — это флаг, а не восстановление.
+    </div>
+  </div>
+</section>
+
+<!-- CUTOVER -->
+<section id="cutover">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">7. Zero-downtime cutover techniques</span><span class="ru">7. Техники переключения без простоя</span></h2>
+  <div class="card reveal">
+    <h3 class="en">How "no downtime for 200+ users" actually works</h3>
+    <h3 class="ru">Как «ноль простоя для 200+ пользователей» реально работает</h3>
+    <ul class="en">
+      <li><strong>Facade / indirection</strong>: consumers read a view, alias, or service that you repoint. They never know which system answers.</li>
+      <li><strong>Dual-write window</strong>: both systems stay current, so the switch carries no data gap.</li>
+      <li><strong>Feature flags / per-cohort routing</strong>: flip 1% → 10% → 100%, or one consumer group at a time. Canary the cutover.</li>
+      <li><strong>Blue/green</strong>: full new env stood up in parallel; switch routing; old env kept as instant fallback.</li>
+      <li><strong>Expand/contract (parallel change)</strong> for schema: <em>add</em> new columns/tables, dual-write, migrate readers, <em>then</em> remove old — never break in place.</li>
+      <li><strong>Backward-compatible views</strong>: present the old schema shape on top of the new model so consumers don't change on day one.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Фасад / indirection</strong>: потребители читают view, alias или сервис, который ты перенаправляешь. Они никогда не знают, какая система отвечает.</li>
+      <li><strong>Окно dual-write</strong>: обе системы остаются актуальными, поэтому переключение не несёт разрыва данных.</li>
+      <li><strong>Feature flags / маршрутизация по когортам</strong>: переключай 1% → 10% → 100%, или одну группу потребителей за раз. Canary-переключение.</li>
+      <li><strong>Blue/green</strong>: полное новое окружение поднято параллельно; переключи маршрутизацию; старое окружение остаётся как мгновенный fallback.</li>
+      <li><strong>Expand/contract (параллельное изменение)</strong> для схемы: <em>добавь</em> новые колонки/таблицы, dual-write, мигрируй читателей, <em>затем</em> удали старое — никогда не ломай на месте.</li>
+      <li><strong>Обратно-совместимые view</strong>: представляй старую форму схемы поверх новой модели, чтобы потребители не менялись в первый день.</li>
+    </ul>
+    <div class="callout anchor en">
+      <span class="lbl">Amal anchor</span>
+      McMakler zero-downtime mechanic: business users read curated views. We rebuilt the analytical layer in dbt behind <em>identically-named</em> views, dual-ran, diffed, and repointed the view definitions. From the user's seat, nothing changed except things got faster. The orchestration swap (proprietary → Airflow) ran the same DAG logic in parallel and we cut over per-DAG once outputs matched.
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">Якорь Amal</span>
+      Механика нулевого простоя McMakler: бизнес-пользователи читали кураторские views. Мы перестроили аналитический слой в dbt за <em>идентично названными</em> views, запускали dual, сравнивали diff и перенаправляли определения view. С места пользователя ничего не изменилось, кроме того что стало быстрее. Замена оркестрации (проприетарная → Airflow) запускала ту же логику DAG параллельно, и мы переключались по DAG, как только выходы совпадали.
+    </div>
+  </div>
+</section>
+
+<!-- RISK -->
+<section id="risk">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">8. Managing risk &amp; stakeholders</span><span class="ru">8. Управление риском и стейкхолдерами</span></h2>
+  <div class="card reveal">
+    <h3 class="en">The migration is 50% technical, 50% trust</h3>
+    <h3 class="ru">Миграция — 50% техника, 50% доверие</h3>
+
+    <h4 class="en">Risk management</h4>
+    <h4 class="ru">Управление риском</h4>
+    <ul class="en">
+      <li><strong>Shrink scope</strong> first (drop unused, defer nice-to-haves). Smaller migration = smaller risk.</li>
+      <li><strong>Reversible slices</strong>: never take a step you can't undo with a flag.</li>
+      <li><strong>Defense in depth</strong>: parallel-run + diffs + soak + rollback. No single check is trusted alone.</li>
+      <li><strong>Dress rehearsal</strong>: practice the cutover in staging end-to-end, including rollback.</li>
+      <li><strong>Decommission deliberately</strong>: only after soak; archive legacy data before deleting.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Сократи скоуп</strong> сначала (убери неиспользуемое, отложи nice-to-have). Меньше миграция = меньше риск.</li>
+      <li><strong>Обратимые срезы</strong>: никогда не делай шаг, который не можешь отменить флагом.</li>
+      <li><strong>Эшелонированная защита (defense in depth)</strong>: parallel-run + diff + soak + rollback. Ни одной проверке не доверяют в одиночку.</li>
+      <li><strong>Генеральная репетиция</strong>: практикуй переключение в staging end-to-end, включая откат.</li>
+      <li><strong>Списывай осознанно</strong>: только после soak; архивируй legacy-данные перед удалением.</li>
+    </ul>
+
+    <h4 class="en">Stakeholders</h4>
+    <h4 class="ru">Стейкхолдеры</h4>
+    <ul class="en">
+      <li><strong>Make consumers co-owners</strong>: they validate their reports on the new system and sign off. Their green light is a go-criterion.</li>
+      <li><strong>Over-communicate</strong>: timeline, what changes, what doesn't, the rollback promise. Surprise is the enemy of trust.</li>
+      <li><strong>"Nothing changes for you"</strong> is the best message — backward-compatible interfaces let you deliver it.</li>
+      <li><strong>Show the diff dashboard</strong>: transparency turns skeptics into believers.</li>
+      <li><strong>Tie to value they care about</strong>: cost saved, faster refresh, fewer incidents — not "new tech".</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Сделай потребителей совладельцами</strong>: они валидируют свои отчёты на новой системе и подписываются. Их зелёный свет — критерий go.</li>
+      <li><strong>Переобщайся</strong>: таймлайн, что меняется, что нет, обещание отката. Сюрприз — враг доверия.</li>
+      <li><strong>«Для вас ничего не меняется»</strong> — лучшее сообщение — обратно-совместимые интерфейсы позволяют его доставить.</li>
+      <li><strong>Покажи дашборд diff</strong>: прозрачность превращает скептиков в верующих.</li>
+      <li><strong>Привяжи к ценности, которая им важна</strong>: сэкономленные деньги, более быстрое обновление, меньше инцидентов — не «новая технология».</li>
+    </ul>
+    <div class="callout probe en">
+      <span class="lbl">Interviewer will probe</span>
+      "How did you get 200+ business users to trust a swapped-out backend?" Answer: they never had to trust it blindly — identical interfaces, a public diff dashboard proving parity, their own sign-off on their reports, and a one-flag rollback I could demo. Trust came from evidence, not promises.
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">О чём спросит интервьюер</span>
+      «Как ты заставил 200+ бизнес-пользователей доверять подменённому бэкенду?» Ответ: им никогда не нужно было доверять слепо — идентичные интерфейсы, публичный дашборд diff, доказывающий паритет, их собственная подпись под их отчётами, и откат одним флагом, который я мог продемонстрировать. Доверие пришло из доказательств, а не обещаний.
+    </div>
+  </div>
+</section>
+
+<!-- DECOMPOSE -->
+<section id="decompose">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">9. Decomposing a monolith pipeline</span><span class="ru">9. Декомпозиция монолитного пайплайна</span></h2>
+  <div class="card reveal">
+    <h3 class="en">Find the seams, cut along them</h3>
+    <h3 class="ru">Найди швы, режь по ним</h3>
+    <ul class="en">
+      <li><strong>Map the DAG</strong>: what depends on what. Identify natural boundaries (by data domain, by source, by consumer).</li>
+      <li><strong>Cut at stable interfaces</strong>: a materialized table/contract between stages is a clean seam; cut there, not through tangled in-memory logic.</li>
+      <li><strong>Extract leaf-first</strong>: peel off the least-coupled stage first to learn the pattern cheaply.</li>
+      <li><strong>Strangler per stage</strong>: replace one stage behind the facade table; downstream sees the same contract.</li>
+      <li><strong>Make stages idempotent &amp; independently runnable</strong> — that's what lets you migrate/test them in isolation.</li>
+      <li><strong>Branch by abstraction</strong> inside the code where there's no natural table boundary to flip.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Отобрази DAG</strong>: что от чего зависит. Определи естественные границы (по домену данных, по источнику, по потребителю).</li>
+      <li><strong>Режь по стабильным интерфейсам</strong>: материализованная таблица/контракт между этапами — чистый шов; режь там, а не сквозь запутанную логику в памяти.</li>
+      <li><strong>Извлекай лист первым</strong>: отдели наименее связанный этап первым, чтобы дёшево изучить паттерн.</li>
+      <li><strong>Strangler на этап</strong>: замени один этап за фасад-таблицей; нижележащее видит тот же контракт.</li>
+      <li><strong>Сделай этапы идемпотентными и независимо запускаемыми</strong> — это то, что позволяет мигрировать/тестировать их изолированно.</li>
+      <li><strong>Branch by abstraction</strong> внутри кода, где нет естественной границы таблицы для переключения.</li>
+    </ul>
+    <div class="callout anchor en">
+      <span class="lbl">Amal anchor</span>
+      Meta — 10 logging systems → one model: classic decomposition. Ten overlapping loggers with divergent schemas. We defined a <strong>unified canonical event model</strong> (the contract), mapped each legacy logger onto it, dual-logged during transition, diffed counts/fields per source, migrated consumers to the unified model, then decommissioned legacy loggers (incl. tombstoning configs in phases). Same strangler + parallel-run playbook, applied to instrumentation instead of a warehouse.
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">Якорь Amal</span>
+      Meta — 10 систем логирования → одна модель: классическая декомпозиция. Десять пересекающихся логгеров с расходящимися схемами. Мы определили <strong>единую каноничную модель событий</strong> (контракт), отобразили каждый legacy-логгер на неё, dual-логгировали во время перехода, сравнивали счётчики/поля на источник, мигрировали потребителей на единую модель, затем списали legacy-логгеры (вкл. tombstoning конфигов по фазам). Тот же playbook strangler + parallel-run, применённый к инструментарию вместо хранилища.
+    </div>
+  </div>
+</section>
+
+<!-- FAILURE MODES -->
+<section id="fail">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">10. Common failure modes</span><span class="ru">10. Распространённые режимы сбоев</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><span class="o">Missed consumer</span> — undiscovered downstream breaks at cutover. <span class="muted">Fix: access-log census + parallel-run surfaces it as a diff.</span></li>
+      <li><span class="o">Big-bang + re-architect together</span> — two unknowns at once, no rollback granularity.</li>
+      <li><span class="o">Silent data corruption</span> — float/TZ/NULL/precision drift slips past weak checks. <span class="muted">Fix: typed, bucketed diffs + tolerances.</span></li>
+      <li><span class="o">Non-idempotent backfill</span> — re-run creates dupes or gaps. <span class="muted">Fix: MERGE/overwrite + watermarks.</span></li>
+      <li><span class="o">Scope creep</span> — "while we're here, let's also…". Re-architecting mid-migration. Freeze scope.</li>
+      <li><span class="o">Decommissioning too early</span> — kill legacy before soak, then can't roll back.</li>
+      <li><span class="o">No rollback rehearsal</span> — rollback path untested until you need it at 2am.</li>
+      <li><span class="o">Stakeholder surprise</span> — users find out at cutover. Erodes all future trust.</li>
+      <li><span class="o">Endless parallel-run</span> — never defining "good enough to cut", paying 2x forever.</li>
+    </ul>
+    <ul class="ru">
+      <li><span class="o">Пропущенный потребитель</span> — необнаруженное нижележащее ломается при переключении. <span class="muted">Лечение: перепись по логам доступа + parallel-run всплывает как diff.</span></li>
+      <li><span class="o">Big-bang + re-architect вместе</span> — две неизвестные сразу, нет гранулярности отката.</li>
+      <li><span class="o">Тихое повреждение данных</span> — сдвиг float/TZ/NULL/точности проскальзывает мимо слабых проверок. <span class="muted">Лечение: типизированные, сгруппированные diff + допуски.</span></li>
+      <li><span class="o">Неидемпотентный backfill</span> — перезапуск создаёт дубли или разрывы. <span class="muted">Лечение: MERGE/overwrite + watermarks.</span></li>
+      <li><span class="o">Разрастание скоупа</span> — «раз уж мы здесь, давайте ещё…». Переделка архитектуры в середине миграции. Заморозь скоуп.</li>
+      <li><span class="o">Списание слишком рано</span> — убил legacy до soak, потом не откатишь.</li>
+      <li><span class="o">Нет репетиции отката</span> — путь отката не протестирован, пока не понадобился в 2 часа ночи.</li>
+      <li><span class="o">Сюрприз стейкхолдера</span> — пользователи узнают при переключении. Размывает всё будущее доверие.</li>
+      <li><span class="o">Бесконечный parallel-run</span> — никогда не определяешь «достаточно хорошо для переключения», платишь 2x навсегда.</li>
+    </ul>
+    <div class="callout en">
+      <span class="lbl warn">Gotcha</span>
+      "It works in staging." Staging rarely has production data volume, skew, or weird historical rows. The first real corruption you find is usually a 2014 row with a NULL where the schema "never has NULLs". Test against a production-scale sample.
+    </div>
+    <div class="callout ru">
+      <span class="lbl warn">Подвох</span>
+      «Работает в staging». Staging редко имеет объём данных продакшена, перекосы или странные исторические строки. Первое реальное повреждение, которое ты найдёшь, обычно — строка 2014 года с NULL, где схема «никогда не имеет NULL». Тестируй против продакшн-масштабного сэмпла.
+    </div>
+  </div>
+</section>
+
+<!-- SUCCESS -->
+<section id="success">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">11. Measuring success</span><span class="ru">11. Измерение успеха</span></h2>
+  <div class="card reveal">
+    <h3 class="en">Define what "done well" means before you start</h3>
+    <h3 class="ru">Определи, что означает «сделано хорошо», прежде чем начать</h3>
+
+    <h4 class="en">Correctness</h4>
+    <h4 class="ru">Корректность</h4>
+    <ul class="en">
+      <li>Output parity within tolerance</li>
+      <li>Zero data-loss / dupes post-cutover</li>
+      <li>DQ defect rate flat or down</li>
+    </ul>
+    <ul class="ru">
+      <li>Паритет выходов в пределах допуска</li>
+      <li>Ноль потерь данных / дублей после переключения</li>
+      <li>Частота дефектов DQ на том же уровне или ниже</li>
+    </ul>
+
+    <h4 class="en">Reliability / UX</h4>
+    <h4 class="ru">Надёжность / UX</h4>
+    <ul class="en">
+      <li>Zero (or bounded) downtime</li>
+      <li>SLA / freshness met or better</li>
+      <li>Fewer incidents / pages</li>
+    </ul>
+    <ul class="ru">
+      <li>Ноль (или ограниченный) простой</li>
+      <li>SLA / свежесть выполнены или лучше</li>
+      <li>Меньше инцидентов / вызовов</li>
+    </ul>
+
+    <h4 class="en">Business value</h4>
+    <h4 class="ru">Бизнес-ценность</h4>
+    <ul class="en">
+      <li>$ saved (licensing/compute)</li>
+      <li>Faster refresh / lower latency</li>
+      <li>Faster feature delivery (debt paid)</li>
+      <li>Legacy fully decommissioned</li>
+    </ul>
+    <ul class="ru">
+      <li>$ сэкономлено (лицензии/вычисления)</li>
+      <li>Быстрее обновление / ниже задержка</li>
+      <li>Быстрее доставка фичей (долг отдан)</li>
+      <li>Legacy полностью списан</li>
+    </ul>
+
+    <div class="callout anchor en">
+      <span class="lbl">McMakler KPIs</span>
+      <span class="g">EUR 1M+</span> annual savings | <span class="g">0</span> downtime for 200+ users | <span class="g">3</span> concurrent migrations delivered | <span class="g">10 → 1</span> logging systems (Meta)
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">KPI McMakler</span>
+      <span class="g">EUR 1M+</span> годовой экономии | <span class="g">0</span> простоя для 200+ пользователей | <span class="g">3</span> параллельные миграции доставлены | <span class="g">10 → 1</span> систем логирования (Meta)
+    </div>
+    <div class="callout probe en">
+      <span class="lbl">Interviewer will probe</span>
+      "How do you know the migration succeeded vs just finished?" Answer: success = parity proven by diffs + value realized (cost down, speed up) + legacy actually decommissioned. A migration that leaves legacy running "just in case" forever didn't succeed; it added a system.
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">О чём спросит интервьюер</span>
+      «Откуда ты знаешь, что миграция успешна, а не просто закончилась?» Ответ: успех = паритет доказан diff + ценность реализована (стоимость снижена, скорость выросла) + legacy фактически списан. Миграция, которая оставляет legacy работающим «на всякий случай» навсегда, не успешна; она добавила систему.
+    </div>
+  </div>
+</section>
+
+<!-- WORKED EXAMPLES -->
+<section id="stories">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">12. Worked examples (your stories, STAR-ready)</span><span class="ru">12. Разобранные примеры (твои истории, готовые к STAR)</span></h2>
+
+  <div class="card reveal">
+    <h3 class="en">McMakler — three concurrent platform migrations</h3>
+    <h3 class="ru">McMakler — три параллельные миграции платформ</h3>
+    <p class="en"><strong>Situation:</strong> Analytics ran on a warehouse, a proprietary orchestrator (100s of K EUR/yr licensing + lock-in), and a Postgres analytical layer with no tests/lineage. 200+ business users depended on it daily. Interest-bearing debt blocking the roadmap.</p>
+    <p class="ru"><strong>Ситуация:</strong> Аналитика работала на хранилище, проприетарном оркестраторе (сотни тысяч EUR/год лицензии + vendor lock-in) и Postgres-слое аналитики без тестов/lineage. 200+ бизнес-пользователей зависели от этого ежедневно. Долг с процентами, блокирующий роадмап.</p>
+    <p class="en"><strong>Task:</strong> Modernize all three, cut cost, no downtime — concurrently, because they shared a cutover surface.</p>
+    <p class="ru"><strong>Задача:</strong> Модернизировать все три, снизить стоимость, без простоев — параллельно, потому что они делили поверхность переключения.</p>
+    <p class="en"><strong>Action:</strong></p>
+    <p class="ru"><strong>Действие:</strong></p>
+    <ul class="en">
+      <li><strong>Assess:</strong> usage census via access logs; dropped unused reports from scope.</li>
+      <li><strong>Strangler + parallel-run:</strong> stood up Snowflake + Airflow + dbt alongside legacy; dual-ran the same logic.</li>
+      <li><strong>Zero-downtime:</strong> rebuilt curated layer in dbt behind <em>identically-named views</em>; orchestration cut over per-DAG once outputs matched; reconciler diffed counts, hashes, and KPIs continuously.</li>
+      <li><strong>Cutover:</strong> per-slice, on N-days-green criteria, legacy kept warm through soak with one-flag rollback.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Оценка:</strong> перепись использования через логи доступа; убрал неиспользуемые отчёты из скоупа.</li>
+      <li><strong>Strangler + parallel-run:</strong> поднял Snowflake + Airflow + dbt рядом с legacy; dual-запускал ту же логику.</li>
+      <li><strong>Ноль простоев:</strong> перестроил кураторский слой в dbt за <em>идентично названными views</em>; оркестрация переключалась по DAG, как только выходы совпадали; reconciler непрерывно сравнивал счётчики, хеши и KPI.</li>
+      <li><strong>Переключение:</strong> по срезу, по критерию N-дней-зелено, legacy держал тёплым через soak с откатом одним флагом.</li>
+    </ul>
+    <p class="en"><strong>Result:</strong> <span class="g">EUR 1M+/yr saved</span> (eliminated proprietary orchestration licensing + cheaper compute), <span class="g">zero downtime</span> for 200+ users, faster refreshes, tested+lineaged analytical layer.</p>
+    <p class="ru"><strong>Результат:</strong> <span class="g">EUR 1M+/год сэкономлено</span> (убрал лицензии проприетарной оркестрации + более дешёвые вычисления), <span class="g">ноль простоев</span> для 200+ пользователей, более быстрые обновления, протестированный+lineaged аналитический слой.</p>
+    <div class="callout anchor en">
+      <span class="lbl">Soundbite (rehearse verbatim)</span>
+      "I never asked users to trust the new stack. I gave them identical interfaces, a diff dashboard proving parity, and a rollback I could flip in seconds. The risk lived in flags, not in a big-bang night."
+    </div>
+    <div class="callout anchor ru">
+      <span class="lbl">Саундбайт (репетируй дословно)</span>
+      «Я никогда не просил пользователей доверять новому стеку. Я дал им идентичные интерфейсы, дашборд diff, доказывающий паритет, и откат, который мог переключить за секунды. Риск жил во флагах, а не в ночи big-bang.»
+    </div>
+  </div>
+
+  <div class="card reveal">
+    <h3 class="en">Meta — consolidating 10 logging systems into one model</h3>
+    <h3 class="ru">Meta — консолидация 10 систем логирования в одну модель</h3>
+    <p class="en"><strong>Situation:</strong> Ten overlapping logging systems with divergent schemas; duplicated data, unclear ownership, high maintenance &amp; instrumentation cost.</p>
+    <p class="ru"><strong>Ситуация:</strong> Десять пересекающихся систем логирования с расходящимися схемами; дублированные данные, неясное владение, высокая стоимость поддержки и инструментирования.</p>
+    <p class="en"><strong>Task:</strong> Consolidate into one canonical event model and retire the redundant loggers.</p>
+    <p class="ru"><strong>Задача:</strong> Консолидировать в одну каноничную модель событий и списать избыточные логгеры.</p>
+    <p class="en"><strong>Action:</strong> Defined the unified model (the contract); mapped each legacy logger onto it; dual-logged during transition; diffed counts/fields per source; migrated consumers; decommissioned legacy loggers in phases (tombstone configs first, then delete).</p>
+    <p class="ru"><strong>Действие:</strong> Определил единую модель (контракт); отобразил каждый legacy-логгер на неё; dual-логгировал во время перехода; сравнивал счётчики/поля на источник; мигрировал потребителей; списал legacy-логгеры по фазам (сначала tombstone конфигов, затем удаление).</p>
+    <p class="en"><strong>Result:</strong> <span class="pu">10 → 1</span> model, reduced redundancy &amp; maintenance, clearer ownership and lineage. Same strangler/parallel-run playbook applied to instrumentation.</p>
+    <p class="ru"><strong>Результат:</strong> <span class="pu">10 → 1</span> модель, снижена избыточность и поддержка, более ясное владение и lineage. Тот же playbook strangler/parallel-run, применённый к инструментарию.</p>
+    <div class="callout probe en">
+      <span class="lbl">Bridge to econ data</span>
+      Economics data feeds are correctness-critical and consumer-heavy — exactly where parallel-run + typed diffs + backward-compatible interfaces shine. The McMakler/Meta playbook ports directly to modernizing legacy econ-data processes.
+    </div>
+    <div class="callout probe ru">
+      <span class="lbl">Мост к econ-данным</span>
+      Фиды экономических данных критичны по корректности и тяжелы по потребителям — именно там, где parallel-run + типизированные diff + обратно-совместимые интерфейсы блистают. Playbook McMakler/Meta портируется напрямую на модернизацию устаревших процессов econ-данных.
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">13. Self-quiz (tap to flip)</span><span class="ru">13. Самопроверка (тапни, чтобы перевернуть)</span></h2>
+  <div class="flip-grid reveal">
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="q en">What is the strangler fig pattern and why is it low-risk?</div>
+        <div class="q ru">Что такое паттерн strangler fig и почему он низкорисковый?</div>
+        <div class="tap en">Tap to reveal</div>
+        <div class="tap ru">Тапни, чтобы показать</div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a en">Route consumers through a facade and replace the legacy system one slice at a time until it's fully "strangled" and removed. Low-risk because each slice is small, validated in parallel, and reversible with a flag — never a single all-or-nothing leap.</div>
+        <div class="a ru">Направляй потребителей через фасад и заменяй legacy-систему по срезу за раз, пока она полностью не «задушена» и удалена. Низкий риск, потому что каждый срез мал, валидирован параллельно и обратим флагом — никогда одного скачка всё-или-ничего.</div>
+      </div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="q en">How do you achieve a zero-downtime data cutover?</div>
+        <div class="q ru">Как достичь переключения данных без простоя?</div>
+        <div class="tap en">Tap to reveal</div>
+        <div class="tap ru">Тапни, чтобы показать</div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a en">Facade/indirection (consumers read a view they never see repointed) + dual-write (both systems stay current, no data gap) + per-cohort flag flip / blue-green + backward-compatible schema via expand/contract. Cutover = repoint the facade; rollback = flip it back.</div>
+        <div class="a ru">Фасад/indirection (потребители читают view, которую не видят перенаправленной) + dual-write (обе системы остаются актуальными, нет разрыва данных) + переключение флага по когорте / blue-green + обратно-совместимая схема через expand/contract. Переключение = перенаправить фасад; откат = переключить обратно.</div>
+      </div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="q en">What makes a backfill idempotent, and why does it matter?</div>
+        <div class="q ru">Что делает backfill идемпотентным, и почему это важно?</div>
+        <div class="tap en">Tap to reveal</div>
+        <div class="tap ru">Тапни, чтобы показать</div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a en">Re-running it produces the same result, no dupes. Achieved with MERGE/upsert on a business key or partition INSERT OVERWRITE (never blind INSERT), plus checkpoints and a watermark joining backfill to live CDC. Matters because backfills fail and must resume/retry safely.</div>
+        <div class="a ru">Перезапуск даёт тот же результат, нет дублей. Достигается MERGE/upsert на бизнес-ключе или partition INSERT OVERWRITE (никогда слепой INSERT), плюс чекпойнты и watermark, соединяющий backfill с живым CDC. Важно, потому что backfill'ы падают и должны безопасно возобновляться/ретраиться.</div>
+      </div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="q en">Your old-vs-new diff won't go to zero. First suspects?</div>
+        <div class="q ru">Твой diff старое-vs-новое не идёт к нулю. Первые подозреваемые?</div>
+        <div class="tap en">Tap to reveal</div>
+        <div class="tap ru">Тапни, чтобы показать</div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a en">Representation differences, not logic: float rounding (use DECIMAL + tolerance), timezone/DST shifts, NULL-vs-empty-string-vs-0, varchar truncation, engine precision diffs. Bucket diffs by type to separate real defects from explainable ones; define a tolerance band.</div>
+        <div class="a ru">Различия представления, а не логики: округление float (используй DECIMAL + допуск), сдвиги таймзоны/DST, NULL-vs-пустая-строка-vs-0, обрезка varchar, различия точности движков. Группируй diff по типу, чтобы отделить реальные дефекты от объяснимых; определи полосу допуска.</div>
+      </div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="q en">How do you prioritize which tech debt to pay down?</div>
+        <div class="q ru">Как приоритизировать, какой тех. долг отдавать?</div>
+        <div class="tap en">Tap to reveal</div>
+        <div class="tap ru">Тапни, чтобы показать</div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a en">Treat it as a loan: pay interest-bearing debt first (compounding $ cost, toil, velocity tax, risk). Use an impact-vs-effort grid — high-impact/low-effort = quick wins, high-impact/high-effort = projects, low-impact = backlog or won't-fix. Ugly ≠ debt; stable+isolated+cheap code stays.</div>
+        <div class="a ru">Относись к нему как к кредиту: отдавай долг с процентами первым (растущая $ стоимость, toil, налог на скорость, риск). Используй сетку влияние-vs-усилия — высокое влияние/малые усилия = быстрые победы, высокое влияние/большие усилия = проекты, малое влияние = бэклог или won't-fix. Уродливый ≠ долг; стабильный+изолированный+дёшевый код остаётся.</div>
+      </div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="q en">Define cutover criteria and the rollback plan.</div>
+        <div class="q ru">Определи критерии переключения и план отката.</div>
+        <div class="tap en">Tap to reveal</div>
+        <div class="tap ru">Тапни, чтобы показать</div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a en">Go: diffs within tolerance for N consecutive runs, SLA/freshness met at full load, consumers signed off, rollback tested. Rollback: keep legacy warm through a soak, one-flag facade flip, dual-write running so no data lost, defined triggers + owner. Rollback is a flag, not a restore.</div>
+        <div class="a ru">Go: diff в пределах допуска N запусков подряд, SLA/свежесть выполнены на полной нагрузке, потребители подписались, откат протестирован. Откат: держи legacy тёплым через soak, переключение фасада одним флагом, dual-write работает (нет потери данных), определены триггеры + владелец. Откат — это флаг, а не восстановление.</div>
+      </div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="q en">When would you pick big-bang over incremental?</div>
+        <div class="q ru">Когда выберешь big-bang вместо инкрементального?</div>
+        <div class="tap en">Tap to reveal</div>
+        <div class="tap ru">Тапни, чтобы показать</div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a en">Only when scope is small, schemas genuinely can't coexist, there's a hard external deadline, or running two systems costs more than the blast radius. Then de-risk with a full staging dress-rehearsal and a tested rollback. Never combine big-bang with re-architecting.</div>
+        <div class="a ru">Только когда скоуп мал, схемы реально не могут сосуществовать, есть жёсткий внешний дедлайн, или работа двух систем стоит дороже, чем радиус поражения. Тогда снизь риск полной генеральной репетицией в staging и протестированным откатом. Никогда не комбинируй big-bang с переделкой архитектуры.</div>
+      </div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="q en">Role of CDC in a low-downtime migration?</div>
+        <div class="q ru">Роль CDC в миграции с малыми простоями?</div>
+        <div class="tap en">Tap to reveal</div>
+        <div class="tap ru">Тапни, чтобы показать</div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a en">Snapshot at T → bulk backfill ≤ T → start CDC stream from T so the new system converges to live and the parallel-run diff stays meaningful right up to cutover. Prefer log/WAL-based CDC (captures deletes, low load); dedupe on PK+version; handle the snapshot/stream overlap.</div>
+        <div class="a ru">Снимок в T → массовый backfill ≤ T → стартуй поток CDC с T, чтобы новая система конвергировала к live и parallel-run diff оставался значимым вплоть до переключения. Предпочитай CDC на базе log/WAL (захватывает удаления, малая нагрузка); дедуплицируй на PK+версии; обрабатывай пересечение снимка/потока.</div>
+      </div>
+    </div></div>
+
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p class="en"><strong>Legacy Modernization &amp; Data Migrations</strong> — Data Engineering interview prep. Built for Amal Imangulov, Senior/Lead Data Engineer.</p>
+  <p class="ru"><strong>Миграции устаревших систем и данных</strong> — подготовка к Data Engineering интервью. Создано для Amal Imangulov, Senior/Lead Data Engineer.</p>
+  <p class="en"><em>One-liner to land in the room: "I de-risk migrations with strangler-fig slices, parallel-run diffing, and one-flag rollback — that's how I delivered three concurrent platform migrations at McMakler, EUR 1M+ saved, zero downtime for 200+ users."</em></p>
+  <p class="ru"><em>Одна строка, чтобы зайти в комнату: «Я снижаю риск миграций strangler-fig срезами, parallel-run diff'ингом и откатом одним флагом — так я доставил три параллельные миграции платформ в McMakler, EUR 1M+ сэкономлено, ноль простоев для 200+ пользователей.»</em></p>
+</footer>
+
+<script>
+(function(){
+  // ---- Combined theme + lang IIFE (from kafka.html, shared localStorage keys) ----
+  var html = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  var langBtn = document.getElementById('langBtn');
+
+  // theme
+  var savedTheme = localStorage.getItem('de_cheat_theme') || 'dark';
+  html.setAttribute('data-theme', savedTheme);
+  themeBtn.textContent = (savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark');
+  themeBtn.addEventListener('click', function(){
+    var current = html.getAttribute('data-theme');
+    var next = (current === 'dark' ? 'light' : 'dark');
+    html.setAttribute('data-theme', next);
+    themeBtn.textContent = (next === 'dark' ? '☀️ Light' : '🌙 Dark');
+    localStorage.setItem('de_cheat_theme', next);
+  });
+
+  // lang
+  var savedLang = localStorage.getItem('de_cheat_lang') || 'en';
+  html.setAttribute('data-lang', savedLang);
+  langBtn.textContent = (savedLang === 'en' ? '🌐 RU' : '🌐 EN');
+  langBtn.addEventListener('click', function(){
+    var current = html.getAttribute('data-lang');
+    var next = (current === 'en' ? 'ru' : 'en');
+    html.setAttribute('data-lang', next);
+    langBtn.textContent = (next === 'en' ? '🌐 RU' : '🌐 EN');
+    localStorage.setItem('de_cheat_lang', next);
+  });
+
+  // ---- flip cards ----
+  document.querySelectorAll('.flip').forEach(function(card){
+    card.addEventListener('click', function(){ card.classList.toggle('flipped'); });
+  });
+
+  // ---- scroll reveal ----
+  var reveals = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    reveals.forEach(function(el){ obs.observe(el); });
+  } else {
+    reveals.forEach(function(el){ el.classList.add('in'); });
+  }
+})();
+</script>
+</body>
+</html>

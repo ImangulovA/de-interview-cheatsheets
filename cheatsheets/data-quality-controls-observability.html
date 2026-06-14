@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Quality Controls &amp; Observability — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #151d30;
+    --card2: #1b2540;
+    --text: #e6ecf5;
+    --muted: #9aa7bd;
+    --accent: #1877F2;
+    --green: #02e2ac;
+    --orange: #f59e0b;
+    --purple: #a855f7;
+    --red: #ff5b6e;
+    --border: #243150;
+    --code-bg: #0d1424;
+    --shadow: 0 6px 22px rgba(0,0,0,0.45);
+  }
+  [data-theme="light"] {
+    --bg: #f4f7fc;
+    --card: #ffffff;
+    --card2: #eef2f9;
+    --text: #14213d;
+    --muted: #56627a;
+    --accent: #1357c4;
+    --green: #06997a;
+    --orange: #b9740a;
+    --purple: #8534d6;
+    --red: #cf2d44;
+    --border: #d6deec;
+    --code-bg: #f0f3fa;
+    --shadow: 0 6px 18px rgba(20,33,61,0.10);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    font-size: 15.5px;
+  }
+  code, pre, .mono { font-family: "SF Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace; }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,26,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  [data-theme="light"] nav { background: rgba(244,247,252,0.94); }
+  nav .brand { font-weight: 800; color: var(--accent); font-size: 14px; margin-right: 6px; white-space: nowrap; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 12.5px;
+    padding: 4px 8px; border-radius: 6px; white-space: nowrap;
+  }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 22px 18px 80px; }
+  header.hero {
+    background: linear-gradient(135deg, rgba(24,119,242,0.16), rgba(168,85,247,0.10));
+    border: 1px solid var(--border); border-radius: 16px;
+    padding: 26px 24px; margin-bottom: 26px;
+  }
+  header.hero h1 { margin: 0 0 8px; font-size: 27px; line-height: 1.2; }
+  header.hero p { margin: 4px 0; color: var(--muted); font-size: 14.5px; }
+  .pillrow { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 7px; }
+  .pill {
+    font-size: 11.5px; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--text); background: var(--card);
+  }
+  .pill.a { border-color: var(--accent); color: var(--accent); }
+  .pill.g { border-color: var(--green); color: var(--green); }
+  .pill.o { border-color: var(--orange); color: var(--orange); }
+  .pill.p { border-color: var(--purple); color: var(--purple); }
+
+  section { margin: 30px 0; }
+  h2 {
+    font-size: 21px; margin: 0 0 14px; padding-bottom: 8px;
+    border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 9px;
+  }
+  h2 .ico { font-size: 18px; }
+  h3 { font-size: 16.5px; margin: 20px 0 8px; color: var(--text); }
+  p { margin: 9px 0; }
+  .muted { color: var(--muted); }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px; margin: 12px 0; box-shadow: var(--shadow);
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+  @media (max-width: 760px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  b, strong { color: var(--text); }
+  em { color: var(--purple); font-style: normal; font-weight: 600; }
+
+  /* callouts */
+  .callout {
+    border-left: 4px solid var(--accent); background: var(--card2);
+    border-radius: 0 10px 10px 0; padding: 11px 15px; margin: 12px 0; font-size: 14.5px;
+  }
+  .callout.probe { border-color: var(--orange); }
+  .callout.probe::before { content: "🎯 "; color: var(--orange); font-weight: 800; }
+  .callout.gotcha { border-color: var(--red); }
+  .callout.gotcha::before { content: "⚠ "; color: var(--red); font-weight: 800; }
+  .callout.anchor { border-color: var(--green); }
+  .callout.anchor::before { content: "★ "; color: var(--green); font-weight: 800; }
+
+  /* tables */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13.8px; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--card2); color: var(--text); font-weight: 700; }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+  [data-theme="light"] tr:nth-child(even) td { background: rgba(20,33,61,0.02); }
+
+  /* code */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 13px 15px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 11px 0;
+  }
+  code { background: var(--code-bg); padding: 1.5px 5px; border-radius: 5px; font-size: 12.8px; border: 1px solid var(--border); }
+  pre code { background: none; border: none; padding: 0; }
+  .k { color: var(--purple); }      /* keyword */
+  .s { color: var(--green); }       /* string */
+  .c { color: var(--muted); font-style: italic; } /* comment */
+  .n { color: var(--orange); }      /* number/literal */
+  .f { color: var(--accent); }      /* function/identifier */
+
+  /* collapsible */
+  details.coll { border: 1px solid var(--border); border-radius: 10px; margin: 11px 0; background: var(--card); overflow: hidden; }
+  details.coll > summary {
+    cursor: pointer; padding: 12px 16px; font-weight: 700; list-style: none;
+    display: flex; align-items: center; gap: 8px; user-select: none;
+  }
+  details.coll > summary::-webkit-details-marker { display: none; }
+  details.coll > summary::before { content: "▸"; color: var(--accent); transition: transform .18s; }
+  details.coll[open] > summary::before { transform: rotate(90deg); }
+  details.coll > div { padding: 0 16px 14px; }
+
+  /* flip cards */
+  .flipgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .flipgrid { grid-template-columns: 1fr; } }
+  .flip { perspective: 1400px; min-height: 170px; cursor: pointer; }
+  .flip-inner { position: relative; width: 100%; height: 100%; min-height: 170px; transition: transform .6s; transform-style: preserve-3d; }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .flip-front { background: var(--card2); }
+  .flip-front .q { font-weight: 700; font-size: 15.5px; }
+  .flip-front .hint { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  .flip-back { background: linear-gradient(160deg, var(--card), var(--card2)); transform: rotateY(180deg); font-size: 13.6px; overflow-y: auto; }
+  .flip-back b { color: var(--green); }
+
+  /* diagram */
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; overflow-x: auto; }
+  .diagram pre { background: none; border: none; padding: 0; margin: 0; font-size: 12.2px; color: var(--text); }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .5s ease, transform .5s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 5px; border: 1px solid var(--border); color: var(--muted); margin-right: 4px; }
+  .tag.g { color: var(--green); border-color: var(--green); }
+  .tag.o { color: var(--orange); border-color: var(--orange); }
+  .tag.r { color: var(--red); border-color: var(--red); }
+  .footer { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 40px; }
+  hr { border: none; border-top: 1px dashed var(--border); margin: 18px 0; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand"><span class="en">DQ &amp; Observability</span><span class="ru">DQ и мониторинг</span></span>
+  <a href="#dims"><span class="en">Dimensions</span><span class="ru">Измерения</span></a>
+  <a href="#vsobs"><span class="en">DQ vs Obs</span><span class="ru">DQ vs мониторинг</span></a>
+  <a href="#pillars"><span class="en">5 Pillars</span><span class="ru">5 столпов</span></a>
+  <a href="#patterns"><span class="en">Validation</span><span class="ru">Валидация</span></a>
+  <a href="#where"><span class="en">Where</span><span class="ru">Где</span></a>
+  <a href="#breakers"><span class="en">Breakers</span><span class="ru">Circuit-breakers</span></a>
+  <a href="#schema"><span class="en">Schema</span><span class="ru">Схемы</span></a>
+  <a href="#remediation"><span class="en">Remediation</span><span class="ru">Восстановление</span></a>
+  <a href="#alerting"><span class="en">Alerting</span><span class="ru">Алерты</span></a>
+  <a href="#tools"><span class="en">Tools</span><span class="ru">Инструменты</span></a>
+  <a href="#scale"><span class="en">Scale</span><span class="ru">Масштаб</span></a>
+  <a href="#diagram"><span class="en">Diagram</span><span class="ru">Диаграмма</span></a>
+  <a href="#quiz"><span class="en">Quiz</span><span class="ru">Самопроверка</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<div class="wrap">
+
+<header class="hero reveal">
+  <h1><span class="en">Data Quality Controls &amp; Observability — <span style="color:var(--accent)">DE Interview Prep</span></span><span class="ru">Контроль качества данных и мониторинг — <span style="color:var(--accent)">Подготовка к DE-интервью</span></span></h1>
+  <p class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</p>
+  <p class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</p>
+  <p class="muted en">Core theme: embed quality controls directly into pipelines, validation, monitoring, schema-change handling, exception handling, integrity, alerting, observability, remediation.</p>
+  <p class="muted ru">Ключевая тема: встраивать контроли качества напрямую в пайплайны, валидация, мониторинг, обработка изменений схем, обработка исключений, целостность, алерты, observability, восстановление.</p>
+  <div class="pillrow">
+    <span class="pill a"><span class="en">Amal Imangulov · Senior/Lead DE · 10 yrs</span><span class="ru">Amal Imangulov · Senior/Lead DE · 10 лет</span></span>
+    <span class="pill g"><span class="en">Anchor: 6.2B-record entity-resolution fix @ Meta</span><span class="ru">Якорь: исправление entity-resolution на 6.2B записях @ Meta</span></span>
+    <span class="pill o"><span class="en">Anchor: DQ monitors on 3.6B events/day</span><span class="ru">Якорь: DQ-мониторы на 3.6B событий/день</span></span>
+    <span class="pill p"><span class="en">Anchor: dbt tests @ Career.io</span><span class="ru">Якорь: dbt-тесты @ Career.io</span></span>
+  </div>
+</header>
+
+<!-- ============ DIMENSIONS ============ -->
+<section id="dims" class="reveal">
+  <h2><span class="ico">📐</span><span class="en">Dimensions of Data Quality</span><span class="ru">Измерения качества данных</span></h2>
+  <p class="en">Quality is multi-dimensional. Name them precisely; each maps to a different <b>test</b>. For economics data (rates, CPI prints, GDP revisions, FX), <em>timeliness + accuracy + consistency</em> dominate because downstream terminals trade on it.</p>
+  <p class="ru">Качество — многомерно. Называй их точно; каждое соответствует отдельному <b>тесту</b>. Для экономических данных (ставки, CPI, GDP-ревизии, FX) доминируют <em>свежесть + точность + согласованность</em>, потому что терминалы торгуют на основе этих данных.</p>
+  <table class="en">
+    <thead><tr><th>Dimension</th><th>Question it answers</th><th>Concrete check</th><th>Econ-data example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Accuracy</b></td><td>Does the value match reality / source of truth?</td><td>Reconcile vs authoritative source; checksum</td><td>CPI YoY matches official release</td></tr>
+      <tr><td><b>Completeness</b></td><td>Are all expected rows/fields present?</td><td>Row-count vs expected, NULL ratio, missing partitions</td><td>All 50 states present in employment feed</td></tr>
+      <tr><td><b>Timeliness / Freshness</b></td><td>Did data arrive within the SLA window?</td><td>max(event_time) vs now; partition arrival lag</td><td>FX tick &lt; 2s old; daily print by 08:31 ET</td></tr>
+      <tr><td><b>Consistency</b></td><td>Do related sources/copies agree?</td><td>Cross-table reconciliation; sum-to-total</td><td>Sum of components = headline GDP</td></tr>
+      <tr><td><b>Validity</b></td><td>Does it conform to format / range / type?</td><td>Schema + regex + range/domain constraints</td><td>rate ∈ [-5%, 30%]; ISO-4217 currency code</td></tr>
+      <tr><td><b>Uniqueness</b></td><td>Are there duplicates / broken keys?</td><td>PK dedup, distinct-count, no dup grain</td><td>One row per (series_id, date)</td></tr>
+    </tbody>
+  </table>
+  <table class="ru">
+    <thead><tr><th>Измерение</th><th>На какой вопрос отвечает</th><th>Конкретная проверка</th><th>Пример (экон. данные)</th></tr></thead>
+    <tbody>
+      <tr><td><b>Точность (Accuracy)</b></td><td>Совпадает ли значение с реальностью / источником истины?</td><td>Сверка с авторитетным источником; чексуммы</td><td>CPI YoY совпадает с официальным релизом</td></tr>
+      <tr><td><b>Полнота (Completeness)</b></td><td>Все ли ожидаемые строки/поля присутствуют?</td><td>Число строк vs ожидаемое, доля NULL, отсутствующие партиции</td><td>Все 50 штатов в фиде по занятости</td></tr>
+      <tr><td><b>Своевременность / Свежесть (Timeliness / Freshness)</b></td><td>Данные прибыли в пределах SLA-окна?</td><td>max(event_time) vs now; задержка партиции</td><td>FX-тик &lt; 2s; дневная публикация к 08:31 ET</td></tr>
+      <tr><td><b>Согласованность (Consistency)</b></td><td>Согласованы ли связанные источники/копии?</td><td>Кросс-табличная сверка; сумма по компонентам</td><td>Сумма компонентов = headline GDP</td></tr>
+      <tr><td><b>Корректность (Validity)</b></td><td>Соответствует ли формату / диапазону / типу?</td><td>Схема + regex + ограничения по диапазону/домену</td><td>rate ∈ [-5%, 30%]; код валюты ISO-4217</td></tr>
+      <tr><td><b>Уникальность (Uniqueness)</b></td><td>Есть ли дубликаты / сломанные ключи?</td><td>Дедуп PK, distinct-count, отсутствие дублей по grain</td><td>Одна строка на (series_id, date)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout en">Freshness sits at the intersection of <b>quality</b> (a stale value is "wrong") and <b>observability</b> (it's a monitored signal). Expect interviewers to care a lot: market data has hard SLAs.</div>
+  <div class="callout ru">Свежесть находится на пересечении <b>качества</b> (устаревшее значение — «неправильное») и <b>мониторинга</b> (это отслеживаемый сигнал). Ожидай, что интервьюеры будут заботиться об этом: рыночные данные имеют жёсткие SLA.</div>
+  <div class="callout probe en">"Your CPI value is correct but arrives 4 hours late — is that a data quality problem?" Answer: yes, it fails <b>timeliness</b>; quality is fitness-for-use, and late market data is unusable. Tie freshness SLAs to business consequence.</div>
+  <div class="callout probe ru">«Ваш CPI-показатель правильный, но прибыл на 4 часа позже — это проблема качества данных?» Ответ: да, это провал по <b>своевременности</b>; качество — это пригодность для использования, а запоздавшие рыночные данные непригодны. Привязывай freshness-SLA к бизнес-последствиям.</div>
+</section>
+
+<!-- ============ DQ vs OBS ============ -->
+<section id="vsobs" class="reveal">
+  <h2><span class="ico">🔭</span><span class="en">Data Quality vs Observability</span><span class="ru">Качество данных vs мониторинг (Observability)</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="color:var(--green)"><span class="en">Data Quality (DQ)</span><span class="ru">Качество данных (DQ)</span></h3>
+      <ul class="en">
+        <li><b>Known-unknowns.</b> You assert rules you already expect to hold.</li>
+        <li><b>Deterministic, declarative</b> tests: "rate must be in range", "PK is unique".</li>
+        <li>Catches violations of <b>defined</b> expectations. Pass/fail.</li>
+        <li>Tooling: Great Expectations, dbt tests, Soda, custom assertions.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Известные-неизвестные.</b> Ты формулируешь правила, которые, как ожидаешь, должны выполняться.</li>
+        <li><b>Детерминированные, декларативные</b> тесты: «ставка должна быть в диапазоне», «PK уникальный».</li>
+        <li>Ловит нарушения <b>определённых</b> ожиданий. Прошёл/провалился.</li>
+        <li>Инструменты: Great Expectations, dbt tests, Soda, кастомные утверждения.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--purple)"><span class="en">Observability</span><span class="ru">Мониторинг (Observability)</span></h3>
+      <ul class="en">
+        <li><b>Unknown-unknowns.</b> Surfaces issues you didn't think to test.</li>
+        <li><b>Statistical/ML baselines</b> + metadata over time (trends, anomalies).</li>
+        <li>Catches <b>drift, silent breakage, upstream surprises</b>. Detect + diagnose + alert.</li>
+        <li>Tooling: Monte Carlo, Anomalo, custom metric stores + ODS/dashboards.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Неизвестные-неизвестные.</b> Выявляет проблемы, о которых ты не подумал протестировать.</li>
+        <li><b>Статистические/ML-базовые линии</b> + метаданные во времени (тренды, аномалии).</li>
+        <li>Ловит <b>дрифт, тихие поломки, сюрпризы апстрима</b>. Обнаружить + диагностировать + алерт.</li>
+        <li>Инструменты: Monte Carlo, Anomalo, кастомные метрик-сторы + ODS/дашборды.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout en"><b>One-liner for the room:</b> "Quality tells me whether the data meets rules I wrote. Observability tells me when something changed that I never wrote a rule for. You need both: tests for the cliffs you know about, observability for the ones you don't."</div>
+  <div class="callout ru"><b>Фраза для комнаты:</b> «Качество говорит мне, соответствует ли данные правилам, которые я написал. Мониторинг говорит мне, когда что-то изменилось, на что у меня нет правила. Нужны оба: тесты для обрывов, о которых знаешь, мониторинг для тех, о которых не знаешь».</div>
+  <div class="callout gotcha en">Don't conflate them. A pipeline can be 100% "green" on dbt tests and still be silently broken (e.g., an upstream filter dropped 30% of rows but every surviving row is valid). Volume/freshness observability catches that; row-level tests don't.</div>
+  <div class="callout gotcha ru">Не путай их. Пайплайн может быть 100% «зелёным» по dbt-тестам и всё равно тихо сломан (например, апстрим-фильтр выкинул 30% строк, но каждая выжившая строка валидна). Volume/freshness мониторинг это поймает; построчные тесты нет.</div>
+  <div class="callout anchor en">My 6.2B-record entity-resolution defect was an <b>observability</b> catch first, then a <b>quality</b> fix: the row-level data looked valid, but a <em>distribution</em> shift (cluster-size histogram) and a <em>uniqueness</em> reconciliation revealed mis-merged entities. I then added explicit assertions so it became a known-unknown forever after.</div>
+  <div class="callout anchor ru">Мой дефект entity-resolution на 6.2B записей был сначала <b>мониторинг</b>-обнаружением, затем <b>quality</b>-исправлением: построчные данные выглядели валидными, но сдвиг <em>распределения</em> (гистограмма размеров кластеров) и сверка <em>уникальности</em> выявили неправильно слитые сущности. Затем я добавил явные утверждения, чтобы это навсегда стало известным-неизвестным.</div>
+</section>
+
+<!-- ============ 5 PILLARS ============ -->
+<section id="pillars" class="reveal">
+  <h2><span class="ico">🏛️</span><span class="en">The 5 Pillars of Data Observability</span><span class="ru">5 столпов мониторинга данных (Data Observability)</span></h2>
+  <p class="en">Memorize these five — interviewers love the framework (popularized by Monte Carlo). Each is a class of <b>monitored signal</b> on metadata, not on individual values.</p>
+  <p class="ru">Запомни эти пять — интервьюеры любят этот фреймворк (популяризован Monte Carlo). Каждый — это класс <b>отслеживаемого сигнала</b> на метаданных, а не на отдельных значениях.</p>
+  <div class="grid2">
+    <div class="card"><h3 style="color:var(--green)"><span class="en">1. Freshness</span><span class="ru">1. Свежесть (Freshness)</span></h3><p class="muted en">How recent is the data? Is the table updating on schedule?</p><p class="muted ru">Насколько свежие данные? Обновляется ли таблица по расписанию?</p><p class="en">Signal: <code>now() - max(updated_at)</code>, partition arrival time vs SLA.</p><p class="ru">Сигнал: <code>now() - max(updated_at)</code>, время прибытия партиции vs SLA.</p></div>
+    <div class="card"><h3 style="color:var(--accent)"><span class="en">2. Volume</span><span class="ru">2. Объём (Volume)</span></h3><p class="muted en">Did the expected number of rows land?</p><p class="muted ru">Прибыло ли ожидаемое число строк?</p><p class="en">Signal: row counts vs historical baseline / day-of-week seasonality. Catches drops &amp; floods.</p><p class="ru">Сигнал: число строк vs исторический базис / сезонность по дню недели. Ловит падения и всплески.</p></div>
+    <div class="card"><h3 style="color:var(--orange)"><span class="en">3. Schema</span><span class="ru">3. Схема (Schema)</span></h3><p class="muted en">Did the structure change? Columns added/removed/retyped?</p><p class="muted ru">Изменилась ли структура? Колонки добавлены/удалены/переопределены по типу?</p><p class="en">Signal: schema diff vs registered contract; type/order/nullability changes.</p><p class="ru">Сигнал: schema diff vs зарегистрированный контракт; изменения типа/порядка/nullability.</p></div>
+    <div class="card"><h3 style="color:var(--purple)"><span class="en">4. Distribution</span><span class="ru">4. Распределение (Distribution)</span></h3><p class="muted en">Are the values still in the expected statistical shape?</p><p class="muted ru">Значения всё ещё в ожидаемой статистической форме?</p><p class="en">Signal: NULL rate, min/max, mean, cardinality, % in enum, drift (PSI/KS).</p><p class="ru">Сигнал: доля NULL, min/max, mean, кардинальность, % в enum, дрифт (PSI/KS).</p></div>
+    <div class="card" style="grid-column:1/-1"><h3 style="color:var(--red)"><span class="en">5. Lineage</span><span class="ru">5. Линейдж (Lineage)</span></h3><p class="muted en">What's upstream/downstream? When something breaks, what's the blast radius and root cause?</p><p class="muted ru">Что апстрим/даунстрим? Когда что-то ломается, каков радиус поражения и первопричина?</p><p class="en">Signal: column- and table-level dependency graph; map an alert to impacted dashboards/consumers and to the upstream source that changed.</p><p class="ru">Сигнал: граф зависимостей на уровне колонок и таблиц; сопоставить алерт с затронутыми дашбордами/консьюмерами и с изменившимся апстрим-источником.</p></div>
+  </div>
+  <div class="callout probe en">"You get a freshness alert. Walk me through triage." → Use <b>lineage</b> to find the upstream that stalled, check its own freshness/volume, confirm whether it's a source delay or a job failure, assess downstream blast radius, decide circuit-break vs. serve-stale-with-flag, then notify owners with severity.</div>
+  <div class="callout probe ru">«Ты получил freshness-алерт. Проведи меня по триажу». → Используй <b>lineage</b>, чтобы найти апстрим, который застопорился, проверь его собственный freshness/volume, подтверди, задержка ли это источника или провал задачи, оцени даунстрим-радиус поражения, реши circuit-break vs. serve-stale-with-flag, затем уведоми владельцев с указанием severity.</div>
+</section>
+
+<!-- ============ VALIDATION PATTERNS ============ -->
+<section id="patterns" class="reveal">
+  <h2><span class="ico">✅</span><span class="en">Validation Patterns</span><span class="ru">Паттерны валидации</span></h2>
+  <details class="coll" open>
+    <summary><span class="en">Schema validation</span><span class="ru">Валидация схемы</span></summary>
+    <div>
+      <p class="en">Enforce column presence, types, nullability, order before processing. First line of defense; cheap and catches the loudest breakages.</p>
+      <p class="ru">Проверяй наличие колонок, типы, nullability, порядок перед обработкой. Первая линия защиты; дёшево и ловит самые громкие поломки.</p>
+      <pre><code class="en"><span class="c"># Great Expectations style</span>
+expect_table_columns_to_match_ordered_list([<span class="s">"series_id"</span>,<span class="s">"date"</span>,<span class="s">"value"</span>])
+expect_column_values_to_be_of_type(<span class="s">"value"</span>, <span class="s">"DOUBLE"</span>)
+expect_column_values_to_not_be_null(<span class="s">"series_id"</span>)</code></pre>
+      <pre><code class="ru"><span class="c"># Great Expectations стиль</span>
+expect_table_columns_to_match_ordered_list([<span class="s">"series_id"</span>,<span class="s">"date"</span>,<span class="s">"value"</span>])
+expect_column_values_to_be_of_type(<span class="s">"value"</span>, <span class="s">"DOUBLE"</span>)
+expect_column_values_to_not_be_null(<span class="s">"series_id"</span>)</code></pre>
+    </div>
+  </details>
+  <details class="coll">
+    <summary><span class="en">Constraint / business-rule checks</span><span class="ru">Проверка ограничений / бизнес-правил</span></summary>
+    <div>
+      <p class="en">Domain logic: ranges, enums, conditional rules, cross-field invariants.</p>
+      <p class="ru">Доменная логика: диапазоны, enum, условные правила, кросс-полевые инварианты.</p>
+      <pre><code class="en"><span class="c">-- dbt-style singular test: rate must be sane and components consistent</span>
+<span class="k">SELECT</span> series_id, date
+<span class="k">FROM</span> {{ <span class="f">ref</span>(<span class="s">'fct_econ_series'</span>) }}
+<span class="k">WHERE</span> value <span class="k">NOT BETWEEN</span> <span class="n">-5.0</span> <span class="k">AND</span> <span class="n">30.0</span>
+   <span class="k">OR</span> currency_code <span class="k">NOT IN</span> (<span class="s">'USD'</span>,<span class="s">'EUR'</span>,<span class="s">'GBP'</span>,<span class="s">'JPY'</span>)</code></pre>
+      <pre><code class="ru"><span class="c">-- dbt-style единичный тест: ставка должна быть вменяемой, компоненты согласованы</span>
+<span class="k">SELECT</span> series_id, date
+<span class="k">FROM</span> {{ <span class="f">ref</span>(<span class="s">'fct_econ_series'</span>) }}
+<span class="k">WHERE</span> value <span class="k">NOT BETWEEN</span> <span class="n">-5.0</span> <span class="k">AND</span> <span class="n">30.0</span>
+   <span class="k">OR</span> currency_code <span class="k">NOT IN</span> (<span class="s">'USD'</span>,<span class="s">'EUR'</span>,<span class="s">'GBP'</span>,<span class="s">'JPY'</span>)</code></pre>
+    </div>
+  </details>
+  <details class="coll">
+    <summary><span class="en">Referential integrity</span><span class="ru">Ссылочная целостность</span></summary>
+    <div>
+      <p class="en">Every FK must resolve to a parent; no orphans. Critical when joining series metadata to facts.</p>
+      <p class="ru">Каждый FK должен разрешаться в родителя; никаких сирот. Критично при джойне метаданных серий к фактам.</p>
+      <pre><code class="en"><span class="c">-- orphan fact rows = broken integrity</span>
+<span class="k">SELECT</span> fact.series_id
+<span class="k">FROM</span> fct_econ_series <span class="k">AS</span> fact
+<span class="k">LEFT JOIN</span> dim_series <span class="k">AS</span> dim <span class="k">ON</span> fact.series_id = dim.series_id
+<span class="k">WHERE</span> dim.series_id <span class="k">IS NULL</span></code></pre>
+      <pre><code class="ru"><span class="c">-- сиротские факт-строки = сломанная целостность</span>
+<span class="k">SELECT</span> fact.series_id
+<span class="k">FROM</span> fct_econ_series <span class="k">AS</span> fact
+<span class="k">LEFT JOIN</span> dim_series <span class="k">AS</span> dim <span class="k">ON</span> fact.series_id = dim.series_id
+<span class="k">WHERE</span> dim.series_id <span class="k">IS NULL</span></code></pre>
+    </div>
+  </details>
+  <details class="coll">
+    <summary><span class="en">Anomaly / outlier detection</span><span class="ru">Обнаружение аномалий / выбросов</span></summary>
+    <div>
+      <p class="en">Statistical bounds on metrics over time. Robust methods (MAD, IQR) beat mean±σ for fat-tailed financial data.</p>
+      <p class="ru">Статистические границы на метрики во времени. Робастные методы (MAD, IQR) бьют mean±σ для финансовых данных с «тяжёлыми хвостами».</p>
+      <pre><code class="en"><span class="c"># robust z-score; flag if today's row count deviates hard</span>
+median = np.<span class="f">median</span>(history); mad = np.<span class="f">median</span>(np.<span class="f">abs</span>(history - median))
+robust_z = <span class="n">0.6745</span> * (today - median) / mad
+<span class="k">if</span> <span class="f">abs</span>(robust_z) &gt; <span class="n">3.5</span>: <span class="f">alert</span>(<span class="s">"volume anomaly"</span>)</code></pre>
+      <pre><code class="ru"><span class="c"># робастный z-score; флагнуть, если сегодняшнее число строк сильно отклонилось</span>
+median = np.<span class="f">median</span>(history); mad = np.<span class="f">median</span>(np.<span class="f">abs</span>(history - median))
+robust_z = <span class="n">0.6745</span> * (today - median) / mad
+<span class="k">if</span> <span class="f">abs</span>(robust_z) &gt; <span class="n">3.5</span>: <span class="f">alert</span>(<span class="s">"volume anomaly"</span>)</code></pre>
+    </div>
+  </details>
+  <details class="coll">
+    <summary><span class="en">Statistical / distribution checks (drift)</span><span class="ru">Статистические / распределенческие проверки (дрифт)</span></summary>
+    <div>
+      <p class="en">Compare today's distribution to a baseline. PSI / KS for numeric, chi-square for categorical. Catches silent semantic drift.</p>
+      <p class="ru">Сравнить сегодняшнее распределение с базовой линией. PSI / KS для числовых, хи-квадрат для категориальных. Ловит тихий семантический дрифт.</p>
+      <pre><code class="en"><span class="c"># Population Stability Index &gt; 0.25 = major shift</span>
+psi = Σ (actual%_i - expected%_i) * <span class="f">ln</span>(actual%_i / expected%_i)</code></pre>
+      <pre><code class="ru"><span class="c"># Population Stability Index &gt; 0.25 = крупный сдвиг</span>
+psi = Σ (actual%_i - expected%_i) * <span class="f">ln</span>(actual%_i / expected%_i)</code></pre>
+    </div>
+  </details>
+  <details class="coll">
+    <summary><span class="en">Reconciliation against source (the accuracy gold standard)</span><span class="ru">Сверка с источником (золотой стандарт точности)</span></summary>
+    <div>
+      <p class="en">Compare your output back to the source-of-truth: row counts, control totals, checksums, sampled value-by-value. The only check that truly proves <b>accuracy</b>.</p>
+      <p class="ru">Сравнить твой вывод обратно с источником истины: число строк, контрольные суммы, чексуммы, выборочная сверка значение-по-значению. Единственная проверка, которая действительно доказывает <b>точность</b>.</p>
+      <pre><code class="en"><span class="c">-- control-total reconciliation</span>
+<span class="k">SELECT</span> <span class="k">ABS</span>(<span class="k">SUM</span>(loaded.value) - source.expected_total) <span class="k">AS</span> drift
+<span class="k">FROM</span> loaded, source_control_totals <span class="k">AS</span> source
+<span class="k">WHERE</span> drift &gt; <span class="n">0.01</span>  <span class="c">-- penny tolerance</span></code></pre>
+      <pre><code class="ru"><span class="c">-- сверка контрольных сумм</span>
+<span class="k">SELECT</span> <span class="k">ABS</span>(<span class="k">SUM</span>(loaded.value) - source.expected_total) <span class="k">AS</span> drift
+<span class="k">FROM</span> loaded, source_control_totals <span class="k">AS</span> source
+<span class="k">WHERE</span> drift &gt; <span class="n">0.01</span>  <span class="c">-- допуск на копейки</span></code></pre>
+    </div>
+  </details>
+  <div class="callout anchor en">At Career.io I codified these as <b>dbt tests</b> (generic + singular) in CI so every model PR ran schema, not-null, unique, relationships, and accepted-values checks before merge — quality shifted <em>left</em> into the dev loop.</div>
+  <div class="callout anchor ru">В Career.io я кодифицировал эти как <b>dbt-тесты</b> (generic + singular) в CI, чтобы каждый PR модели прогонял проверки schema, not-null, unique, relationships и accepted-values перед мерджем — качество сдвинулось <em>влево</em> в dev-loop.</div>
+</section>
+
+<!-- ============ WHERE ============ -->
+<section id="where" class="reveal">
+  <h2><span class="ico">📍</span><span class="en">Where to Put Controls</span><span class="ru">Где размещать контроли</span></h2>
+  <p class="en">The strong answer is "at three layers, each catching different failures, with cost increasing left-to-right."</p>
+  <p class="ru">Сильный ответ: «на трёх слоях, каждый ловит разные сбои, со стоимостью, растущей слева-направо».</p>
+  <table class="en">
+    <thead><tr><th>Layer</th><th>What it does</th><th>Catches</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td><b>1. Ingestion gates</b><br><span class="tag g">fail fast</span></td><td>Validate at the door — schema/contract, type, basic ranges <b>before</b> data enters the warehouse</td><td>Malformed feeds, contract breaks, garbage source</td><td>Cheapest fix; but limited context (can't check cross-table consistency yet)</td></tr>
+      <tr><td><b>2. In-pipeline assertions</b><br><span class="tag o">block bad loads</span></td><td>Checks between transform stages; stop/quarantine if a stage produces bad output</td><td>Transform bugs, join fan-out, business-rule violations, referential breaks</td><td>Adds runtime + complexity; must not over-block on flaky thresholds</td></tr>
+      <tr><td><b>3. Post-load audits</b><br><span class="tag">verify &amp; observe</span></td><td>Reconciliation, distribution/freshness/volume monitors on the served table</td><td>Silent drift, completeness gaps, accuracy vs source, SLA misses</td><td>Bad data may already be visible to consumers; pair with rollback/flagging</td></tr>
+    </tbody>
+  </table>
+  <table class="ru">
+    <thead><tr><th>Слой</th><th>Что делает</th><th>Ловит</th><th>Компромисс</th></tr></thead>
+    <tbody>
+      <tr><td><b>1. Ворота ингеста</b><br><span class="tag g">fail fast</span></td><td>Валидация на входе — схема/контракт, тип, базовые диапазоны <b>до того</b>, как данные попадут в хранилище</td><td>Кривые фиды, поломки контракта, мусор из источника</td><td>Дешевле всего исправить; но ограниченный контекст (пока нельзя проверить кросс-табличную согласованность)</td></tr>
+      <tr><td><b>2. Утверждения в пайплайне</b><br><span class="tag o">блок плохих загрузок</span></td><td>Проверки между этапами трансформации; стоп/карантин, если этап выдаёт плохой вывод</td><td>Баги трансформации, join fan-out, нарушения бизнес-правил, поломка ссылочной целостности</td><td>Добавляет время выполнения + сложность; нельзя пере-блокировать на зыбких порогах</td></tr>
+      <tr><td><b>3. Пост-лоад аудиты</b><br><span class="tag">проверка &amp; мониторинг</span></td><td>Сверка, мониторы distribution/freshness/volume на выставленной таблице</td><td>Тихий дрифт, пробелы в полноте, точность vs источник, пропуски SLA</td><td>Плохие данные могут уже быть видны консьюмерам; паровать с rollback/флагированием</td></tr>
+    </tbody>
+  </table>
+  <div class="callout en">Rule of thumb: <b>validate as early and as close to the source as possible</b> (cheapest to fix), but you still need post-load observability because some failures (drift, completeness vs the real world) are only visible after the fact. Shift-left for the known, monitor-right for the unknown.</div>
+  <div class="callout ru">Правило: <b>валидировать как можно раньше и ближе к источнику</b> (дешевле всего исправлять), но всё равно нужен пост-лоад мониторинг, потому что некоторые сбои (дрифт, полнота vs реальный мир) видны только постфактум. Shift-left для известного, monitor-right для неизвестного.</div>
+  <div class="callout gotcha en">Putting <b>all</b> controls only post-load means bad data already reached the terminal/consumer before you alert. Putting <b>all</b> controls only at ingestion misses transform bugs and drift. Interviewers test whether you understand the layering, not a single magic location.</div>
+  <div class="callout gotcha ru">Размещение <b>всех</b> контролей только пост-лоад означает, что плохие данные уже добрались до терминала/консьюмера до твоего алерта. Размещение <b>всех</b> контролей только на ингесте пропускает баги трансформации и дрифт. Интервьюеры проверяют, понимаешь ли ты слоение, а не одну магическую локацию.</div>
+</section>
+
+<!-- ============ BREAKERS ============ -->
+<section id="breakers" class="reveal">
+  <h2><span class="ico">🚦</span><span class="en">Circuit Breakers · Quarantine · Dead-Letter</span><span class="ru">Circuit Breakers · Карантин · Dead-Letter</span></h2>
+  <div class="grid3">
+    <div class="card"><h3 style="color:var(--red)"><span class="en">Circuit Breaker</span><span class="ru">Circuit Breaker</span></h3><p class="en">When a critical assertion fails, <b>halt the pipeline / block publish</b> so bad data never reaches consumers. Best for accuracy-critical outputs (market data, control totals).</p><p class="ru">Когда критическое утверждение проваливается, <b>остановить пайплайн / заблокировать публикацию</b>, чтобы плохие данные никогда не добрались до консьюмеров. Лучше для критичных по точности выводов (рыночные данные, контрольные суммы).</p><p class="muted en">"Better no data than wrong data" for financial feeds.</p><p class="muted ru">«Лучше вообще нет данных, чем неправильные данные» для финансовых фидов.</p></div>
+    <div class="card"><h3 style="color:var(--orange)"><span class="en">Quarantine</span><span class="ru">Карантин</span></h3><p class="en">Route failing <b>rows</b> to a side table; let valid rows flow. Keeps the pipeline running while preserving bad records for inspection &amp; backfill.</p><p class="ru">Направить провалившиеся <b>строки</b> в боковую таблицу; пустить валидные строки дальше. Держит пайплайн работающим, сохраняя плохие записи для инспекции и backfill.</p><p class="muted en">Good when partial delivery is acceptable.</p><p class="muted ru">Хорошо, когда частичная доставка приемлема.</p></div>
+    <div class="card"><h3 style="color:var(--purple)"><span class="en">Dead-Letter Queue</span><span class="ru">Dead-Letter Queue</span></h3><p class="en">Streaming pattern: messages that fail parse/validation go to a <b>DLQ</b> topic instead of crashing the consumer. Reprocess after fix.</p><p class="ru">Стриминг-паттерн: сообщения, которые провалили parse/валидацию, идут в <b>DLQ</b>-топик вместо краша консьюмера. Переобработать после фикса.</p><p class="muted en">Standard for Kafka/Kinesis ingestion.</p><p class="muted ru">Стандарт для Kafka/Kinesis ingestion.</p></div>
+  </div>
+  <pre><code class="en"><span class="k">def</span> <span class="f">process_partition</span>(rows):
+    valid, bad = [], []
+    <span class="k">for</span> r <span class="k">in</span> rows:
+        (valid <span class="k">if</span> <span class="f">passes_validation</span>(r) <span class="k">else</span> bad).<span class="f">append</span>(r)
+    bad_ratio = <span class="f">len</span>(bad) / <span class="f">max</span>(<span class="f">len</span>(rows), <span class="n">1</span>)
+    <span class="k">if</span> bad_ratio &gt; <span class="n">0.02</span>:                <span class="c"># circuit breaker: too much rot</span>
+        <span class="k">raise</span> <span class="f">PipelineHalt</span>(<span class="s">"bad-row ratio &gt; 2%, blocking publish"</span>)
+    <span class="f">write_quarantine</span>(bad)                  <span class="c"># quarantine the rest</span>
+    <span class="k">return</span> valid</code></pre>
+  <pre><code class="ru"><span class="k">def</span> <span class="f">process_partition</span>(rows):
+    valid, bad = [], []
+    <span class="k">for</span> r <span class="k">in</span> rows:
+        (valid <span class="k">if</span> <span class="f">passes_validation</span>(r) <span class="k">else</span> bad).<span class="f">append</span>(r)
+    bad_ratio = <span class="f">len</span>(bad) / <span class="f">max</span>(<span class="f">len</span>(rows), <span class="n">1</span>)
+    <span class="k">if</span> bad_ratio &gt; <span class="n">0.02</span>:                <span class="c"># circuit breaker: слишком много гнили</span>
+        <span class="k">raise</span> <span class="f">PipelineHalt</span>(<span class="s">"bad-row ratio &gt; 2%, блокируем публикацию"</span>)
+    <span class="f">write_quarantine</span>(bad)                  <span class="c"># остальное в карантин</span>
+    <span class="k">return</span> valid</code></pre>
+  <div class="callout probe en">"When do you block the whole pipeline vs quarantine bad rows?" → Block when the output is <b>accuracy-critical and partial data is misleading</b> (a control-total mismatch on a published index). Quarantine when valid rows are independently useful and you can backfill the rest. State the threshold and who gets paged.</div>
+  <div class="callout probe ru">«Когда блокировать весь пайплайн vs карантинировать плохие строки?» → Блокировать, когда вывод <b>критичен по точности и частичные данные вводят в заблуждение</b> (несоответствие контрольной суммы на публикуемом индексе). Карантин, когда валидные строки независимо полезны и можно backfill остальное. Назови порог и кого пейджить.</div>
+</section>
+
+<!-- ============ SCHEMA ============ -->
+<section id="schema" class="reveal">
+  <h2><span class="ico">🧬</span><span class="en">Schema Change, Evolution &amp; Contracts</span><span class="ru">Изменения схем, эволюция и контракты</span></h2>
+  <h3><span class="en">Detect → Classify → React</span><span class="ru">Обнаружить → Классифицировать → Отреагировать</span></h3>
+  <table class="en">
+    <thead><tr><th>Change type</th><th>Examples</th><th>Compatibility</th><th>Default reaction</th></tr></thead>
+    <tbody>
+      <tr><td><b>Backward-compatible</b></td><td>Add nullable column, widen type, add enum value</td><td><span class="tag g">safe</span></td><td>Auto-evolve + log; notify</td></tr>
+      <tr><td><b>Breaking</b></td><td>Drop/rename column, narrow type, change PK, NOT-NULL on existing</td><td><span class="tag r">breaks consumers</span></td><td>Circuit-break / require contract version bump</td></tr>
+      <tr><td><b>Semantic (sneaky)</b></td><td>Same schema, units change (% → bps), meaning shifts</td><td><span class="tag o">silent</span></td><td>Only distribution observability catches it</td></tr>
+    </tbody>
+  </table>
+  <table class="ru">
+    <thead><tr><th>Тип изменения</th><th>Примеры</th><th>Совместимость</th><th>Реакция по умолчанию</th></tr></thead>
+    <tbody>
+      <tr><td><b>Обратно совместимое</b></td><td>Добавить nullable колонку, расширить тип, добавить enum-значение</td><td><span class="tag g">безопасно</span></td><td>Авто-эволюция + лог; уведомить</td></tr>
+      <tr><td><b>Ломающее</b></td><td>Удалить/переименовать колонку, сузить тип, поменять PK, NOT-NULL на существующей</td><td><span class="tag r">ломает консьюмеров</span></td><td>Circuit-break / требовать бамп версии контракта</td></tr>
+      <tr><td><b>Семантическое (скрытное)</b></td><td>Та же схема, единицы изменились (% → bps), смысл сдвинулся</td><td><span class="tag o">тихое</span></td><td>Только мониторинг распределения его ловит</td></tr>
+    </tbody>
+  </table>
+  <h3><span class="en">Schema evolution</span><span class="ru">Эволюция схемы</span></h3>
+  <p class="en">Let schemas change <b>gracefully</b> over time without breaking readers. Columnar formats (Parquet/Avro/Iceberg/Delta) support additive evolution. Always make new columns <b>nullable with defaults</b>; never reuse a column name with new meaning.</p>
+  <p class="ru">Позволить схемам изменяться <b>плавно</b> во времени без поломки читателей. Колоночные форматы (Parquet/Avro/Iceberg/Delta) поддерживают аддитивную эволюцию. Всегда делать новые колонки <b>nullable со значениями по умолчанию</b>; никогда не переиспользовать имя колонки с новым смыслом.</p>
+  <h3><span class="en">Data contracts</span><span class="ru">Контракты данных (Data contracts)</span></h3>
+  <ul class="en">
+    <li>A <b>versioned, machine-checkable agreement</b> between producer and consumer: schema + semantics + SLAs + ownership.</li>
+    <li>Enforced in CI: producer change that violates the contract fails the build → shifts schema breakage <em>left</em>, before production.</li>
+    <li>Pairs with a <b>schema registry</b> (Avro/Protobuf) that rejects incompatible writes at publish time.</li>
+  </ul>
+  <ul class="ru">
+    <li><b>Версионированное, машинно-проверяемое соглашение</b> между продюсером и консьюмером: схема + семантика + SLA + ownership.</li>
+    <li>Исполняется в CI: изменение продюсера, нарушающее контракт, проваливает билд → сдвигает поломку схемы <em>влево</em>, до продакшена.</li>
+    <li>Парится с <b>schema registry</b> (Avro/Protobuf), который отклоняет несовместимые записи в момент публикации.</li>
+  </ul>
+  <div class="callout en">Strong framing: "I treat schema as an API. Producers can add safely; removing or retyping requires a version bump and a deprecation window. CI enforces the contract so breaking changes can't merge silently."</div>
+  <div class="callout ru">Сильное обрамление: «Я отношусь к схеме как к API. Продюсеры могут добавлять безопасно; удаление или переопределение типа требует бампа версии и окна устаревания. CI исполняет контракт, чтобы ломающие изменения не могли мёрджиться тихо».</div>
+  <div class="callout gotcha en">The dangerous one is the <b>semantic</b> change: schema validation passes, types pass, but the units or population changed. This is why distribution monitoring (pillar 4) is non-negotiable, and why a contract should pin <em>semantics</em>, not just types.</div>
+  <div class="callout gotcha ru">Опасное — это <b>семантическое</b> изменение: валидация схемы прошла, типы прошли, но единицы или популяция изменились. Поэтому мониторинг распределения (столп 4) неотменяем, и поэтому контракт должен фиксировать <em>семантику</em>, а не только типы.</div>
+</section>
+
+<!-- ============ REMEDIATION ============ -->
+<section id="remediation" class="reveal">
+  <h2><span class="ico">🛠️</span><span class="en">Exception Handling, Remediation &amp; Self-Healing</span><span class="ru">Обработка исключений, восстановление и самовосстановление</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <h3><span class="en">Exception handling principles</span><span class="ru">Принципы обработки исключений</span></h3>
+      <ul class="en">
+        <li><b>Idempotent</b> tasks: safe to re-run after failure (overwrite-by-partition, MERGE).</li>
+        <li><b>Retries with backoff</b> for transient errors; cap attempts; distinguish transient vs systematic.</li>
+        <li><b>Fail loud, fail isolated:</b> one bad partition shouldn't poison the rest.</li>
+        <li><b>Capture context</b>: which rule, which rows, which run, which upstream version.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Идемпотентные</b> таски: безопасно перезапускать после сбоя (перезапись по партиции, MERGE).</li>
+        <li><b>Ретраи с backoff</b> для транзиентных ошибок; ограничить попытки; различать транзиентное vs систематическое.</li>
+        <li><b>Провал громко, провал изолированно:</b> одна плохая партиция не должна отравить остальные.</li>
+        <li><b>Захватывать контекст</b>: какое правило, какие строки, какой ран, какая версия апстрима.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="en">Remediation ladder</span><span class="ru">Лестница восстановления</span></h3>
+      <ol class="en">
+        <li><b>Auto-heal</b>: retry, re-fetch from source, fill from last-good snapshot.</li>
+        <li><b>Quarantine + backfill</b>: hold bad rows, reprocess after fix.</li>
+        <li><b>Serve-stale-with-flag</b>: expose last good data marked <code>is_stale=true</code> rather than nothing.</li>
+        <li><b>Rollback</b>: revert to prior partition/version snapshot.</li>
+        <li><b>Page a human</b>: when none of the above is safe.</li>
+      </ol>
+      <ol class="ru">
+        <li><b>Авто-хил</b>: ретрай, перезагрузка из источника, заполнение из последнего хорошего снэпшота.</li>
+        <li><b>Карантин + backfill</b>: удержать плохие строки, переобработать после фикса.</li>
+        <li><b>Serve-stale-with-flag</b>: выдать последние хорошие данные с пометкой <code>is_stale=true</code> вместо ничего.</li>
+        <li><b>Rollback</b>: откатить к предыдущему снэпшоту партиции/версии.</li>
+        <li><b>Пейджить человека</b>: когда ничто из вышеперечисленного не безопасно.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="callout anchor en">For the <b>6.2B-record entity-resolution defect</b>, remediation was: (1) freeze the bad merge logic, (2) reprocess affected entity clusters via an idempotent backfill keyed by cluster id, (3) add reconciliation + cluster-size distribution assertions so the defect class can never silently recur. That last step — turning an incident into a permanent test — is the part interviewers reward.</div>
+  <div class="callout anchor ru">Для <b>дефекта entity-resolution на 6.2B записях</b> восстановление было: (1) заморозить плохую merge-логику, (2) переобработать затронутые кластеры сущностей через идемпотентный backfill по ключу cluster id, (3) добавить сверку + утверждения на распределение размеров кластеров, чтобы класс дефекта никогда не мог тихо повториться. Этот последний шаг — превращение инцидента в постоянный тест — это часть, которую интервьюеры награждают.</div>
+  <div class="callout probe en">"What's true self-healing vs just retries?" → Retries handle <b>transient</b> faults. Self-healing handles <b>predictable failure classes</b> deterministically (re-derive from source, swap to last-good snapshot, auto-quarantine) without a human. Be honest: don't auto-heal accuracy-critical financial outputs silently; alert even when you recover.</div>
+  <div class="callout probe ru">«Что такое настоящее самовосстановление vs просто ретраи?» → Ретраи обрабатывают <b>транзиентные</b> сбои. Самовосстановление обрабатывает <b>предсказуемые классы сбоев</b> детерминированно (перевывести из источника, переключиться на последний хороший снэпшот, авто-карантин) без человека. Будь честен: не авто-хили критичные по точности финансовые выводы тихо; алерть даже когда восстанавливаешь.</div>
+</section>
+
+<!-- ============ ALERTING ============ -->
+<section id="alerting" class="reveal">
+  <h2><span class="ico">🔔</span><span class="en">Alerting Design · SLAs / SLOs</span><span class="ru">Дизайн алертов · SLA / SLO</span></h2>
+  <h3><span class="en">Severity &amp; routing</span><span class="ru">Severity и маршрутизация</span></h3>
+  <table class="en">
+    <thead><tr><th>Severity</th><th>Trigger</th><th>Route</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag r">P0 / Critical</span></td><td>Published market data wrong/missing; SLA breach on a traded series</td><td>Page on-call now</td><td>Circuit-break; incident channel</td></tr>
+      <tr><td><span class="tag o">P1 / High</span></td><td>Freshness/volume anomaly, contract break upstream</td><td>Page during hours / ticket</td><td>Triage via lineage; remediate</td></tr>
+      <tr><td><span class="tag">P2 / Warn</span></td><td>Soft drift, rising NULL rate, slow trend</td><td>Dashboard + digest</td><td>Investigate proactively</td></tr>
+    </tbody>
+  </table>
+  <table class="ru">
+    <thead><tr><th>Severity</th><th>Триггер</th><th>Маршрутизация</th><th>Действие</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag r">P0 / Critical</span></td><td>Публикуемые рыночные данные неправильные/отсутствуют; нарушение SLA на торгуемом ряде</td><td>Пейджить on-call сейчас</td><td>Circuit-break; канал инцидента</td></tr>
+      <tr><td><span class="tag o">P1 / High</span></td><td>Аномалия freshness/volume, поломка контракта апстрима</td><td>Пейджить в часы работы / тикет</td><td>Триаж через lineage; восстановить</td></tr>
+      <tr><td><span class="tag">P2 / Warn</span></td><td>Мягкий дрифт, растущая доля NULL, медленный тренд</td><td>Дашборд + дайджест</td><td>Расследовать проактивно</td></tr>
+    </tbody>
+  </table>
+  <h3><span class="en">SLAs vs SLOs vs SLIs for data</span><span class="ru">SLA vs SLO vs SLI для данных</span></h3>
+  <ul class="en">
+    <li><b>SLI</b> (indicator): the measured signal — e.g., freshness lag in minutes, completeness %.</li>
+    <li><b>SLO</b> (objective): internal target — "99% of daily prints land by 08:31 ET".</li>
+    <li><b>SLA</b> (agreement): the externally-promised commitment, often with consequences.</li>
+    <li>Track an <b>error budget</b>: how much SLO breach is tolerable before you stop shipping and fix reliability.</li>
+  </ul>
+  <ul class="ru">
+    <li><b>SLI</b> (indicator): измеряемый сигнал — например, задержка freshness в минутах, полнота %.</li>
+    <li><b>SLO</b> (objective): внутренний таргет — «99% дневных публикаций приземляются к 08:31 ET».</li>
+    <li><b>SLA</b> (agreement): внешне обещанное обязательство, часто с последствиями.</li>
+    <li>Отслеживать <b>бюджет ошибок (error budget)</b>: насколько можно нарушать SLO, прежде чем ты перестаёшь шипить фичи и чинишь надёжность.</li>
+  </ul>
+  <h3><span class="en">Beating alert fatigue</span><span class="ru">Борьба с усталостью от алертов</span></h3>
+  <ul class="en">
+    <li><b>Tier severities</b>; only P0/P1 page. Everything else digests.</li>
+    <li><b>Deduplicate &amp; group</b> by root cause (lineage): one upstream failure → one alert, not 40 downstream alerts.</li>
+    <li><b>Dynamic thresholds</b> (seasonality-aware) over static ones to cut false positives.</li>
+    <li><b>Actionable</b>: every alert names the table, the rule, the owner, and a runbook link.</li>
+    <li>Track <b>alert precision</b>; prune noisy rules. A monitor nobody trusts is worse than none.</li>
+  </ul>
+  <ul class="ru">
+    <li><b>Тирировать severity</b>; пейджить только P0/P1. Всё остальное дайджестит.</li>
+    <li><b>Дедуплицировать &amp; группировать</b> по первопричине (lineage): один апстрим-сбой → один алерт, а не 40 даунстрим-алертов.</li>
+    <li><b>Динамические пороги</b> (сезонно-осведомлённые) вместо статических, чтобы резать ложные срабатывания.</li>
+    <li><b>Действенно</b>: каждый алерт называет таблицу, правило, владельца и ссылку на runbook.</li>
+    <li>Отслеживать <b>точность алертов (alert precision)</b>; подрезать шумные правила. Монитор, которому никто не доверяет, хуже чем его отсутствие.</li>
+  </ul>
+  <div class="callout gotcha en">The #1 observability failure mode in practice is <b>alert fatigue</b>: too many low-value pages and people mute the channel — then the real P0 gets missed. Always pair "more coverage" with "ruthless noise control."</div>
+  <div class="callout gotcha ru">№1 режим сбоя observability на практике — это <b>усталость от алертов</b>: слишком много малоценных пейджов и люди мьютят канал — потом реальный P0 пропускается. Всегда парь «больше покрытия» с «безжалостным контролем шума».</div>
+</section>
+
+<!-- ============ TOOLS ============ -->
+<section id="tools" class="reveal">
+  <h2><span class="ico">🧰</span><span class="en">Tools Landscape</span><span class="ru">Ландшафт инструментов</span></h2>
+  <table class="en">
+    <thead><tr><th>Tool</th><th>Category</th><th>Strengths</th><th>Watch-outs</th></tr></thead>
+    <tbody>
+      <tr><td><b>Great Expectations</b></td><td>DQ assertions</td><td>Rich expectation library, data docs, profiling</td><td>Config-heavy; can be slow at very large scale</td></tr>
+      <tr><td><b>dbt tests</b></td><td>DQ in transform layer</td><td>Generic + singular tests in CI, version-controlled, free</td><td>Warehouse-only; runs at build, not continuous monitoring</td></tr>
+      <tr><td><b>Soda</b></td><td>DQ checks (SodaCL)</td><td>Simple YAML checks, in-pipeline + scheduled</td><td>Less ecosystem than GE</td></tr>
+      <tr><td><b>Monte Carlo</b></td><td>Observability (ML)</td><td>Auto 5-pillar monitors, lineage, low setup</td><td>Commercial; can be a black box; cost</td></tr>
+      <tr><td><b>Anomalo</b></td><td>Observability (ML)</td><td>Unsupervised anomaly detection on tables</td><td>Commercial; tuning false positives</td></tr>
+      <tr><td><b>Custom framework</b></td><td>Both</td><td>Fits warehouse/scale exactly; metrics → ODS/Scuba dashboards</td><td>You own maintenance; reinvention risk</td></tr>
+    </tbody>
+  </table>
+  <table class="ru">
+    <thead><tr><th>Инструмент</th><th>Категория</th><th>Сильные стороны</th><th>Что учитывать</th></tr></thead>
+    <tbody>
+      <tr><td><b>Great Expectations</b></td><td>DQ-утверждения</td><td>Богатая библиотека ожиданий, data docs, профилирование</td><td>Тяжёлая конфигурация; может быть медленным на очень больших масштабах</td></tr>
+      <tr><td><b>dbt tests</b></td><td>DQ в слое трансформации</td><td>Generic + singular тесты в CI, версионируемые, бесплатные</td><td>Только хранилище; запуск на билде, а не непрерывный мониторинг</td></tr>
+      <tr><td><b>Soda</b></td><td>DQ-проверки (SodaCL)</td><td>Простые YAML-проверки, в пайплайне + по расписанию</td><td>Меньше экосистемы, чем GE</td></tr>
+      <tr><td><b>Monte Carlo</b></td><td>Observability (ML)</td><td>Авто-мониторы 5 столпов, lineage, мало настройки</td><td>Коммерческий; может быть чёрным ящиком; стоимость</td></tr>
+      <tr><td><b>Anomalo</b></td><td>Observability (ML)</td><td>Без-учительное обнаружение аномалий на таблицах</td><td>Коммерческий; настройка ложных срабатываний</td></tr>
+      <tr><td><b>Кастомный фреймворк</b></td><td>Оба</td><td>Подходит под хранилище/масштаб точно; метрики → ODS/Scuba дашборды</td><td>Ты владелец обслуживания; риск переизобретения</td></tr>
+    </tbody>
+  </table>
+  <div class="callout en"><b>Decision logic:</b> dbt tests / Great Expectations for declarative <em>known-unknowns shifted left into CI</em>; Monte Carlo / Anomalo (or a custom metric pipeline) for <em>unknown-unknowns + drift</em> across many tables; custom when you operate at billions-of-rows scale where off-the-shelf full-scan tools are too slow or costly.</div>
+  <div class="callout ru"><b>Логика выбора:</b> dbt tests / Great Expectations для декларативных <em>известных-неизвестных, сдвинутых влево в CI</em>; Monte Carlo / Anomalo (или кастомный метрик-пайплайн) для <em>неизвестных-неизвестных + дрифта</em> по многим таблицам; кастомный, когда оперируешь на масштабах миллиардов строк, где off-the-shelf полно-сканные инструменты слишком медленные или дорогие.</div>
+  <div class="callout anchor en">At Meta I leaned on a <b>custom framework</b> emitting DQ metrics to internal dashboards/alerts (the model Great Expectations/Soda formalize); at Career.io I used <b>dbt tests</b> in CI. Showing I've used both managed and hand-rolled approaches signals I'll pick the right one for the stack rather than dogmatically pushing one tool.</div>
+  <div class="callout anchor ru">В Meta я опирался на <b>кастомный фреймворк</b>, эмитящий DQ-метрики во внутренние дашборды/алерты (модель, которую формализуют Great Expectations/Soda); в Career.io я использовал <b>dbt tests</b> в CI. Показывая, что я использовал оба подхода (управляемый и hand-rolled), сигналю, что я выберу правильный для стека, а не догматично толкаю один инструмент.</div>
+</section>
+
+<!-- ============ SCALE ============ -->
+<section id="scale" class="reveal">
+  <h2><span class="ico">📈</span><span class="en">Designing Controls That Scale to Billions of Rows</span><span class="ru">Дизайн контролей, масштабирующихся на миллиарды строк</span></h2>
+  <p class="en">This is where the 3.6B-events/day and 6.2B-record anchors earn their keep. Full-table validation on every run is infeasible at that scale; you trade exactness for cost.</p>
+  <p class="ru">Здесь якоря «3.6B событий/день» и «6.2B записей» окупаются. Полная валидация таблицы на каждый ран невозможна на таком масштабе; ты обмениваешь точность на стоимость.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3><span class="en">Make checks cheap</span><span class="ru">Делай проверки дешёвыми</span></h3>
+      <ul class="en">
+        <li><b>Aggregate-first:</b> validate counts, sums, NULL ratios, min/max — O(scan) once, not row-by-row in app code.</li>
+        <li><b>Push down</b> checks into SQL / the engine; let the warehouse parallelize.</li>
+        <li><b>Incremental / partition-scoped:</b> validate only the new partition, not history.</li>
+        <li><b>Sampling</b> for expensive value-level checks; full scan only on aggregates.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Сначала агрегаты:</b> валидировать counts, sums, доли NULL, min/max — O(scan) один раз, а не построчно в коде приложения.</li>
+        <li><b>Спустить вниз (Push down)</b> проверки в SQL / движок; пусть хранилище распараллеливает.</li>
+        <li><b>Инкрементально / партиция-скоупед:</b> валидировать только новую партицию, а не историю.</li>
+        <li><b>Выборка (Sampling)</b> для дорогих построчных проверок; полный скан только на агрегатах.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="en">Make checks smart</span><span class="ru">Делай проверки умными</span></h3>
+      <ul class="en">
+        <li><b>Approximate algorithms:</b> HyperLogLog for distinct counts, sketches for quantiles.</li>
+        <li><b>Metric store + baselines:</b> persist DQ metrics over time so anomaly detection is a cheap compare, not a recompute.</li>
+        <li><b>Tier checks by criticality:</b> heavy reconciliation on key series, light monitors elsewhere.</li>
+        <li><b>Async observability</b> off the hot path; <b>synchronous gates</b> only for circuit-break-critical rules.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Приблизительные алгоритмы:</b> HyperLogLog для distinct counts, скетчи для квантилей.</li>
+        <li><b>Метрик-стор + базовые линии:</b> сохранять DQ-метрики во времени, чтобы обнаружение аномалий было дешёвым сравнением, а не перевычислением.</li>
+        <li><b>Тирировать проверки по критичности:</b> тяжёлая сверка на ключевых рядах, лёгкие мониторы где-то ещё.</li>
+        <li><b>Асинхронный observability</b> вне горячего пути; <b>синхронные ворота</b> только для circuit-break-критичных правил.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout anchor en">My <b>DQ monitors on the 3.6B-events/day pipeline</b> worked exactly this way: partition-scoped aggregate metrics (volume, freshness, NULL/distribution) emitted to a time-series store with seasonality-aware thresholds, plus a few synchronous circuit-breaker assertions on the must-be-correct fields. Full row-level validation only on sampled slices. That kept DQ cost a tiny fraction of pipeline cost while still catching real defects.</div>
+  <div class="callout anchor ru">Мои <b>DQ-мониторы на пайплайне 3.6B событий/день</b> работали именно так: партиция-скоупед агрегатные метрики (volume, freshness, NULL/distribution) эмитились в time-series стор с сезонно-осведомлёнными порогами, плюс несколько синхронных circuit-breaker-утверждений на must-be-correct поля. Полная построчная валидация только на выборочных слайсах. Это держало стоимость DQ крошечной долей стоимости пайплайна, всё ещё ловя реальные дефекты.</div>
+  <div class="callout probe en">"How do you validate uniqueness on 6 billion rows without it dominating runtime?" → Don't COUNT(DISTINCT) the world each run: validate uniqueness <b>incrementally per partition</b> + an approximate distinct (HLL) tripwire on the full key space + a periodic exact reconciliation job. Explain the cost/exactness trade-off explicitly.</div>
+  <div class="callout probe ru">«Как валидировать уникальность на 6 миллиардах строк без доминирования рантайма?» → Не COUNT(DISTINCT) весь мир на каждый ран: валидировать уникальность <b>инкрементально на партицию</b> + приблизительный distinct (HLL) триггер на полном ключевом пространстве + периодический точный reconciliation job. Объясни компромисс стоимость/точность явно.</div>
+</section>
+
+<!-- ============ DIAGRAM ============ -->
+<section id="diagram" class="reveal">
+  <h2><span class="ico">🗺️</span><span class="en">Pipeline With Controls (Reference Diagram)</span><span class="ru">Пайплайн с контролями (референсная диаграмма)</span></h2>
+  <div class="diagram">
+<pre class="en">
+  SOURCE FEEDS                INGEST                  TRANSFORM                 SERVE / CONSUME
+  (BLS, FX, GDP,          ┌──────────────┐       ┌──────────────────┐       ┌──────────────────┐
+   vendor APIs) ─────────▶│ [1] INGEST   │──────▶│ [2] IN-PIPELINE  │──────▶│ [3] POST-LOAD    │──▶ Terminal /
+                          │     GATES    │       │    ASSERTIONS    │       │    AUDITS + OBS  │    dashboards /
+                          └──────┬───────┘       └────────┬─────────┘       └────────┬─────────┘    downstream
+                                 │ fail                   │ fail                     │ drift/SLA
+                          schema/contract        biz-rules / ref-integ        reconcile vs source
+                          type / range           join fan-out / dedup         freshness · volume
+                                 │                        │                   schema · dist · lineage
+                                 ▼                        ▼                          ▼
+                          ┌────────────┐  bad rows  ┌──────────┐            ┌──────────────────┐
+                          │   DLQ /    │◀───────────│QUARANTINE│            │  METRIC STORE    │
+                          │  REJECT    │            │  TABLE   │──backfill─▶│  (time-series)   │
+                          └────────────┘            └──────────┘            └────────┬─────────┘
+                                 ▲                                                   │ anomaly?
+                          CIRCUIT BREAKER: bad-ratio &gt; threshold  ──── HALT ─────────┤
+                                                                                     ▼
+                                                                       ┌──────────────────────┐
+                                                                       │ ALERTING (P0/P1/P2)  │
+                                                                       │ severity · SLO/SLA   │
+                                                                       │ lineage-grouped      │
+                                                                       └──────────┬───────────┘
+                                                                                  ▼
+                                                                       REMEDIATION LADDER:
+                                                                       retry → re-fetch → last-good
+                                                                       → rollback → page human
+</pre>
+<pre class="ru">
+  ФИДЫ-ИСТОЧНИКИ            INGEST                  TRANSFORM                 SERVE / CONSUME
+  (BLS, FX, GDP,          ┌──────────────┐       ┌──────────────────┐       ┌──────────────────┐
+   vendor API)  ─────────▶│ [1] ВОРОТА   │──────▶│ [2] УТВЕРЖДЕНИЯ  │──────▶│ [3] ПОСТ-ЛОАД    │──▶ Терминал /
+                          │   ИНГЕСТА    │       │   В ПАЙПЛАЙНЕ    │       │  АУДИТ + МОНИТ.  │    дашборды /
+                          └──────┬───────┘       └────────┬─────────┘       └────────┬─────────┘    даунстрим
+                                 │ провал                 │ провал                   │ дрифт/SLA
+                          схема/контракт         бизн-правила / реф-целост.  сверка с источником
+                          тип / диапазон         join fan-out / дедуп         freshness · volume
+                                 │                        │                   schema · dist · lineage
+                                 ▼                        ▼                          ▼
+                          ┌────────────┐  плохие    ┌──────────┐            ┌──────────────────┐
+                          │   DLQ /    │   строки   │ КАРАНТИН │            │  МЕТРИК-СТОР     │
+                          │  REJECT    │◀───────────│  ТАБЛИЦА │──backfill─▶│  (time-series)   │
+                          └────────────┘            └──────────┘            └────────┬─────────┘
+                                 ▲                                                   │ аномалия?
+                          CIRCUIT BREAKER: bad-ratio &gt; порог  ────── HALT ───────────┤
+                                                                                     ▼
+                                                                       ┌──────────────────────┐
+                                                                       │ АЛЕРТЫ (P0/P1/P2)    │
+                                                                       │ severity · SLO/SLA   │
+                                                                       │ группировка lineage  │
+                                                                       └──────────┬───────────┘
+                                                                                  ▼
+                                                                       ЛЕСТНИЦА ВОССТАНОВЛЕНИЯ:
+                                                                       retry → перезагрузка → last-good
+                                                                       → rollback → пейджить человека
+</pre>
+  </div>
+  <p class="muted en">Three control layers (cheapest fix on the left), DLQ/quarantine for bad records, a metric store powering observability + anomaly detection, a circuit breaker that can halt publish, and a severity-tiered alerting path into a remediation ladder.</p>
+  <p class="muted ru">Три контрольных слоя (дешевле всего чинить слева), DLQ/карантин для плохих записей, метрик-стор, питающий мониторинг + обнаружение аномалий, circuit breaker, способный остановить публикацию, и severity-тирированный путь алертов в лестницу восстановления.</p>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz" class="reveal">
+  <h2><span class="ico">🃏</span><span class="en">Self-Quiz — Flip to Reveal</span><span class="ru">Самопроверка — кликни чтобы открыть</span></h2>
+  <p class="muted en">Tap a card to flip. Say the answer out loud first.</p>
+  <p class="muted ru">Кликни на карту, чтобы перевернуть. Сначала произнеси ответ вслух.</p>
+  <div class="flipgrid">
+
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Q1. What's the difference between data quality and data observability?</span><span class="ru">Q1. Разница между качеством данных и observability?</span></div><div class="hint"><span class="en">known vs unknown…</span><span class="ru">известное vs неизвестное…</span></div></div>
+        <div class="flip-face flip-back">
+          <div class="en"><b>DQ</b> = declarative tests on <b>known-unknowns</b> (rules you wrote: ranges, PK, not-null). <b>Observability</b> = statistical baselines + metadata over time to surface <b>unknown-unknowns</b> (drift, silent breakage, upstream surprises). A pipeline can pass every DQ test and still be silently broken — that's why you need both.</div>
+          <div class="ru"><b>DQ</b> = декларативные тесты на <b>известные-неизвестные</b> (правила, которые ты написал: диапазоны, PK, not-null). <b>Observability</b> = статистические базовые линии + метаданные во времени, чтобы выявить <b>неизвестные-неизвестные</b> (дрифт, тихие поломки, сюрпризы апстрима). Пайплайн может проходить каждый DQ-тест и всё ещё быть тихо сломанным — поэтому нужны оба.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Q2. Name the 5 pillars of observability and one signal each.</span><span class="ru">Q2. Назови 5 столпов observability и по одному сигналу.</span></div><div class="hint">F V S D L</div></div>
+        <div class="flip-face flip-back">
+          <div class="en"><b>Freshness</b> (now − max updated_at), <b>Volume</b> (row count vs baseline), <b>Schema</b> (structure diff vs contract), <b>Distribution</b> (NULL%/mean/cardinality/drift), <b>Lineage</b> (upstream-downstream graph for root cause + blast radius).</div>
+          <div class="ru"><b>Freshness</b> (now − max updated_at), <b>Volume</b> (число строк vs базис), <b>Schema</b> (структурный diff vs контракт), <b>Distribution</b> (NULL%/mean/кардинальность/дрифт), <b>Lineage</b> (граф апстрим-даунстрим для первопричины + радиус поражения).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Q3. The schema didn't change and all dbt tests pass, but the numbers look off. What kind of failure, and what catches it?</span><span class="ru">Q3. Схема не изменилась и все dbt-тесты прошли, но числа выглядят не так. Какой тип сбоя и что его ловит?</span></div><div class="hint"><span class="en">units…</span><span class="ru">единицы…</span></div></div>
+        <div class="flip-face flip-back">
+          <div class="en">A <b>semantic change</b> (e.g., units shifted % → bps, or population changed) — same schema, same types, different meaning. Type/schema validation can't see it; only <b>distribution observability</b> (pillar 4) and <b>reconciliation vs source</b> catch it. Pin semantics in the data contract, not just types.</div>
+          <div class="ru"><b>Семантическое изменение</b> (например, единицы сдвинулись % → bps, или популяция изменилась) — та же схема, те же типы, другой смысл. Валидация типа/схемы этого не видит; только <b>мониторинг распределения</b> (столп 4) и <b>сверка с источником</b> ловят. Фиксировать семантику в контракте данных, а не только типы.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Q4. When do you circuit-break the pipeline vs quarantine bad rows?</span><span class="ru">Q4. Когда делать circuit-break пайплайна vs карантин плохих строк?</span></div><div class="hint"><span class="en">accuracy-critical?</span><span class="ru">критично по точности?</span></div></div>
+        <div class="flip-face flip-back">
+          <div class="en"><b>Circuit-break</b> when output is accuracy-critical and partial/wrong data is misleading (e.g., published index fails a control-total check) — better no data than wrong data. <b>Quarantine</b> when valid rows are independently useful and bad ones can be backfilled. Define the threshold (e.g., bad-ratio &gt; 2%) and who gets paged.</div>
+          <div class="ru"><b>Circuit-break</b>, когда вывод критичен по точности и частичные/неправильные данные вводят в заблуждение (например, публикуемый индекс проваливает проверку контрольной суммы) — лучше нет данных, чем неправильные. <b>Карантин</b>, когда валидные строки независимо полезны и плохие можно backfill. Определить порог (например, bad-ratio &gt; 2%) и кого пейджить.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Q5. How do you validate uniqueness/quality on billions of rows affordably?</span><span class="ru">Q5. Как валидировать уникальность/качество на миллиардах строк доступно?</span></div><div class="hint"><span class="en">incremental + approx</span><span class="ru">инкрементально + приблизительно</span></div></div>
+        <div class="flip-face flip-back">
+          <div class="en">Validate <b>incrementally per partition</b>, push checks down into SQL, validate <b>aggregates</b> (counts/sums/NULL%) instead of row-by-row, use <b>approximate</b> structures (HLL for distinct, sketches for quantiles) as tripwires, persist metrics to a store for cheap baseline comparison, and run exact reconciliation periodically — not every run. Tier heavy checks to critical fields.</div>
+          <div class="ru">Валидировать <b>инкрементально на партицию</b>, спустить проверки в SQL, валидировать <b>агрегаты</b> (counts/sums/NULL%) вместо построчно, использовать <b>приблизительные</b> структуры (HLL для distinct, скетчи для квантилей) как триггеры, сохранять метрики в стор для дешёвого сравнения с базисом, и запускать точную сверку периодически — не на каждый ран. Тирировать тяжёлые проверки на критичные поля.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Q6. SLI vs SLO vs SLA, and how do you fight alert fatigue?</span><span class="ru">Q6. SLI vs SLO vs SLA, и как бороться с усталостью от алертов?</span></div><div class="hint"><span class="en">indicator/objective/agreement</span><span class="ru">индикатор/цель/соглашение</span></div></div>
+        <div class="flip-face flip-back">
+          <div class="en"><b>SLI</b> = measured signal (freshness lag). <b>SLO</b> = internal target (99% land by 08:31). <b>SLA</b> = external promise with consequences. Fight fatigue: tier severity (only P0/P1 page), group alerts by root cause via lineage, dynamic seasonality-aware thresholds, make every alert actionable (table+rule+owner+runbook), and prune low-precision monitors.</div>
+          <div class="ru"><b>SLI</b> = измеряемый сигнал (задержка freshness). <b>SLO</b> = внутренний таргет (99% приземляются к 08:31). <b>SLA</b> = внешнее обещание с последствиями. Борьба с усталостью: тирировать severity (пейджить только P0/P1), группировать алерты по первопричине через lineage, динамические сезонно-осведомлённые пороги, делать каждый алерт действенным (таблица+правило+владелец+runbook), и подрезать мало-точные мониторы.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr>
+<section class="reveal">
+  <h2><span class="ico">🎤</span><span class="en">30-Second Closing Pitch</span><span class="ru">30-секундный closing pitch</span></h2>
+  <div class="card">
+    <p class="en">"I think about quality as <b>fitness-for-use across accuracy, completeness, timeliness, consistency, validity and uniqueness</b>, enforced at three layers: ingestion gates, in-pipeline assertions, and post-load audits. On top of that I run <b>observability</b> — freshness, volume, schema, distribution, lineage — to catch the failures I never wrote a rule for. I've done this at scale: I fixed an <b>entity-resolution defect across 6.2 billion records</b> by combining distribution observability with reconciliation, then locked it in with assertions; and I built <b>DQ monitors on a 3.6B-events/day pipeline</b> using partition-scoped aggregate metrics and seasonality-aware alerting so the cost stayed tiny. For economics data, where timeliness and accuracy are non-negotiable, I'd embed circuit breakers on the must-be-correct series, contracts on the schema, and a severity-tiered alerting path into a remediation ladder — so bad data never silently reaches the terminal."</p>
+    <p class="ru">«Я думаю о качестве как о <b>пригодности для использования по точности, полноте, своевременности, согласованности, корректности и уникальности</b>, исполняемой на трёх слоях: ворота ингеста, утверждения в пайплайне и пост-лоад аудиты. Поверх этого я запускаю <b>observability</b> — freshness, volume, schema, distribution, lineage — чтобы ловить сбои, на которые я никогда не писал правила. Я делал это на масштабе: я исправил <b>дефект entity-resolution на 6.2 миллиардах записей</b> комбинируя мониторинг распределения со сверкой, затем зафиксировал это утверждениями; и я построил <b>DQ-мониторы на пайплайне 3.6B событий/день</b> используя партиция-скоупед агрегатные метрики и сезонно-осведомлённые алерты, чтобы стоимость оставалась крошечной. Для экономических данных, где своевременность и точность неотменяемы, я бы встроил circuit breakers на must-be-correct ряды, контракты на схему, и severity-тирированный путь алертов в лестницу восстановления — чтобы плохие данные никогда тихо не добирались до терминала».</p>
+  </div>
+</section>
+
+<div class="footer">
+  <span class="en">Data Quality Controls &amp; Observability · Data Engineering Interview Prep · Amal Imangulov · self-contained, offline</span>
+  <span class="ru">Контроль качества данных и мониторинг · Подготовка к DE-интервью · Amal Imangulov · автономный, офлайн</span>
+</div>
+
+</div>
+
+<script>
+  // theme + lang toggle (COMBINED IIFE from kafka.html)
+  (function () {
+    var langBtn = document.getElementById('langBtn');
+    var themeBtn = document.getElementById('themeBtn');
+    var root = document.documentElement;
+
+    // theme
+    function applyTheme(t) {
+      if (t === 'light') { root.setAttribute('data-theme', 'light'); themeBtn.textContent = '☀ Light'; }
+      else { root.removeAttribute('data-theme'); themeBtn.textContent = '🌙 Dark'; }
+    }
+    var savedTheme = null;
+    try { savedTheme = localStorage.getItem('de_cheat_theme'); } catch (e) {}
+    applyTheme(savedTheme || 'dark');
+    themeBtn.addEventListener('click', function () {
+      var cur = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      applyTheme(cur);
+      try { localStorage.setItem('de_cheat_theme', cur); } catch (e) {}
+    });
+
+    // lang
+    function applyLang(l) {
+      root.setAttribute('data-lang', l);
+      langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+    }
+    var savedLang = null;
+    try { savedLang = localStorage.getItem('de_cheat_lang'); } catch (e) {}
+    applyLang(savedLang || 'en');
+    langBtn.addEventListener('click', function () {
+      var cur = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+      applyLang(cur);
+      try { localStorage.setItem('de_cheat_lang', cur); } catch (e) {}
+    });
+  })();
+
+  // scroll reveal
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { threshold: 0.08 });
+    els.forEach(function (e) { io.observe(e); });
+  })();
+</script>
+</body>
+</html>

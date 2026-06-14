@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Software Testing for Data Engineering — Data Engineering Interview Cheatsheet</title>
+<style>
+:root{
+  --bg:#0a0e1a; --card:#151d30; --card2:#1b2540; --text:#e7ecf5; --muted:#93a0bd;
+  --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7;
+  --border:#26314f; --code-bg:#0d1424; --shadow:rgba(0,0,0,.35);
+  --kw:#a855f7; --str:#02e2ac; --num:#f59e0b; --com:#6b7794; --fn:#1877F2;
+}
+:root[data-theme="light"]{
+  --bg:#f4f6fb; --card:#ffffff; --card2:#eef2fa; --text:#10182b; --muted:#5b667e;
+  --accent:#1264d6; --green:#0a9e7a; --orange:#c97a06; --purple:#8b3fd6;
+  --border:#d6deec; --code-bg:#f0f3fa; --shadow:rgba(40,60,120,.12);
+  --kw:#8b3fd6; --str:#0a9e7a; --num:#c97a06; --com:#8893a8; --fn:#1264d6;
+}
+
+/* ---- i18n language toggle ---- */
+[data-lang="en"] .ru { display: none !important; }
+[data-lang="ru"] .en { display: none !important; }
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+
+/* Nav */
+nav{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.86);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+:root[data-theme="light"] nav{background:rgba(244,246,251,.9)}
+nav .brand{font-weight:800;font-size:14px;color:var(--text);margin-right:6px;white-space:nowrap}
+nav .links{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+nav a.navlink{font-size:12px;color:var(--muted);padding:4px 9px;border-radius:7px;border:1px solid transparent;white-space:nowrap}
+nav a.navlink:hover{color:var(--text);background:var(--card2);border-color:var(--border)}
+.toggles{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
+.toggle-btn{cursor:pointer;border:1px solid var(--border);background:var(--card2);color:var(--text);
+  border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+.toggle-btn:hover{border-color:var(--accent)}
+
+/* Layout */
+header.hero{max-width:1080px;margin:0 auto;padding:38px 20px 8px}
+header.hero h1{font-size:30px;margin:0 0 6px;line-height:1.15}
+header.hero h1 .accent{color:var(--accent)}
+header.hero .sub{color:var(--muted);font-size:15px;margin:0 0 14px}
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  padding:3px 9px;border-radius:20px;margin:0 6px 6px 0}
+.pill.b{background:rgba(24,119,242,.16);color:var(--accent);border:1px solid rgba(24,119,242,.4)}
+.pill.g{background:rgba(2,226,172,.14);color:var(--green);border:1px solid rgba(2,226,172,.4)}
+.pill.o{background:rgba(245,158,11,.14);color:var(--orange);border:1px solid rgba(245,158,11,.4)}
+.pill.p{background:rgba(168,85,247,.16);color:var(--purple);border:1px solid rgba(168,85,247,.4)}
+
+main{max-width:1080px;margin:0 auto;padding:8px 20px 80px}
+section{margin:26px 0}
+.section-head{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;
+  padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 2px 10px var(--shadow)}
+.section-head h2{margin:0;font-size:19px}
+.section-head .ico{font-size:13px;color:var(--muted);transition:transform .2s;margin-left:auto}
+.section-head.collapsed .ico{transform:rotate(-90deg)}
+.section-body{padding:6px 2px 2px;overflow:hidden;transition:max-height .35s ease}
+.section-body.collapsed{max-height:0!important;padding-top:0;padding-bottom:0}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:12px 0;box-shadow:0 2px 10px var(--shadow)}
+.card h3{margin:0 0 8px;font-size:16px}
+.card h4{margin:14px 0 6px;font-size:14px;color:var(--accent)}
+.grid{display:grid;gap:12px}
+@media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:1fr 1fr 1fr}}
+
+ul{margin:6px 0;padding-left:20px}li{margin:3px 0}
+.muted{color:var(--muted)}
+.kbd{background:var(--card2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:12px;font-family:ui-monospace,monospace}
+
+/* callouts */
+.callout{border-left:3px solid var(--accent);background:var(--card2);border-radius:0 10px 10px 0;padding:10px 14px;margin:10px 0}
+.callout.probe{border-color:var(--orange)}
+.callout.gotcha{border-color:#ef4444}
+.callout.anchor{border-color:var(--green)}
+.callout.gap{border-color:var(--purple)}
+.callout .label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px}
+.callout.probe .label{color:var(--orange)}
+.callout .label.r{color:#ef4444}
+.callout.anchor .label{color:var(--green)}
+.callout.gap .label{color:var(--purple)}
+
+/* code */
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;overflow-x:auto;font-size:12.5px;line-height:1.5;margin:10px 0}
+pre .kw{color:var(--kw);font-weight:600}pre .str{color:var(--str)}pre .num{color:var(--num)}
+pre .com{color:var(--com);font-style:italic}pre .fn{color:var(--fn)}
+.ascii{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:14px;overflow-x:auto;
+  font-size:12px;line-height:1.35;color:var(--text);white-space:pre;margin:10px 0}
+
+/* tables */
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;overflow:hidden;border-radius:10px}
+th,td{text-align:left;padding:8px 10px;border:1px solid var(--border);vertical-align:top}
+th{background:var(--card2);font-size:12px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}
+tr:nth-child(even) td{background:var(--card2)}
+
+/* flip cards */
+.flipwrap{display:grid;gap:12px;margin:10px 0}
+@media(min-width:680px){.flipwrap{grid-template-columns:1fr 1fr}}
+.flip{perspective:1200px;height:170px;cursor:pointer}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .55s;transform-style:preserve-3d}
+.flip.flipped .flip-inner{transform:rotateY(180deg)}
+.flip-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;border:1px solid var(--border);
+  padding:14px 16px;display:flex;flex-direction:column;justify-content:center;box-shadow:0 2px 10px var(--shadow);overflow:auto}
+.flip-front{background:var(--card)}
+.flip-back{background:linear-gradient(160deg,var(--card2),var(--card));transform:rotateY(180deg);border-color:var(--green)}
+.flip-front .q{font-weight:700;font-size:14px}
+.flip .tag{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--purple);letter-spacing:.5px;margin-bottom:6px}
+.flip .hint{margin-top:auto;font-size:11px;color:var(--muted)}
+.flip-back .a{font-size:12.5px}
+
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .5s,transform .5s}
+.reveal.show{opacity:1;transform:none}
+
+footer{max-width:1080px;margin:0 auto;padding:20px;color:var(--muted);font-size:12px;text-align:center}
+.tl{color:var(--green);font-weight:700}
+.likely{font-size:10px;font-weight:800;background:rgba(245,158,11,.18);color:var(--orange);border:1px solid rgba(245,158,11,.45);border-radius:5px;padding:1px 6px;margin-left:6px;text-transform:uppercase;letter-spacing:.4px}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand"><span class="en">🧪 Testing for DE</span><span class="ru">🧪 Тестирование для DE</span></span>
+  <div class="links">
+    <a class="navlink" href="#pyramid"><span class="en">Pyramid</span><span class="ru">Пирамида</span></a>
+    <a class="navlink" href="#levels"><span class="en">Unit/Int/E2E</span><span class="ru">Unit/Int/E2E</span></a>
+    <a class="navlink" href="#spark"><span class="en">Spark</span><span class="ru">Spark</span></a>
+    <a class="navlink" href="#fixtures"><span class="en">Fixtures/Golden</span><span class="ru">Фикстуры/Golden</span></a>
+    <a class="navlink" href="#dq"><span class="en">Data Quality</span><span class="ru">Data Quality</span></a>
+    <a class="navlink" href="#idem"><span class="en">Idempotency</span><span class="ru">Идемпотентность</span></a>
+    <a class="navlink" href="#ci"><span class="en">CI for Data</span><span class="ru">CI для данных</span></a>
+    <a class="navlink" href="#contract"><span class="en">Contracts</span><span class="ru">Контракты</span></a>
+    <a class="navlink" href="#mock"><span class="en">Mocking</span><span class="ru">Моки</span></a>
+    <a class="navlink" href="#stream"><span class="en">Streaming</span><span class="ru">Стриминг</span></a>
+    <a class="navlink" href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+    <a class="navlink" href="#gaps"><span class="en">Study Gaps</span><span class="ru">Пробелы</span></a>
+  </div>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Software Testing for <span class="accent">Data Engineering</span></span><span class="ru">Тестирование ПО для <span class="accent">дата-инженерии</span></span></h1>
+  <p class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</span>
+  </p>
+  <div>
+    <span class="pill b"><span class="en">Test Pyramid</span><span class="ru">Test Pyramid</span></span>
+    <span class="pill g"><span class="en">Spark / Streaming</span><span class="ru">Spark / Стриминг</span></span>
+    <span class="pill o"><span class="en">Data Quality</span><span class="ru">Data Quality</span></span>
+    <span class="pill p"><span class="en">Idempotency &amp; Contracts</span><span class="ru">Идемпотентность и контракты</span></span>
+    <span class="pill b"><span class="en">CI for Data</span><span class="ru">CI для данных</span></span>
+  </div>
+  <div class="callout anchor">
+    <span class="label"><span class="en">WHY THIS MATTERS</span><span class="ru">ПОЧЕМУ ЭТО ВАЖНО</span></span>
+    <p class="en">Strong software testing methodologies and high-quality well-tested maintainable code are core expectations for Senior/Lead Data Engineering roles. Expect deep dives. Anchor answers in real work: <b>dbt review standards (Career.io)</b>, <b>Scala/Spark on Hadoop (Front Tier)</b>, <b>Kafka (IU Group)</b>, <b>Airflow backfills (McMakler)</b>, and the <b>6.2B-record entity-resolution defect (Meta)</b>.</p>
+    <p class="ru">Сильные методологии тестирования ПО и высококачественный хорошо протестированный поддерживаемый код — ключевые ожидания для Senior/Lead Data Engineering ролей. Ожидай глубоких вопросов. Якори ответов — из реальной работы: <b>стандарты ревью dbt (Career.io)</b>, <b>Scala/Spark на Hadoop (Front Tier)</b>, <b>Kafka (IU Group)</b>, <b>backfill-ы Airflow (McMakler)</b>, и <b>дефект entity-resolution на 6.2B записей (Meta)</b>.</p>
+  </div>
+</header>
+
+<main>
+
+<!-- PYRAMID -->
+<section id="pyramid">
+  <div class="section-head"><h2><span class="en">1 · The Data Test Pyramid</span><span class="ru">1 · Пирамида тестов для данных</span></h2><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="card reveal">
+    <p class="en">Same shape as software (many fast unit tests at the base, few slow E2E at the top) <b>plus an orthogonal axis</b>: <span style="color:var(--orange)">data-quality / validation tests that run on live production data</span>, not just on code in CI.</p>
+    <p class="ru">Та же форма, что и в разработке ПО (много быстрых unit-тестов в основании, мало медленных E2E наверху) <b>плюс ортогональная ось</b>: <span style="color:var(--orange)">тесты data-quality / валидации, которые работают на живых продакшн-данных</span>, а не только на коде в CI.</p>
+    <div class="ascii en">                 ▲ slower / fewer / costlier
+        ┌─────────┐
+        │   E2E   │   full DAG on staging, real-ish data, SLAs
+        ├─────────┤
+        │ INTEGRA │   Spark↔storage, model→model, ephemeral schema
+        │  -TION  │   local Spark / DuckDB / Testcontainers
+        ├─────────┤
+        │  UNIT   │   pure transforms, 1 UDF, 1 model on a fixture
+        └─────────┘   milliseconds, no cluster
+                 ▼ faster / many / cheap
+
+   ║  DATA QUALITY  ║  ← runs continuously in PROD, not just CI
+   ║  not_null · unique · RI · freshness · volume/anomaly  ║</div>
+    <div class="ascii ru">                 ▲ медленнее / меньше / дороже
+        ┌─────────┐
+        │   E2E   │   полный DAG на staging, реальноподобные данные, SLA
+        ├─────────┤
+        │ INTEGRA │   Spark↔хранилище, модель→модель, эфемерная схема
+        │  -TION  │   локальный Spark / DuckDB / Testcontainers
+        ├─────────┤
+        │  UNIT   │   чистые трансформации, 1 UDF, 1 модель на фикстуре
+        └─────────┘   миллисекунды, без кластера
+                 ▼ быстрее / больше / дешевле
+
+   ║  DATA QUALITY  ║  ← работает непрерывно в PROD, не только в CI
+   ║  not_null · unique · RI · freshness · volume/anomaly  ║</div>
+    <div class="callout probe">
+      <span class="label"><span class="en">INTERVIEWER WILL PROBE</span><span class="ru">О ЧЁМ СПРОСИТ ИНТЕРВЬЮЕР</span></span>
+      <p class="en">"Why is it sometimes an hourglass/diamond for data?" → A lot of SQL is glue with thin unit-testable logic, so teams over-invest in integration + DQ. Honest answer: push logic into testable units where possible, and accept a heavier DQ layer because <b>data is an input you don't control</b>.</p>
+      <p class="ru">«Почему иногда это песочные часы/ромб для данных?» → Много SQL — это клей с тонкой логикой, пригодной для unit-тестов, поэтому команды переинвестируют в интеграцию + DQ. Честный ответ: выносить логику в тестируемые юниты, где возможно, и принять более тяжёлый слой DQ, потому что <b>данные — это вход, который ты не контролируешь</b>.</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- LEVELS -->
+<section id="levels">
+  <div class="section-head"><h2><span class="en">2 · Unit vs Integration vs E2E (one pipeline)</span><span class="ru">2 · Unit vs Integration vs E2E (один пайплайн)</span></h2><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="card reveal">
+    <p class="muted"><span class="en">Pipeline:</span><span class="ru">Пайплайн:</span> <span class="mono">Kafka events → Spark cleansing → dbt aggregates → BI table</span></p>
+    <table class="en">
+      <tr><th>Level</th><th>Scope</th><th>Example on this pipeline</th><th>Speed / count</th></tr>
+      <tr><td><b style="color:var(--green)">Unit</b></td><td>One function in isolation</td><td><span class="mono">parse_event(json)→Row</span>; one Spark transform on a 5-row fixture</td><td>ms · many</td></tr>
+      <tr><td><b style="color:var(--accent)">Integration</b></td><td>Components wired together</td><td>Spark reads local Parquet → writes a partition → dbt model joins/aggregates it</td><td>sec · some</td></tr>
+      <tr><td><b style="color:var(--orange)">E2E</b></td><td>Whole DAG, real env</td><td>Push synthetic batch through Kafka on staging; assert final BI row counts + partition lands within SLA</td><td>min · few</td></tr>
+      <tr><td><b style="color:var(--purple)">Data Quality</b></td><td>Live data assertions</td><td>not_null/unique on grain, RI, freshness, volume band — continuously in prod</td><td>scheduled · ongoing</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Уровень</th><th>Охват</th><th>Пример на этом пайплайне</th><th>Скорость / количество</th></tr>
+      <tr><td><b style="color:var(--green)">Unit</b></td><td>Одна функция изолированно</td><td><span class="mono">parse_event(json)→Row</span>; одна Spark-трансформация на 5-строчной фикстуре</td><td>мс · много</td></tr>
+      <tr><td><b style="color:var(--accent)">Integration</b></td><td>Компоненты связаны вместе</td><td>Spark читает локальный Parquet → пишет партицию → dbt-модель джойнит/агрегирует</td><td>сек · несколько</td></tr>
+      <tr><td><b style="color:var(--orange)">E2E</b></td><td>Весь DAG, реальное окружение</td><td>Протолкнуть синтетический батч через Kafka на staging; проверить финальные строки в BI + партиция приехала в SLA</td><td>мин · мало</td></tr>
+      <tr><td><b style="color:var(--purple)">Data Quality</b></td><td>Проверки живых данных</td><td>not_null/unique на грейн, RI, freshness, объёмы — непрерывно в проде</td><td>по расписанию · постоянно</td></tr>
+    </table>
+    <div class="callout">
+      <span class="label"><span class="en">RULE OF THUMB</span><span class="ru">ПРАВИЛО БОЛЬШОГО ПАЛЬЦА</span></span>
+      <p class="en">Keep E2E tiny (slow + flaky + expensive). Most coverage at unit; integration for the seams; DQ for the data you can't pin down in advance.</p>
+      <p class="ru">Держать E2E минимальным (медленно + капризно + дорого). Основное покрытие — unit; интеграция для стыков; DQ для данных, которые нельзя зафиксировать заранее.</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- SPARK -->
+<section id="spark">
+  <div class="section-head"><h2><span class="en">3 · Testing Spark Jobs</span><span class="ru">3 · Тестирование Spark-джобов</span></h2> <span class="likely"><span class="en">top 5</span><span class="ru">топ 5</span></span><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="card reveal">
+    <h4 class="en">The core move: separate logic from runtime and I/O</h4>
+    <h4 class="ru">Ключевой ход: разделить логику от runtime и I/O</h4>
+    <ul class="en">
+      <li>Factor transforms into <b>pure functions</b>: <span class="mono">DataFrame → DataFrame</span>, no reads/writes inside.</li>
+      <li>One <b>local SparkSession</b> per suite (<span class="mono">local[2]</span>, not <span class="mono">local[1]</span> — surfaces partition-boundary bugs), reused.</li>
+      <li>Build small typed input DataFrames in code; assert with an <b>order-insensitive equality</b> helper (<span class="mono">chispa</span> for PySpark, <span class="mono">spark-testing-base</span> for Scala).</li>
+      <li>Assert the <b>schema</b> explicitly, not just values — schema drift is a top failure mode.</li>
+    </ul>
+    <ul class="ru">
+      <li>Выносить трансформации в <b>чистые функции</b>: <span class="mono">DataFrame → DataFrame</span>, без чтения/записи внутри.</li>
+      <li>Одна <b>локальная SparkSession</b> на suite (<span class="mono">local[2]</span>, а не <span class="mono">local[1]</span> — проявляет баги на границах партиций), переиспользуемая.</li>
+      <li>Собирать маленькие типизированные входные DataFrames в коде; проверять с помощником <b>order-insensitive equality</b> (<span class="mono">chispa</span> для PySpark, <span class="mono">spark-testing-base</span> для Scala).</li>
+      <li>Проверять <b>схему</b> явно, не только значения — дрейф схемы — топовый режим сбоя.</li>
+    </ul>
+<pre><span class="com"># PySpark unit test — factored transform + local session</span>
+<span class="kw">def</span> <span class="fn">flag_abuse</span>(df):
+    <span class="kw">return</span> df.<span class="fn">withColumn</span>(<span class="str">"is_abuse"</span>, col(<span class="str">"score"</span>) &gt; <span class="num">0.8</span>)
+
+<span class="kw">def</span> <span class="fn">test_flag_abuse</span>(spark):           <span class="com"># spark = session-scoped fixture</span>
+    inp = spark.<span class="fn">createDataFrame</span>(
+        [(<span class="num">1</span>, <span class="num">0.9</span>), (<span class="num">2</span>, <span class="num">0.1</span>)], <span class="str">"id int, score double"</span>)
+    out = <span class="fn">flag_abuse</span>(inp)
+    <span class="fn">assert_df_equality</span>(out, expected, ignore_row_order=<span class="kw">True</span>)  <span class="com"># chispa</span></pre>
+    <div class="callout gotcha">
+      <span class="label r"><span class="en">GOTCHAS</span><span class="ru">ПОДВОДНЫЕ КАМНИ</span></span>
+      <ul style="margin:2px 0" class="en">
+        <li><b>Row ordering</b> + <b>nullable flags</b> break naive <span class="mono">collect()</span> equality → use a comparator, sort first.</li>
+        <li><b>Non-determinism:</b> <span class="mono">current_timestamp</span>, <span class="mono">monotonically_increasing_id</span>, unseeded random, shuffle order. Inject a clock, seed RNGs, never assert wall-clock.</li>
+        <li><b>Floating point</b> needs tolerance.</li>
+        <li>Tests that secretly hit S3/HDFS/Hive are integration tests in disguise — slow + flaky.</li>
+        <li><span class="mono">local[1]</span> hides bugs that assume all data in one partition.</li>
+      </ul>
+      <ul style="margin:2px 0" class="ru">
+        <li><b>Порядок строк</b> + <b>nullable-флаги</b> ломают наивное <span class="mono">collect()</span> равенство → использовать компаратор, сортировать сначала.</li>
+        <li><b>Недетерминизм:</b> <span class="mono">current_timestamp</span>, <span class="mono">monotonically_increasing_id</span>, не-засиженный random, порядок shuffle. Инжектить часы, сидировать RNG, никогда не проверять wall-clock.</li>
+        <li><b>Floating point</b> требует толерантности.</li>
+        <li>Тесты, которые тайно обращаются к S3/HDFS/Hive — это замаскированные интеграционные тесты — медленно + капризно.</li>
+        <li><span class="mono">local[1]</span> скрывает баги, которые предполагают все данные в одной партиции.</li>
+      </ul>
+    </div>
+    <div class="callout gap">
+      <span class="label"><span class="en">SCALA / JVM BRIDGE (study-gap — be explicit)</span><span class="ru">SCALA / JVM BRIDGE (пробел для изучения — говори явно)</span></span>
+      <p class="en">ScalaTest/specs2 + <span class="mono">spark-testing-base</span> (<span class="mono">DataFrameSuiteBase</span>, <span class="mono">SharedSparkContext</span>). Strongly-typed <span class="mono">Dataset[CaseClass]</span> makes fixtures cleaner. JVM-specific target: <b>closure serialization</b> — capturing a non-serializable object in a Spark closure throws at runtime; write a test that exercises the closure.</p>
+      <p class="ru">ScalaTest/specs2 + <span class="mono">spark-testing-base</span> (<span class="mono">DataFrameSuiteBase</span>, <span class="mono">SharedSparkContext</span>). Строго типизированный <span class="mono">Dataset[CaseClass]</span> делает фикстуры чище. JVM-специфичная цель: <b>сериализация замыканий</b> — захват несериализуемого объекта в Spark-замыкании бросает исключение в runtime; пиши тест, который упражняет замыкание.</p>
+    </div>
+    <div class="callout anchor">
+      <span class="label"><span class="en">YOUR ANCHOR</span><span class="ru">ТВОЙ ЯКОРЬ</span></span>
+      <p class="en">"I owned a Scala/Spark training pipeline on Hadoop at Front Tier end-to-end, so I've lived the local-session + factored-transform pattern and the closure-serialization gotcha."</p>
+      <p class="ru">«Я владел end-to-end пайплайном обучения на Scala/Spark на Hadoop в Front Tier, поэтому я прожил паттерн локальной сессии + факторизованных трансформаций и подводный камень сериализации замыканий.»</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- FIXTURES -->
+<section id="fixtures">
+  <div class="section-head"><h2><span class="en">4 · Fixtures &amp; Golden Datasets</span><span class="ru">4 · Фикстуры и Golden-датасеты</span></h2><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="grid two">
+    <div class="card reveal">
+      <h3 style="color:var(--green)"><span class="en">Fixtures</span><span class="ru">Фикстуры</span></h3>
+      <p class="en">Small, hand-crafted, in-code inputs with a <b>known expected output</b>. For unit/integration. Keep tiny so the expected output is obvious. Cover edge cases: nulls, dupes, weird encodings, empty.</p>
+      <p class="ru">Маленькие, вручную созданные, в коде входы с <b>известным ожидаемым выходом</b>. Для unit/integration. Держать крошечными, чтобы ожидаемый выход был очевиден. Покрывать крайние случаи: null-ы, дубли, странные кодировки, пусто.</p>
+    </div>
+    <div class="card reveal">
+      <h3 style="color:var(--orange)"><span class="en">Golden / snapshot</span><span class="ru">Golden / snapshot</span></h3>
+      <p class="en">A stored <b>known-good output</b>. Run on a frozen input, diff vs the golden. Diff → either a regression or you intentionally <b>re-bless</b>. Best for complex transforms where hand-writing expected output is infeasible.</p>
+      <p class="ru">Сохранённый <b>известно-правильный выход</b>. Прогнать на замороженном входе, сравнить с golden. Разница → либо регрессия, либо ты намеренно <b>переблагословляешь</b>. Лучше всего для сложных трансформаций, где ручное написание ожидаемого выхода нереально.</p>
+    </div>
+  </div>
+  <div class="card reveal">
+    <div class="callout gotcha">
+      <span class="label r"><span class="en">GOTCHAS</span><span class="ru">ПОДВОДНЫЕ КАМНИ</span></span>
+      <p class="en">Goldens rot and mask bugs if blindly re-blessed. Freeze + version inputs <i>and</i> goldens; <b>normalise non-deterministic columns</b> (timestamps, ids) before diffing; review golden changes in PR like code. For volume/property coverage, prefer <b>synthetic generators</b> (Faker, schema-driven) over giant goldens.</p>
+      <p class="ru">Golden-ы гниют и маскируют баги, если слепо переблагословлять. Заморозить + версионировать входы <i>и</i> golden-ы; <b>нормализовать недетерминированные колонки</b> (timestamps, id-шники) перед диффом; ревьюить изменения golden-ов в PR как код. Для покрытия объёма/свойств предпочитать <b>синтетические генераторы</b> (Faker, schema-driven) вместо гигантских golden-ов.</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- DQ -->
+<section id="dq">
+  <div class="section-head"><h2><span class="en">5 · Data Quality: dbt tests vs Great Expectations</span><span class="ru">5 · Data Quality: dbt-тесты vs Great Expectations</span></h2> <span class="likely"><span class="en">top 5</span><span class="ru">топ 5</span></span><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="card reveal">
+    <table class="en">
+      <tr><th></th><th>dbt tests</th><th>Great Expectations (GX)</th></tr>
+      <tr><td><b>What</b></td><td>generic (<span class="mono">not_null, unique, accepted_values, relationships</span>) + singular SQL tests; packages add row-count/recency/dist</td><td>"expectations" library + suites + checkpoints + auto HTML <b>Data Docs</b>; data profiling</td></tr>
+      <tr><td><b>Strengths</b></td><td>lives with transform code, runs in <span class="mono">dbt build</span>, version-controlled, low ceremony</td><td>rich <b>statistical/distribution</b> checks, profiling, cross-source, auditable reports</td></tr>
+      <tr><td><b>Weaknesses</b></td><td>SQL-warehouse-centric; weak on stats/reporting</td><td>heavier to set up &amp; operate; another system</td></tr>
+      <tr><td><b>Use when</b></td><td>default in-warehouse quality gate</td><td>stats/profiling/cross-system, formal DQ reporting (also Soda, Deequ)</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th></th><th>dbt tests</th><th>Great Expectations (GX)</th></tr>
+      <tr><td><b>Что</b></td><td>generic (<span class="mono">not_null, unique, accepted_values, relationships</span>) + singular SQL-тесты; пакеты добавляют row-count/recency/dist</td><td>библиотека «expectations» + suites + checkpoints + авто HTML <b>Data Docs</b>; профилирование данных</td></tr>
+      <tr><td><b>Сильные стороны</b></td><td>живёт с кодом трансформаций, запускается в <span class="mono">dbt build</span>, под версионным контролем, минимум церемоний</td><td>богатые <b>статистические/распределения</b> проверки, профилирование, кросс-источник, аудируемые отчёты</td></tr>
+      <tr><td><b>Слабости</b></td><td>SQL-warehouse-центричен; слаб в статистике/отчётности</td><td>тяжелее настроить и эксплуатировать; ещё одна система</td></tr>
+      <tr><td><b>Использовать когда</b></td><td>дефолтный in-warehouse quality gate</td><td>статистика/профилирование/кросс-система, формальная отчётность DQ (также Soda, Deequ)</td></tr>
+    </table>
+    <h4 class="en">The 7 DQ dimensions to name out loud</h4>
+    <h4 class="ru">7 измерений DQ, чтобы назвать вслух</h4>
+    <p class="mono" style="font-size:13px" class="en">completeness · uniqueness · validity (ranges/enums) · consistency (cross-col/table) · referential integrity · <span style="color:var(--orange)">freshness/timeliness</span> · <span style="color:var(--orange)">volume/anomaly</span></p>
+    <p class="mono" style="font-size:13px" class="ru">полнота · уникальность · валидность (диапазоны/enums) · консистентность (cross-col/table) · referential integrity · <span style="color:var(--orange)">freshness/timeliness</span> · <span style="color:var(--orange)">объём/аномалии</span></p>
+    <div class="callout probe">
+      <span class="label"><span class="en">INTERVIEWER WILL PROBE</span><span class="ru">О ЧЁМ СПРОСИТ ИНТЕРВЬЮЕР</span></span>
+      <p class="en">"What happens when a DQ test fails?" → Distinguish <b>blocking</b> tests (fail build, page) from <b>warning/anomaly</b> tests (alert + circuit-break downstream, don't always hard-fail). Tie severity to data criticality + ownership + runbook.</p>
+      <p class="ru">«Что происходит, когда DQ-тест падает?» → Различать <b>блокирующие</b> тесты (провал сборки, пейдж) и <b>warning/anomaly</b> тесты (алерт + размыкание контура ниже по потоку, не всегда хард-fail). Привязывать серьёзность к критичности данных + владение + runbook.</p>
+    </div>
+    <div class="callout anchor">
+      <span class="label"><span class="en">YOUR ANCHOR</span><span class="ru">ТВОЙ ЯКОРЬ</span></span>
+      <p class="en">"At Meta a referential-integrity + cardinality monitor would have caught the entity-resolution defect (6.2B records, 34% of threads, 100+ downstream metrics). At Career.io dbt tests were mandatory on every model PR."</p>
+      <p class="ru">«В Meta монитор referential-integrity + кардинальности поймал бы дефект entity-resolution (6.2B записей, 34% тредов, 100+ downstream метрик). В Career.io dbt-тесты были обязательны на каждый PR модели.»</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- IDEM -->
+<section id="idem">
+  <div class="section-head"><h2><span class="en">6 · Idempotency Tests</span><span class="ru">6 · Тесты идемпотентности</span></h2> <span class="likely"><span class="en">top 5</span><span class="ru">топ 5</span></span><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="card reveal">
+    <p class="en"><b>Idempotency</b> = re-running a job for the same logical inputs yields the same final state — no duplicates, no double-counting. Mandatory because retries, backfills, and at-least-once delivery are unavoidable.</p>
+    <p class="ru"><b>Идемпотентность</b> = повторный запуск джоба для тех же логических входов даёт то же финальное состояние — нет дублей, нет двойного подсчёта. Обязательно, потому что ретраи, backfill-ы и at-least-once доставка неизбежны.</p>
+    <div class="grid two">
+      <div>
+        <h4 class="en">Achieve it</h4>
+        <h4 class="ru">Добиться этого</h4>
+        <ul class="en">
+          <li><span class="mono">INSERT OVERWRITE PARTITION</span> / dbt incremental <span class="mono">delete+insert</span> or <span class="mono">merge</span> — not blind <span class="mono">append</span></li>
+          <li>Deterministic keys; dedup on natural/surrogate key</li>
+          <li><span class="mono">MERGE INTO</span> upsert (Iceberg/Delta) on PK</li>
+          <li>No <span class="mono">now()</span> in transforms — thread the logical run date through</li>
+        </ul>
+        <ul class="ru">
+          <li><span class="mono">INSERT OVERWRITE PARTITION</span> / dbt incremental <span class="mono">delete+insert</span> или <span class="mono">merge</span> — не слепой <span class="mono">append</span></li>
+          <li>Детерминированные ключи; дедуп на натуральный/суррогатный ключ</li>
+          <li><span class="mono">MERGE INTO</span> upsert (Iceberg/Delta) на PK</li>
+          <li>Никаких <span class="mono">now()</span> в трансформациях — протаскивать логическую дату запуска</li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="en">Test it</h4>
+        <h4 class="ru">Тестировать это</h4>
+        <ul class="en">
+          <li>Run a partition <b>twice</b> → assert identical (row count + checksum of sorted rows)</li>
+          <li>Inject a <b>mid-write failure</b>, re-run → no dupes, correct state</li>
+          <li><b>Backfill</b> an existing date → overwrites cleanly, does not append</li>
+        </ul>
+        <ul class="ru">
+          <li>Прогнать партицию <b>дважды</b> → проверить идентичность (число строк + чексумма отсортированных строк)</li>
+          <li>Инжектить <b>падение посреди записи</b>, перезапустить → нет дублей, правильное состояние</li>
+          <li><b>Backfill</b> существующей даты → чисто перезаписывает, не дописывает</li>
+        </ul>
+      </div>
+    </div>
+<pre><span class="com"># idempotency assertion</span>
+run_partition(ds=<span class="str">"2026-06-14"</span>)
+h1 = checksum(read(ds=<span class="str">"2026-06-14"</span>))
+run_partition(ds=<span class="str">"2026-06-14"</span>)   <span class="com"># retry / backfill</span>
+h2 = checksum(read(ds=<span class="str">"2026-06-14"</span>))
+<span class="kw">assert</span> h1 == h2                <span class="com"># no drift, no dupes</span></pre>
+    <div class="callout">
+      <span class="label"><span class="en">SAY THIS</span><span class="ru">СКАЖИ ЭТО</span></span>
+      <p class="en">The pragmatic "exactly-once" is <b>at-least-once delivery + idempotent sink</b>.</p>
+      <p class="ru">Прагматичный «exactly-once» — это <b>at-least-once доставка + идемпотентный приёмник</b>.</p>
+    </div>
+    <div class="callout anchor">
+      <span class="label"><span class="en">YOUR ANCHOR</span><span class="ru">ТВОЙ ЯКОРЬ</span></span>
+      <p class="en">"McMakler — Airflow backfills across three migrations. Idempotent partition overwrites are what made re-runs safe; I'd test by re-running a date and diffing the partition."</p>
+      <p class="ru">«McMakler — backfill-ы Airflow через три миграции. Идемпотентные перезаписи партиций — это то, что сделало перезапуски безопасными; я бы тестировал, перезапуская дату и сравнивая партицию.»</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- CI -->
+<section id="ci">
+  <div class="section-head"><h2><span class="en">7 · CI/CD for Data</span><span class="ru">7 · CI/CD для данных</span></h2> <span class="likely"><span class="en">top 5</span><span class="ru">топ 5</span></span><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="card reveal">
+    <div class="grid two">
+      <div>
+        <h4 class="en">On every PR</h4>
+        <h4 class="ru">На каждый PR</h4>
+        <ul class="en">
+          <li>Lint/format (sqlfluff, ruff, scalafmt) + type checks</li>
+          <li>Compile/parse the DAG (dbt <span class="mono">compile</span>, Airflow DAG import test, Spark compiles)</li>
+          <li><b>Unit tests</b> on transforms (no warehouse)</li>
+          <li><b>Slim CI:</b> <span class="mono">dbt build --select state:modified+ --defer</span> — only changed models + downstream, in an ephemeral schema</li>
+          <li>Integration vs local Spark/DuckDB/Testcontainers</li>
+        </ul>
+        <ul class="ru">
+          <li>Lint/format (sqlfluff, ruff, scalafmt) + проверки типов</li>
+          <li>Компилить/парсить DAG (dbt <span class="mono">compile</span>, Airflow DAG import test, Spark компилится)</li>
+          <li><b>Unit-тесты</b> на трансформациях (без warehouse)</li>
+          <li><b>Slim CI:</b> <span class="mono">dbt build --select state:modified+ --defer</span> — только изменённые модели + downstream, в эфемерной схеме</li>
+          <li>Интеграция vs локальный Spark/DuckDB/Testcontainers</li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="en">On merge / deploy</h4>
+        <h4 class="ru">На merge / deploy</h4>
+        <ul class="en">
+          <li>Deploy DAGs, promote dbt, smoke/E2E on staging</li>
+          <li><b>Write-Audit-Publish:</b> write to <span class="mono">_staging</span> / Iceberg branch → validate → atomic swap</li>
+          <li>Snapshot/state versioning for safe rollback (Iceberg snapshots, dbt state)</li>
+        </ul>
+        <ul class="ru">
+          <li>Деплой DAG-ов, промоут dbt, smoke/E2E на staging</li>
+          <li><b>Write-Audit-Publish:</b> писать в <span class="mono">_staging</span> / Iceberg-ветку → валидировать → атомарный swap</li>
+          <li>Snapshot/версионирование состояния для безопасного отката (Iceberg snapshots, dbt state)</li>
+        </ul>
+      </div>
+    </div>
+    <h4 class="en">What's different from app CI</h4>
+    <h4 class="ru">Чем отличается от app CI</h4>
+    <ul class="en">
+      <li><b>Data is an uncontrolled input</b> → code can be correct yet the pipeline "fails" because upstream changed → the continuous DQ layer app CI lacks.</li>
+      <li>Tests are <b>slow/expensive</b> → sampling, slim CI, ephemeral envs.</li>
+      <li><b>Backfills/reprocessing</b> are first-class → test idempotency, not just "runs once".</li>
+      <li><b>Schema/contract changes</b> are deploys that silently break consumers → contract + schema-evolution checks.</li>
+    </ul>
+    <ul class="ru">
+      <li><b>Данные — неконтролируемый вход</b> → код может быть правильным, но пайплайн «падает», потому что upstream изменился → непрерывный слой DQ, которого нет в app CI.</li>
+      <li>Тесты <b>медленные/дорогие</b> → сэмплинг, slim CI, эфемерные окружения.</li>
+      <li><b>Backfill-ы/переобработка</b> — первоклассный кейс → тестировать идемпотентность, а не только «запустилось один раз».</li>
+      <li><b>Изменения схемы/контракта</b> — это деплои, которые тихо ломают консьюмеров → проверки контракта + эволюции схемы.</li>
+    </ul>
+    <div class="callout probe">
+      <span class="label"><span class="en">INTERVIEWER WILL PROBE</span><span class="ru">О ЧЁМ СПРОСИТ ИНТЕРВЬЮЕР</span></span>
+      <p class="en">"Test against prod data without breaking prod?" → ephemeral schemas, zero-copy/prod clones, sampled fixtures, and write-audit-publish.</p>
+      <p class="ru">«Тестировать против прод-данных без поломки прода?» → эфемерные схемы, zero-copy/прод-клоны, сэмплированные фикстуры и write-audit-publish.</p>
+    </div>
+    <div class="callout anchor">
+      <span class="label"><span class="en">YOUR ANCHOR</span><span class="ru">ТВОЙ ЯКОРЬ</span></span>
+      <p class="en">"McMakler — moved orchestration to Airflow + rebuilt the analytical layer in dbt; that's exactly where slim CI and staging-then-publish earn their keep."</p>
+      <p class="ru">«McMakler — переехал оркестрацию на Airflow + перестроил аналитический слой в dbt; это именно то место, где slim CI и staging-then-publish оправдывают себя.»</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- CONTRACT -->
+<section id="contract">
+  <div class="section-head"><h2><span class="en">8 · Contract Testing &amp; Schema Drift</span><span class="ru">8 · Тестирование контрактов и дрейф схемы</span></h2><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="card reveal">
+    <p class="en">A <b>data contract</b> = versioned producer↔consumer agreement: schema (fields/types/nullability), semantics, SLAs (freshness/volume), quality guarantees. <b>Contract testing</b> verifies producers don't break it <i>before</i> shipping — shifting the break <b>left</b> instead of a 3am downstream page.</p>
+    <p class="ru"><b>Контракт данных</b> = версионированное соглашение продюсер↔консьюмер: схема (поля/типы/nullable), семантика, SLA (freshness/объём), гарантии качества. <b>Тестирование контрактов</b> проверяет, что продюсеры не ломают его <i>до</i> шиппинга — сдвигая поломку <b>влево</b> вместо 3-часового ночного пейджа downstream.</p>
+    <ul class="en">
+      <li><b>Schema Registry</b> (Confluent, Avro/Protobuf on Kafka) enforces compatibility modes: <span class="mono">backward / forward / full</span> — a producer literally can't publish a breaking schema.</li>
+      <li><b>Tables:</b> dbt model <span class="mono">contracts: enforced</span>, schema checks in CI, consumer-driven contracts (downstream declares the columns it relies on; producer CI fails on violation).</li>
+      <li><b>Schema evolution:</b> additive nullable = safe; rename/narrow/drop = breaking → coordinated deploy. Iceberg/Delta evolve by <b>field ID</b>, not position — far safer than positional CSV parsing.</li>
+    </ul>
+    <ul class="ru">
+      <li><b>Schema Registry</b> (Confluent, Avro/Protobuf на Kafka) обеспечивает режимы совместимости: <span class="mono">backward / forward / full</span> — продюсер буквально не может опубликовать ломающую схему.</li>
+      <li><b>Таблицы:</b> dbt-модель <span class="mono">contracts: enforced</span>, проверки схемы в CI, consumer-driven контракты (downstream объявляет колонки, на которые полагается; producer CI падает при нарушении).</li>
+      <li><b>Эволюция схемы:</b> additive nullable = безопасно; rename/narrow/drop = breaking → координированный деплой. Iceberg/Delta эволюционируют по <b>field ID</b>, а не позиции — гораздо безопаснее, чем позиционный парсинг CSV.</li>
+    </ul>
+    <div class="callout probe">
+      <span class="label"><span class="en">INTERVIEWER WILL PROBE</span><span class="ru">О ЧЁМ СПРОСИТ ИНТЕРВЬЮЕР</span></span>
+      <p class="en">"How do you detect drift?" → registry compatibility checks, <span class="mono">expect_table_columns_to_match_set</span>, dbt source freshness + contracts, metadata diff in CI + at ingest. Feed an evolved-schema fixture and assert <b>graceful</b> handling (missing column = clear failure, not a silent null).</p>
+      <p class="ru">«Как обнаружить дрейф?» → проверки совместимости в registry, <span class="mono">expect_table_columns_to_match_set</span>, dbt source freshness + контракты, diff метаданных в CI + при ingestion. Подать фикстуру с evolved-схемой и проверить <b>graceful</b> обработку (отсутствующая колонка = явный провал, а не тихой null).</p>
+    </div>
+    <div class="callout anchor">
+      <span class="label"><span class="en">YOUR ANCHOR</span><span class="ru">ТВОЙ ЯКОРЬ</span></span>
+      <p class="en">"At Meta I consolidated 10 fragmented logging systems (3.6B events/day) into one model — a contract problem at its core. Each logger was an implicit contract; unifying them needed explicit schema + semantic agreements and drift detection."</p>
+      <p class="ru">«В Meta я консолидировал 10 фрагментированных систем логирования (3.6B событий/день) в одну модель — проблема контрактов в ядре. Каждый логгер был неявным контрактом; объединение их требовало явных схем + семантических соглашений и обнаружения дрейфа.»</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- MOCK -->
+<section id="mock">
+  <div class="section-head"><h2><span class="en">9 · Mocking External Systems</span><span class="ru">9 · Мокирование внешних систем</span></h2><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>System</th><th>Unit (mock/fake)</th><th>Integration (real-ish)</th></tr>
+      <tr><td>Object store / FS</td><td><span class="mono">moto</span>, local temp dir</td><td>MinIO / <span class="mono">s3mock</span></td></tr>
+      <tr><td>Kafka</td><td>fake producer behind interface</td><td>embedded Kafka / Testcontainers</td></tr>
+      <tr><td>REST API</td><td><span class="mono">responses</span>/<span class="mono">requests-mock</span>, WireMock</td><td>WireMock server / sandbox</td></tr>
+      <tr><td>Warehouse/DB</td><td>DuckDB / SQLite stand-in</td><td>Testcontainers Postgres/Spark</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Система</th><th>Unit (mock/fake)</th><th>Integration (реально-подобная)</th></tr>
+      <tr><td>Object store / FS</td><td><span class="mono">moto</span>, локальный temp dir</td><td>MinIO / <span class="mono">s3mock</span></td></tr>
+      <tr><td>Kafka</td><td>fake producer за интерфейсом</td><td>embedded Kafka / Testcontainers</td></tr>
+      <tr><td>REST API</td><td><span class="mono">responses</span>/<span class="mono">requests-mock</span>, WireMock</td><td>WireMock server / sandbox</td></tr>
+      <tr><td>Warehouse/DB</td><td>DuckDB / SQLite замена</td><td>Testcontainers Postgres/Spark</td></tr>
+    </table>
+    <div class="callout">
+      <span class="label"><span class="en">PRINCIPLE</span><span class="ru">ПРИНЦИП</span></span>
+      <p class="en">Mock at the <b>boundary you own</b> (your client wrapper), not deep library internals. Prefer <b>fakes / Testcontainers / local engines</b> over heavy mocking for data systems — mocking a warehouse's SQL semantics is a trap; a real ephemeral DB catches dialect bugs. The axis is <b>fidelity vs speed</b>: mock cheap edges, use real systems where wrong assumptions are expensive (SQL dialect, Kafka protocol, transaction semantics).</p>
+      <p class="ru">Мокировать на <b>границе, которой владеешь</b> (твой клиентский обёртка), а не глубоких внутренностях библиотеки. Предпочитать <b>фейки / Testcontainers / локальные движки</b> вместо тяжёлого мокирования для систем данных — мокировать SQL-семантику warehouse — это ловушка; реальная эфемерная БД ловит баги диалекта. Ось — <b>точность vs скорость</b>: мокировать дешёвые края, использовать реальные системы там, где неправильные предположения дороги (SQL-диалект, Kafka-протокол, семантика транзакций).</p>
+    </div>
+    <div class="callout gotcha">
+      <span class="label r"><span class="en">ALWAYS TEST THE SAD PATH</span><span class="ru">ВСЕГДА ТЕСТИРОВАТЬ SAD PATH</span></span>
+      <p class="en">Inject timeouts, partial reads, throttling, out-of-order/late records, and assert retry/backoff behaviour — not just the happy path.</p>
+      <p class="ru">Инжектить таймауты, частичные чтения, throttling, out-of-order/поздние записи и проверять поведение retry/backoff — не только happy path.</p>
+    </div>
+    <div class="callout anchor">
+      <span class="label"><span class="en">YOUR ANCHOR</span><span class="ru">ТВОЙ ЯКОРЬ</span></span>
+      <p class="en">"Kafka ingestion at IU Group (Syntea) — I'd use Testcontainers/embedded Kafka for integration and a fake producer for unit-level consumer logic."</p>
+      <p class="ru">«Kafka ingestion в IU Group (Syntea) — я бы использовал Testcontainers/embedded Kafka для интеграции и fake producer для unit-уровневой логики консьюмера.»</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- STREAM -->
+<section id="stream">
+  <div class="section-head"><h2><span class="en">10 · Testing Streaming Jobs</span><span class="ru">10 · Тестирование стриминговых джобов</span></h2><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="card reveal">
+    <p class="en">Streaming adds <b>time, ordering, and state</b> as test dimensions.</p>
+    <p class="ru">Стриминг добавляет <b>время, порядок и состояние</b> как измерения тестов.</p>
+    <ul class="en">
+      <li><b>Determinism via event-time + injected watermarks</b> — drive tests by controlled event-time, not wall-clock; assert window outputs.</li>
+      <li><b>Spark Structured Streaming:</b> <span class="mono">MemoryStream</span> source + in-memory sink; advance batches; assert per-batch.</li>
+      <li><b>Flink:</b> <span class="mono">OneInputStreamOperatorTestHarness</span>, <span class="mono">MiniClusterWithClientResource</span> — push timestamped records, fire watermarks/timers, snapshot/restore <b>state</b> to test checkpoint recovery + exactly-once.</li>
+      <li><b>Cases:</b> late/out-of-order past watermark (drop vs side-output), window boundaries, stateful aggregations across restarts (restore from savepoint, assert continuity), exactly-once vs at-least-once + idempotent sink, backpressure (load/integration).</li>
+    </ul>
+    <ul class="ru">
+      <li><b>Детерминизм через event-time + инжектированные watermarks</b> — управлять тестами контролируемым event-time, а не wall-clock; проверять выходы окон.</li>
+      <li><b>Spark Structured Streaming:</b> <span class="mono">MemoryStream</span> source + in-memory sink; продвигать батчи; проверять per-batch.</li>
+      <li><b>Flink:</b> <span class="mono">OneInputStreamOperatorTestHarness</span>, <span class="mono">MiniClusterWithClientResource</span> — толкать timestamped-записи, запускать watermarks/таймеры, snapshot/restore <b>состояние</b>, чтобы тестировать восстановление checkpoint + exactly-once.</li>
+      <li><b>Кейсы:</b> поздние/out-of-order за watermark (drop vs side-output), границы окон, stateful агрегации через рестарты (restore из savepoint, проверять continuity), exactly-once vs at-least-once + идемпотентный sink, backpressure (load/integration).</li>
+    </ul>
+    <div class="callout gap">
+      <span class="label"><span class="en">FLINK = STUDY-GAP (be explicit, don't overclaim)</span><span class="ru">FLINK = ПРОБЕЛ ДЛЯ ИЗУЧЕНИЯ (говори явно, не переоценивай)</span></span>
+      <p class="en">"I have Kafka production experience (IU Group), but Flink itself is a study area. I'd lean on the Flink test harnesses + MiniCluster and the <b>savepoint-restore</b> test pattern. The mental model transfers from Spark Structured Streaming's <span class="mono">MemoryStream</span> + watermark testing."</p>
+      <p class="ru">«У меня продакшн-опыт Kafka (IU Group), но Flink сам по себе — область для изучения. Я бы опирался на тестовые harnesses Flink + MiniCluster и паттерн теста <b>savepoint-restore</b>. Ментальная модель переносится из Spark Structured Streaming <span class="mono">MemoryStream</span> + тестирования watermark.»</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- DEPTH -->
+<section id="depth">
+  <div class="section-head"><h2><span class="en">11 · Differentiators (depth)</span><span class="ru">11 · Дифференциаторы (глубина)</span></h2><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="grid two">
+    <div class="card reveal">
+      <h3 class="en">Write-Audit-Publish (WAP)</h3>
+      <h3 class="ru">Write-Audit-Publish (WAP)</h3>
+      <p class="en">Write to staging/Iceberg branch → audit with DQ/contract checks → publish (atomic swap) only if audits pass. Blue-green for data; bad data is never visible; clean rollback by repointing snapshot.</p>
+      <p class="ru">Писать в staging/Iceberg-ветку → аудит с DQ/контрактными проверками → publish (атомарный swap) только если аудиты прошли. Blue-green для данных; плохие данные никогда не видны; чистый откат переключением snapshot.</p>
+    </div>
+    <div class="card reveal">
+      <h3 class="en">Property-based testing</h3>
+      <h3 class="ru">Property-based тестирование</h3>
+      <p class="en">Hypothesis / ScalaCheck. Assert properties over generated inputs: "dedup ⇒ key unique", "Σ partition aggs = global agg", "serialize∘deserialize = id". Auto-shrinks to minimal counterexample.</p>
+      <p class="ru">Hypothesis / ScalaCheck. Проверять свойства на сгенерированных входах: «dedup ⇒ ключ уникален», «Σ аггрегаций партиций = глобальная аггрегация», «serialize∘deserialize = id». Автосжатие до минимального контрпримера.</p>
+    </div>
+    <div class="card reveal">
+      <h3 class="en">Testing vs observability</h3>
+      <h3 class="ru">Тестирование vs observability</h3>
+      <p class="en"><b>Tests</b> = explicit assertions for known failure classes (CI + scheduled). <b>Observability</b> = continuous instrumentation surfacing unknown-unknowns / anomalies (Monte-Carlo-style). Need both.</p>
+      <p class="ru"><b>Тесты</b> = явные проверки для известных классов сбоев (CI + по расписанию). <b>Observability</b> = непрерывная инструментация, всплывающая unknown-unknowns / аномалии (Monte-Carlo-стиль). Нужны оба.</p>
+    </div>
+    <div class="card reveal">
+      <h3 class="en">Beyond line coverage</h3>
+      <h3 class="ru">Дальше line coverage</h3>
+      <p class="en"><b>Mutation testing</b> (mutate code; do tests fail?), DQ coverage of critical columns/grains, escaped-defect rate, alert precision/recall, flakiness rate, and <b>data scenarios</b> exercised (nulls/dupes/late/skew).</p>
+      <p class="ru"><b>Mutation testing</b> (мутировать код; падают ли тесты?), DQ-покрытие критичных колонок/грейнов, escaped-defect rate, precision/recall алертов, частота капризности (flakiness), и <b>сценарии данных</b>, которые упражнены (nulls/дубли/поздние/skew).</p>
+    </div>
+  </div>
+  <div class="card reveal">
+    <h4 class="en">Distributed failure modes to "reason about"</h4>
+    <h4 class="ru">Распределённые режимы сбоев, про которые «рассуждать»</h4>
+    <p class="mono" style="font-size:12.5px" class="en">partial failure/retries · data skew (hot key) · late/out-of-order/duplicate · schema drift · stragglers/OOM/shuffle spill · clock skew &amp; TZ/DST · backpressure &amp; checkpoint recovery · small-files/partition explosion</p>
+    <p class="mono" style="font-size:12.5px" class="ru">частичный сбой/ретраи · перекос данных (горячий ключ) · поздние/out-of-order/дубли · дрейф схемы · отстающие/OOM/shuffle spill · clock skew &amp; TZ/DST · backpressure &amp; восстановление checkpoint · маленькие файлы/взрыв партиций</p>
+    <div class="callout gotcha">
+      <span class="label r"><span class="en">FLAKY TEST = A BUG</span><span class="ru">КАПРИЗНЫЙ ТЕСТ = БАГ</span></span>
+      <p class="en">Quarantine and fix; never <span class="mono">@Ignore</span> forever. Muted tests erode trust in the whole suite.</p>
+      <p class="ru">Изолировать и починить; никогда не <span class="mono">@Ignore</span> навсегда. Заглушённые тесты разрушают доверие ко всему набору.</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="section-head"><h2><span class="en">12 · Self-Quiz — tap a card to flip</span><span class="ru">12 · Самопроверка — нажми на карточку, чтобы перевернуть</span></h2><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="flipwrap reveal">
+    <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="tag"><span class="en">Spark</span><span class="ru">Spark</span></div>
+        <div class="q">
+          <span class="en">Why run unit tests with <span class="mono">local[2]</span> not <span class="mono">local[1]</span>?</span>
+          <span class="ru">Почему запускать unit-тесты с <span class="mono">local[2]</span>, а не <span class="mono">local[1]</span>?</span>
+        </div>
+        <div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a">
+          <span class="en"><span class="mono">local[1]</span> puts all data in one partition and hides bugs in logic that assumes single-partition data (or wrong partition-boundary handling). <span class="mono">local[2]</span> forces real partitioning so those surface.</span>
+          <span class="ru"><span class="mono">local[1]</span> кладёт все данные в одну партицию и скрывает баги в логике, которая предполагает single-partition данные (или неправильную обработку границ партиций). <span class="mono">local[2]</span> заставляет реальное партиционирование, так что эти баги всплывают.</span>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="tag"><span class="en">Idempotency</span><span class="ru">Идемпотентность</span></div>
+        <div class="q">
+          <span class="en">Pragmatic recipe for "exactly-once"?</span>
+          <span class="ru">Прагматичный рецепт для «exactly-once»?</span>
+        </div>
+        <div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a">
+          <span class="en"><b>At-least-once delivery + idempotent sink</b> (partition overwrite / MERGE upsert on a key). True exactly-once is expensive; idempotent effect is robust and cheap.</span>
+          <span class="ru"><b>At-least-once доставка + идемпотентный sink</b> (перезапись партиции / MERGE upsert на ключ). Настоящий exactly-once дорог; идемпотентный эффект робастен и дёшев.</span>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="tag"><span class="en">DataFrame test</span><span class="ru">DataFrame-тест</span></div>
+        <div class="q">
+          <span class="en">#1 fix for comparing two DataFrames?</span>
+          <span class="ru">№1 фикс для сравнения двух DataFrames?</span>
+        </div>
+        <div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a">
+          <span class="en"><b>Order-insensitive comparison</b> (sort first, compare schema + values, watch nullable flags + float tolerance). Naive <span class="mono">collect()</span> equality fails on row order.</span>
+          <span class="ru"><b>Order-insensitive сравнение</b> (сначала сортировать, сравнивать схему + значения, следить за nullable-флагами + толерантностью float). Наивное <span class="mono">collect()</span> равенство падает на порядке строк.</span>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="tag"><span class="en">CI for data</span><span class="ru">CI для данных</span></div>
+        <div class="q">
+          <span class="en">What is "slim CI" in dbt?</span>
+          <span class="ru">Что такое «slim CI» в dbt?</span>
+        </div>
+        <div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a">
+          <span class="en"><span class="mono">dbt build --select state:modified+ --defer</span> — build/test only changed models + their downstream against the prod manifest. Fast PR feedback without rebuilding the world.</span>
+          <span class="ru"><span class="mono">dbt build --select state:modified+ --defer</span> — собирать/тестировать только изменённые модели + их downstream против прод-манифеста. Быстрая обратная связь по PR без пересборки всего мира.</span>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="tag"><span class="en">Contracts</span><span class="ru">Контракты</span></div>
+        <div class="q">
+          <span class="en">How does a Schema Registry enforce contracts?</span>
+          <span class="ru">Как Schema Registry обеспечивает контракты?</span>
+        </div>
+        <div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a">
+          <span class="en">Compatibility modes (backward/forward/full). A producer cannot publish a schema that would break consumers under the configured mode — contract testing baked into the platform.</span>
+          <span class="ru">Режимы совместимости (backward/forward/full). Продюсер не может опубликовать схему, которая сломала бы консьюмеров в настроенном режиме — тестирование контрактов вшито в платформу.</span>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="tag"><span class="en">Schema evolution</span><span class="ru">Эволюция схемы</span></div>
+        <div class="q">
+          <span class="en">Why is Iceberg evolution safer than CSV?</span>
+          <span class="ru">Почему эволюция Iceberg безопаснее, чем CSV?</span>
+        </div>
+        <div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a">
+          <span class="en">Iceberg resolves columns by <b>field ID</b>, not position — add/rename/reorder without breaking readers. Positional CSV parsing breaks the moment a column moves.</span>
+          <span class="ru">Iceberg разрешает колонки по <b>field ID</b>, а не позиции — добавлять/переименовывать/переупорядочивать без поломки читателей. Позиционный парсинг CSV ломается в момент, когда колонка перемещается.</span>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="tag">WAP</div>
+        <div class="q">
+          <span class="en">What is Write-Audit-Publish?</span>
+          <span class="ru">Что такое Write-Audit-Publish?</span>
+        </div>
+        <div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a">
+          <span class="en">Write to staging/branch → audit with DQ/contract checks → publish (atomic swap) only if audits pass. Blue-green for data; bad data never reaches consumers; easy rollback.</span>
+          <span class="ru">Писать в staging/ветку → аудит с DQ/контрактными проверками → publish (атомарный swap) только если аудиты прошли. Blue-green для данных; плохие данные никогда не достигают консьюмеров; лёгкий откат.</span>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flip-inner">
+      <div class="flip-face flip-front">
+        <div class="tag"><span class="en">Coverage</span><span class="ru">Покрытие</span></div>
+        <div class="q">
+          <span class="en">Why isn't line coverage enough?</span>
+          <span class="ru">Почему line coverage недостаточно?</span>
+        </div>
+        <div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div>
+      </div>
+      <div class="flip-face flip-back">
+        <div class="a">
+          <span class="en">It shows what ran, not whether assertions are meaningful. Use mutation testing, DQ coverage of critical grains, escaped-defect rate, and which <b>data scenarios</b> (nulls/dupes/late/skew) you actually exercise.</span>
+          <span class="ru">Показывает, что запустилось, а не являются ли проверки осмысленными. Использовать mutation testing, DQ-покрытие критичных грейнов, escaped-defect rate и какие <b>сценарии данных</b> (nulls/дубли/поздние/skew) ты реально упражняешь.</span>
+        </div>
+      </div>
+    </div></div>
+  </div>
+  </div>
+</section>
+
+<!-- GAPS -->
+<section id="gaps">
+  <div class="section-head"><h2><span class="en">13 · Study-Gap Cheat (say confidently, don't overclaim)</span><span class="ru">13 · Шпаргалка по пробелам (говори уверенно, не переоценивай)</span></h2><span class="ico">▾</span></div>
+  <div class="section-body">
+  <div class="grid three">
+    <div class="card reveal">
+      <h3 style="color:var(--purple)">Iceberg</h3>
+      <ul style="font-size:13px">
+        <li class="en">snapshots + time-travel (rollback/testing)</li>
+        <li class="ru">snapshots + time-travel (откат/тестирование)</li>
+        <li class="en">branches/tags → WAP</li>
+        <li class="ru">ветки/тэги → WAP</li>
+        <li class="en">hidden partitioning</li>
+        <li class="ru">скрытое партиционирование</li>
+        <li><b>field-ID schema evolution</b></li>
+        <li><span class="mono">MERGE INTO</span> upserts</li>
+      </ul>
+    </div>
+    <div class="card reveal">
+      <h3 style="color:var(--purple)">Flink</h3>
+      <ul style="font-size:13px">
+        <li>event-time + watermarks</li>
+        <li>keyed state + checkpoints/savepoints</li>
+        <li class="en">exactly-once via 2-phase-commit sinks</li>
+        <li class="ru">exactly-once через 2-phase-commit sink-и</li>
+        <li class="en">test: operator harness + MiniCluster</li>
+        <li class="ru">тест: operator harness + MiniCluster</li>
+        <li class="en">bridge from Spark Structured Streaming</li>
+        <li class="ru">мост от Spark Structured Streaming</li>
+      </ul>
+    </div>
+    <div class="card reveal">
+      <h3 style="color:var(--purple)"><span class="en">Scala / JVM testing</span><span class="ru">Scala / JVM тестирование</span></h3>
+      <ul style="font-size:13px">
+        <li>ScalaTest / specs2 / JUnit</li>
+        <li>ScalaCheck (property-based)</li>
+        <li>spark-testing-base (<span class="mono">DataFrameSuiteBase</span>)</li>
+        <li>Testcontainers-scala</li>
+        <li><span class="mono">Dataset[CaseClass]</span> <span class="en">typed fixtures</span><span class="ru">типизированные фикстуры</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card reveal">
+    <div class="callout">
+      <span class="label"><span class="en">FRAMING THE GAP HONESTLY</span><span class="ru">ЧЕСТНАЯ ФОРМУЛИРОВКА ПРОБЕЛА</span></span>
+      <p class="en">"My recent stack is Python/SQL/dbt, but I have real Scala/Spark-on-Hadoop (Front Tier), Kafka (IU Group), and Airflow (McMakler). The testing <i>principles</i> — factor logic, inject time, idempotency, contracts, WAP — transfer directly; I'm actively bridging the Flink/Iceberg/Java vocabulary."</p>
+      <p class="ru">«Мой недавний стек — Python/SQL/dbt, но у меня реальный опыт Scala/Spark-на-Hadoop (Front Tier), Kafka (IU Group) и Airflow (McMakler). <i>Принципы</i> тестирования — факторизовать логику, инжектить время, идемпотентность, контракты, WAP — переносятся напрямую; я активно мосту Flink/Iceberg/Java словарь.»</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span class="en">Built for Amal Imangulov · Data Engineering interview prep · Self-contained. Theme + lang + collapse state persist in localStorage. Companion question bank: <span class="mono">questions/software-testing-data.md</span></span>
+  <span class="ru">Сделано для Amal Imangulov · Подготовка к Data Engineering интервью · Самодостаточно. Тема + язык + состояние сворачивания сохраняются в localStorage. Банк вопросов: <span class="mono">questions/software-testing-data.md</span></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  // ---- theme toggle ----
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+  }
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('de_cheat_theme'); } catch (e) {}
+  applyTheme(savedTheme || 'dark');
+  themeBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('de_cheat_theme', next); } catch (e) {}
+  });
+
+  // ---- language toggle ----
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l) {
+    root.setAttribute('data-lang', l);
+    root.setAttribute('lang', l);
+    langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+  }
+  var savedLang = null;
+  try { savedLang = localStorage.getItem('de_cheat_lang'); } catch (e) {}
+  applyLang(savedLang || 'en');
+  langBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+    applyLang(next);
+    try { localStorage.setItem('de_cheat_lang', next); } catch (e) {}
+  });
+
+  // ---- collapsible sections ----
+  document.querySelectorAll('.section-head').forEach(function(h){
+    var body=h.nextElementSibling, id=h.parentElement.id;
+    if(localStorage.getItem('st_col_'+id)==='1'){h.classList.add('collapsed');body.classList.add('collapsed');body.style.maxHeight='0';}
+    h.addEventListener('click',function(){
+      var c=body.classList.toggle('collapsed');h.classList.toggle('collapsed',c);
+      if(c){body.style.maxHeight='0';localStorage.setItem('st_col_'+id,'1');}
+      else{body.style.maxHeight=body.scrollHeight+'px';localStorage.setItem('st_col_'+id,'0');
+        setTimeout(function(){if(!body.classList.contains('collapsed'))body.style.maxHeight='none';},400);}
+    });
+  });
+
+  // ---- scroll reveal ----
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('show'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+  // ---- smooth nav + resize fix ----
+  window.addEventListener('resize',function(){document.querySelectorAll('.section-body:not(.collapsed)').forEach(function(b){b.style.maxHeight='none';});});
+})();
+</script>
+</body>
+</html>

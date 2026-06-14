@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Behavioral & Values — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --card:#151d30; --card2:#1c2742; --ink:#e8edf7; --muted:#93a0bd;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7;
+    --border:#26304d; --code-bg:#0e1424; --shadow:rgba(0,0,0,.4);
+  }
+  [data-theme="light"]{
+    --bg:#f4f6fb; --card:#ffffff; --card2:#eef2fa; --ink:#0c1326; --muted:#56617d;
+    --accent:#1262c4; --green:#018f6b; --orange:#b9700a; --purple:#8434c9;
+    --border:#d6deec; --code-bg:#eef2fa; --shadow:rgba(40,60,110,.12);
+  }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased}
+  code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:.55rem .9rem;
+    display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+  nav .brand{font-weight:700;color:var(--accent);white-space:nowrap;margin-right:.3rem}
+  nav a{color:var(--muted);text-decoration:none;font-size:.82rem;padding:.2rem .45rem;border-radius:6px;white-space:nowrap}
+  nav a:hover{color:var(--ink);background:var(--card2)}
+  .nav-links{display:flex;gap:.1rem;flex-wrap:wrap;flex:1;min-width:0}
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  .wrap{max-width:1040px;margin:0 auto;padding:1.2rem .9rem 4rem}
+  header.hero{padding:1.4rem 0 .6rem}
+  header.hero h1{margin:0 0 .3rem;font-size:1.8rem;letter-spacing:-.5px}
+  header.hero .sub{color:var(--muted);font-size:.95rem}
+  .pill{display:inline-block;font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:20px;
+    border:1px solid var(--border);margin:.15rem .25rem .15rem 0;letter-spacing:.3px}
+  .pill.acc{color:var(--accent);border-color:var(--accent)}
+  .pill.grn{color:var(--green);border-color:var(--green)}
+  .pill.org{color:var(--orange);border-color:var(--orange)}
+  .pill.pur{color:var(--purple);border-color:var(--purple)}
+
+  section{margin:1.4rem 0}
+  h2.sec{font-size:1.25rem;border-left:4px solid var(--accent);padding-left:.6rem;margin:0 0 .8rem}
+  h3{font-size:1.02rem;margin:1rem 0 .4rem}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:1rem 1.1rem;margin:.7rem 0;box-shadow:0 1px 3px var(--shadow)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+
+  /* collapsible */
+  details.coll{background:var(--card);border:1px solid var(--border);border-radius:12px;margin:.6rem 0;overflow:hidden}
+  details.coll>summary{cursor:pointer;padding:.85rem 1.05rem;font-weight:600;list-style:none;
+    display:flex;align-items:center;gap:.5rem;user-select:none}
+  details.coll>summary::-webkit-details-marker{display:none}
+  details.coll>summary::before{content:"▸";color:var(--accent);transition:transform .15s;font-size:.9rem}
+  details.coll[open]>summary::before{transform:rotate(90deg)}
+  details.coll>summary:hover{background:var(--card2)}
+  .coll-body{padding:0 1.05rem 1rem;border-top:1px solid var(--border)}
+
+  ul{margin:.4rem 0 .4rem 1.1rem;padding:0}
+  li{margin:.22rem 0}
+  .muted{color:var(--muted)}
+  b.acc{color:var(--accent)} b.grn{color:var(--green)} b.org{color:var(--orange)} b.pur{color:var(--purple)}
+
+  /* callouts */
+  .callout{border-left:4px solid var(--orange);background:var(--card2);border-radius:8px;
+    padding:.6rem .8rem;margin:.6rem 0;font-size:.92rem}
+  .callout.probe{border-color:var(--purple)}
+  .callout.win{border-color:var(--green)}
+  .callout .tag{font-weight:700;font-size:.7rem;letter-spacing:.4px;text-transform:uppercase}
+  .callout.probe .tag{color:var(--purple)} .callout .tag{color:var(--orange)} .callout.win .tag{color:var(--green)}
+
+  /* code */
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:.8rem .9rem;
+    overflow-x:auto;font-size:.82rem;line-height:1.5}
+  .k{color:var(--purple)} .s{color:var(--green)} .c{color:var(--muted);font-style:italic} .n{color:var(--orange)} .f{color:var(--accent)}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:.85rem;margin:.5rem 0}
+  th,td{text-align:left;padding:.5rem .55rem;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--accent);font-size:.74rem;text-transform:uppercase;letter-spacing:.4px}
+  tr:hover td{background:var(--card2)}
+
+  /* flip cards */
+  .flipgrid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin:.6rem 0}
+  @media(max-width:720px){.flipgrid{grid-template-columns:1fr}}
+  .flip{perspective:1200px;min-height:148px;cursor:pointer}
+  .flip-inner{position:relative;width:100%;height:100%;min-height:148px;transition:transform .5s;
+    transform-style:preserve-3d}
+  .flip.flipped .flip-inner{transform:rotateY(180deg)}
+  .flip-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;border:1px solid var(--border);
+    padding:.85rem .95rem;display:flex;flex-direction:column;justify-content:center}
+  .flip-front{background:var(--card)}
+  .flip-front .q{font-weight:600;font-size:.95rem}
+  .flip-front .hint{color:var(--muted);font-size:.74rem;margin-top:.5rem}
+  .flip-back{background:var(--card2);transform:rotateY(180deg);font-size:.84rem;overflow-y:auto}
+  .flip-back b{color:var(--green)}
+
+  /* scroll reveal */
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s}
+  .reveal.in{opacity:1;transform:none}
+
+  .topflag{color:var(--orange);font-weight:700;font-size:.72rem;border:1px solid var(--orange);
+    border-radius:5px;padding:.05rem .35rem;margin-left:.4rem;vertical-align:middle}
+  .diff{font-size:.7rem;font-weight:700;padding:.05rem .35rem;border-radius:5px;margin-left:.4rem}
+  .diff.easy{color:var(--green);border:1px solid var(--green)}
+  .diff.med{color:var(--orange);border:1px solid var(--orange)}
+  .diff.hard{color:var(--purple);border:1px solid var(--purple)}
+  .footer{color:var(--muted);font-size:.8rem;text-align:center;margin-top:2rem;border-top:1px solid var(--border);padding-top:1rem}
+  kbd{background:var(--card2);border:1px solid var(--border);border-radius:4px;padding:.05rem .35rem;font-size:.75rem}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">⚡ <span class="en">Behavioral</span><span class="ru">Behavioral</span></span>
+  <div class="nav-links">
+    <a href="#signals"><span class="en">Signals</span><span class="ru">Сигналы</span></a>
+    <a href="#star">STAR</a>
+    <a href="#stories"><span class="en">Story Map</span><span class="ru">Карта историй</span></a>
+    <a href="#top5"><span class="en">Top 5 Qs</span><span class="ru">Топ-5 вопросов</span></a>
+    <a href="#gap"><span class="en">Stack Gap</span><span class="ru">Пробелы в стеке</span></a>
+    <a href="#disagree"><span class="en">Disagreement</span><span class="ru">Несогласие</span></a>
+    <a href="#ask"><span class="en">Ask Them</span><span class="ru">Спроси их</span></a>
+    <a href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+    <a href="#gotchas"><span class="en">Gotchas</span><span class="ru">Ошибки</span></a>
+  </div>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<div class="wrap">
+
+<header class="hero">
+  <h1><span class="en">Behavioral & Values — <span class="k">DE Interview Prep</span></span><span class="ru">Поведенческое интервью и ценности — <span class="k">Подготовка к DE-интервью</span></span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</span>
+  </div>
+  <div style="margin-top:.6rem">
+    <span class="pill grn"><span class="en">Craftsmanship</span><span class="ru">Качество</span></span>
+    <span class="pill acc"><span class="en">Attention to detail</span><span class="ru">Внимание к деталям</span></span>
+    <span class="pill org"><span class="en">Ownership</span><span class="ru">Ответственность</span></span>
+    <span class="pill pur"><span class="en">Ambiguity</span><span class="ru">Неопределённость</span></span>
+    <span class="pill grn"><span class="en">Disagreement</span><span class="ru">Несогласие</span></span>
+    <span class="pill acc"><span class="en">Collaboration</span><span class="ru">Сотрудничество</span></span>
+    <span class="pill org"><span class="en">Learning</span><span class="ru">Обучение</span></span>
+  </div>
+  <div class="callout win en" style="margin-top:.9rem">
+    <span class="tag">One-line frame</span><br>
+    <b>"Reliable data systems at scale, with a bias toward correctness, not just throughput."</b>
+    That sentence sells every value. Open with it, close with it.
+  </div>
+  <div class="callout win ru" style="margin-top:.9rem">
+    <span class="tag">Рамка одной строкой</span><br>
+    <b>«Надёжные data-системы на масштабе, с акцентом на корректность, а не только пропускную способность.»</b>
+    Это предложение продаёт все ценности. Открывай им, закрывай им.
+  </div>
+</header>
+
+<!-- ===================== SIGNALS ===================== -->
+<section id="signals" class="reveal">
+  <h2 class="sec"><span class="en">What interviewers actually grade</span><span class="ru">Что интервьюеры на самом деле оценивают</span></h2>
+  <p class="muted en">Behavioral here is not culture-fluff. Each value is a probe. Know the value, the proof, and the one-liner.</p>
+  <p class="muted ru">Behavioral здесь — не культурная болтовня. Каждая ценность — это проверка. Знай ценность, доказательство и ключевую фразу.</p>
+  <div class="card">
+  <table class="en">
+    <tr><th>Value</th><th>What they're checking</th><th>Your proof anchor</th></tr>
+    <tr><td><b class="grn">Craftsmanship / quality</b></td><td>You care it's <i>right</i>, not just shipped. Can define "good."</td><td>6.2B-record fix validated by reconciliation; idempotent Airflow tasks</td></tr>
+    <tr><td><b class="acc">Attention to detail</b></td><td>You notice the missed thing; you validate vs assume.</td><td>Validated fix across 6.2B rows, not by sampling</td></tr>
+    <tr><td><b class="org">Ownership</b></td><td>End-to-end, incl. the mess. "I" with precision.</td><td>Owned bank model train→serve; owned blast-radius + fix</td></tr>
+    <tr><td><b class="pur">Ambiguity</b></td><td>Progress with no spec; decompose & decide.</td><td>3.6B/day consolidation: 10 systems, no shared model</td></tr>
+    <tr><td><b class="grn">Disagreement</b></td><td>Disagree well; change mind on evidence.</td><td>8-brand shared spine; conformed dimensions</td></tr>
+    <tr><td><b class="acc">Collaboration</b></td><td>Cross-functional; bring people along.</td><td>Finance+marketing+brand owners; 100+ downstream consumers</td></tr>
+    <tr><td><b class="org">Learning / humility</b></td><td>Close gaps fast; honest about unknowns.</td><td>New Meta stack in months; honest Flink/Iceberg bridge</td></tr>
+    <tr><td><b class="pur">Thinking differently</b></td><td>Non-obvious approach when obvious is wrong.</td><td>Untangler hackathon win; collapse-at-ingestion design</td></tr>
+  </table>
+  <table class="ru">
+    <tr><th>Ценность</th><th>Что они проверяют</th><th>Твоё доказательство-якорь</th></tr>
+    <tr><td><b class="grn">Качество / мастерство</b></td><td>Тебе важно, что это <i>правильно</i>, а не просто выпущено. Можешь определить «хорошо».</td><td>Фикс 6.2B записей, валидированный сверкой; идемпотентные задачи Airflow</td></tr>
+    <tr><td><b class="acc">Внимание к деталям</b></td><td>Ты замечаешь пропущенное; ты валидируешь, а не предполагаешь.</td><td>Валидация фикса по 6.2B строкам, не сэмплингом</td></tr>
+    <tr><td><b class="org">Ответственность</b></td><td>End-to-end, включая беспорядок. «Я» с точностью.</td><td>Владел моделью банка train→serve; владел blast-radius + фиксом</td></tr>
+    <tr><td><b class="pur">Неопределённость</b></td><td>Прогресс без спека; декомпозиция и решения.</td><td>Консолидация 3.6B/день: 10 систем, нет общей модели</td></tr>
+    <tr><td><b class="grn">Несогласие</b></td><td>Умение не соглашаться; менять мнение на основе доказательств.</td><td>Общий spine для 8 брендов; conformed dimensions</td></tr>
+    <tr><td><b class="acc">Сотрудничество</b></td><td>Кросс-функционально; вовлекать людей.</td><td>Финансы+маркетинг+владельцы брендов; 100+ downstream потребителей</td></tr>
+    <tr><td><b class="org">Обучение / скромность</b></td><td>Быстро закрывать пробелы; честность о незнании.</td><td>Новый стек Meta за месяцы; честный мост Flink/Iceberg</td></tr>
+    <tr><td><b class="pur">Нестандартное мышление</b></td><td>Неочевидный подход, когда очевидный неправильный.</td><td>Победа Untangler на хакатоне; collapse-at-ingestion дизайн</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ===================== STAR ===================== -->
+<section id="star" class="reveal">
+  <h2 class="sec"><span class="en">STAR, the way interviewers want it</span><span class="ru">STAR так, как хотят интервьюеры</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin-top:0"><span class="en">The weighting (critical)</span><span class="ru">Распределение веса (критично)</span></h3>
+      <pre class="en"><span class="c"># spend your air-time like this</span>
+Situation  <span class="n">10%</span>  ▓░░░░░░░░░
+Task       <span class="n">10%</span>  ▓░░░░░░░░░
+Action     <span class="n">55%</span>  ▓▓▓▓▓▓░░░░  <span class="c">&lt;- the decisions YOU made</span>
+Result     <span class="n">25%</span>  ▓▓▓░░░░░░░  <span class="c">&lt;- exact numbers</span></pre>
+      <pre class="ru"><span class="c"># распределяй время так</span>
+Situation  <span class="n">10%</span>  ▓░░░░░░░░░
+Task       <span class="n">10%</span>  ▓░░░░░░░░░
+Action     <span class="n">55%</span>  ▓▓▓▓▓▓░░░░  <span class="c">&lt;- решения, которые принял ТЫ</span>
+Result     <span class="n">25%</span>  ▓▓▓░░░░░░░  <span class="c">&lt;- точные цифры</span></pre>
+      <p class="muted en" style="font-size:.85rem">If you're 30 seconds in and still on Situation, you're losing. Cut to the decision.</p>
+      <p class="muted ru" style="font-size:.85rem">Если ты говоришь 30 секунд и всё ещё на Situation, ты проигрываешь. Переходи к решению.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0"><span class="en">"I" vs "we"</span><span class="ru">«Я» vs «мы»</span></h3>
+      <ul class="en">
+        <li><b class="grn">"I"</b> for <i>your</i> decisions, tradeoffs, and judgment calls.</li>
+        <li><b class="acc">"we"</b> honestly for team execution -- don't steal credit.</li>
+        <li>Interviewers probe hard on "what did <i>you</i> specifically do." Have the answer one layer deeper than your headline.</li>
+      </ul>
+      <ul class="ru">
+        <li><b class="grn">«Я»</b> для <i>твоих</i> решений, компромиссов и суждений.</li>
+        <li><b class="acc">«Мы»</b> честно для командного исполнения -- не кради кредит.</li>
+        <li>Интервьюеры жёстко проверяют «что конкретно сделал <i>ты</i>». Имей ответ на один уровень глубже твоего заголовка.</li>
+      </ul>
+      <div class="callout en"><span class="tag">Tool-name rule</span><br>
+        Translate <span class="mono">Dataswarm/Chronos</span> → "Airflow-class orchestration",
+        <span class="mono">Scuba</span> → "real-time columnar store",
+        <span class="mono">Presto-at-Meta</span> → "distributed SQL engine". Speak <i>their</i> vocabulary.
+      </div>
+      <div class="callout ru"><span class="tag">Правило инструментов</span><br>
+        Переводи <span class="mono">Dataswarm/Chronos</span> → «оркестрация уровня Airflow»,
+        <span class="mono">Scuba</span> → «real-time columnar хранилище»,
+        <span class="mono">Presto-at-Meta</span> → «распределённый SQL-движок». Говори на <i>их</i> языке.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STORY MAP ===================== -->
+<section id="stories" class="reveal">
+  <h2 class="sec"><span class="en">Story map — which story for which question</span><span class="ru">Карта историй — какая история для какого вопроса</span></h2>
+  <p class="muted en">9 stories cover everything. Memorise the anchor → question routing.</p>
+  <p class="muted ru">9 историй покрывают всё. Запомни якорь → маршрутизацию вопросов.</p>
+  <div class="card">
+  <table class="en">
+    <tr><th>Story</th><th>Headline number</th><th>Use it for</th><th>Value</th></tr>
+    <tr><td><b class="acc">1. 3.6B/day consolidation</b></td><td>47% redundancy cut, 10 systems</td><td>Ambiguity, distributed systems, technical disagreement</td><td>Ambiguity, scale</td></tr>
+    <tr><td><b class="grn">2. Bank default model</b></td><td>50% loss reduction</td><td>Scala/Spark, ownership end-to-end, "where's your Scala"</td><td>Craftsmanship</td></tr>
+    <tr><td><b class="org">3. Syntea Kafka</b></td><td>80k+ students</td><td>Streaming, learning new product, Flink bridge</td><td>Scale, thinking differently</td></tr>
+    <tr><td><b class="pur">4. Airflow migration</b></td><td>EUR 1M+ / 100s K/yr</td><td>Tight deadline, deliver under pressure, owning a mistake</td><td>Craftsmanship, detail</td></tr>
+    <tr><td><b class="acc">5. 6.2B-record fix</b> ⭐</td><td>34% of threads, 100+ metrics</td><td><b>Hardest problem, failure mode, mistake owned, quality</b></td><td>Failure modes, detail</td></tr>
+    <tr><td><b class="grn">6. Team 2→7</b></td><td>3 promoted</td><td>Mentoring, raising the bar, weakness (over-owning)</td><td>Collaboration</td></tr>
+    <tr><td><b class="org">7. 8-brand spine</b> ⭐</td><td>8 brands, 1 truth</td><td><b>Disagreement, influence w/o authority, changed mind</b></td><td>Collaboration</td></tr>
+    <tr><td><b class="pur">8. Untangler</b></td><td>Hackathon win</td><td>Going beyond, thinking differently, OSS-contribution prompt</td><td>Thinking differently</td></tr>
+    <tr><td><b class="acc">9. McKinsey ML</b></td><td>+20% ARPU</td><td>End-to-end delivery, early-career impact</td><td>Impact</td></tr>
+  </table>
+  <table class="ru">
+    <tr><th>История</th><th>Ключевая цифра</th><th>Используй для</th><th>Ценность</th></tr>
+    <tr><td><b class="acc">1. Консолидация 3.6B/день</b></td><td>47% избыточности срезано, 10 систем</td><td>Неопределённость, распределённые системы, техническое несогласие</td><td>Неопределённость, масштаб</td></tr>
+    <tr><td><b class="grn">2. Модель дефолтов банка</b></td><td>50% снижение потерь</td><td>Scala/Spark, ответственность end-to-end, «где твоя Scala»</td><td>Качество</td></tr>
+    <tr><td><b class="org">3. Syntea Kafka</b></td><td>80k+ студентов</td><td>Стриминг, изучение нового продукта, мост Flink</td><td>Масштаб, нестандартное мышление</td></tr>
+    <tr><td><b class="pur">4. Миграция Airflow</b></td><td>EUR 1M+ / 100s K/год</td><td>Жёсткий дедлайн, доставка под давлением, признание ошибки</td><td>Качество, детали</td></tr>
+    <tr><td><b class="acc">5. Фикс 6.2B записей</b> ⭐</td><td>34% тредов, 100+ метрик</td><td><b>Самая сложная задача, режим сбоя, признанная ошибка, качество</b></td><td>Режимы сбоев, детали</td></tr>
+    <tr><td><b class="grn">6. Команда 2→7</b></td><td>3 promoted</td><td>Менторинг, поднятие планки, слабость (over-owning)</td><td>Сотрудничество</td></tr>
+    <tr><td><b class="org">7. Spine для 8 брендов</b> ⭐</td><td>8 брендов, 1 истина</td><td><b>Несогласие, влияние без власти, изменение мнения</b></td><td>Сотрудничество</td></tr>
+    <tr><td><b class="pur">8. Untangler</b></td><td>Победа на хакатоне</td><td>Выход за рамки, нестандартное мышление, OSS-контрибьюция</td><td>Нестандартное мышление</td></tr>
+    <tr><td><b class="acc">9. McKinsey ML</b></td><td>+20% ARPU</td><td>Доставка end-to-end, влияние на раннем этапе карьеры</td><td>Влияние</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ===================== TOP 5 ===================== -->
+<section id="top5" class="reveal">
+  <h2 class="sec"><span class="en">The 5 most likely questions</span><span class="ru">5 самых вероятных вопросов</span></h2>
+  <p class="muted en">If you rehearse only five tonight, rehearse these. Collapsibles below.</p>
+  <p class="muted ru">Если ты отрепетируешь только пять сегодня вечером, отрепетируй эти. Раскрывающиеся блоки ниже.</p>
+
+  <details class="coll" open>
+    <summary><span class="en">1. Tell me about yourself</span><span class="ru">1. Расскажи о себе</span> <span class="topflag">TOP 5</span><span class="diff easy">easy</span></summary>
+    <div class="coll-body">
+      <p class="en">~90 seconds. Weight toward <b>distributed systems + JVM + quality</b>, not a flat chronology.</p>
+      <p class="ru">~90 секунд. Упор на <b>распределённые системы + JVM + качество</b>, а не плоскую хронологию.</p>
+      <ul class="en">
+        <li>10 yrs, consulting → big tech → PE-backed; London. <b class="grn">Throughline: reliable data at scale, bias toward correctness.</b></li>
+        <li>Front Tier: owned end-to-end <b>Scala/Spark on Hadoop</b>, 50% loss cut -- "where I learned distributed processing on the JVM."</li>
+        <li>McMakler: led AE team, 3 concurrent migrations, EUR 1M+, <b>Airflow</b>, grew 2→7.</li>
+        <li>IU Group: <b>Kafka</b> ingestion, GPT-4 at 80k+ students, MS Azure case study.</li>
+        <li>Career.io: 8-person team, board-level warehouse, 8 brands.</li>
+        <li>Meta: <b>3.6B events/day</b> consolidation, <b>6.2B-record</b> fix.</li>
+        <li><b class="acc">Close:</b> "billions of points/day, batch + realtime, correctness matters to the product. That's the work I want."</li>
+      </ul>
+      <ul class="ru">
+        <li>10 лет, консалтинг → большой техно → PE-backed; Лондон. <b class="grn">Красная нить: надёжные данные на масштабе, акцент на корректность.</b></li>
+        <li>Front Tier: владел end-to-end <b>Scala/Spark на Hadoop</b>, снижение потерь на 50% -- «где я изучил распределённую обработку на JVM».</li>
+        <li>McMakler: вёл команду AE, 3 параллельных миграции, EUR 1M+, <b>Airflow</b>, вырастил 2→7.</li>
+        <li>IU Group: <b>Kafka</b> ingestion, GPT-4 на 80k+ студентах, кейс-стади MS Azure.</li>
+        <li>Career.io: команда 8 человек, хранилище уровня борда, 8 брендов.</li>
+        <li>Meta: <b>3.6B событий/день</b> консолидация, <b>6.2B-записей</b> фикс.</li>
+        <li><b class="acc">Закрыть:</b> «миллиарды точек/день, батч + реалтайм, корректность важна для продукта. Это та работа, которую я хочу.»</li>
+      </ul>
+      <div class="callout probe en"><span class="tag">Probe</span> "Pick one, go deep." → Load stories 1, 2, 5.</div>
+      <div class="callout probe ru"><span class="tag">Проверка</span> «Выбери одну, иди глубже.» → Загружай истории 1, 2, 5.</div>
+    </div>
+  </details>
+
+  <details class="coll">
+    <summary><span class="en">2. Hardest / most complex problem</span><span class="ru">2. Самая сложная / сложнейшая проблема</span> <span class="topflag">TOP 5</span><span class="diff hard">hard</span></summary>
+    <div class="coll-body">
+      <p class="en"><b>Anchor: Story 5 — 6.2B-record entity-resolution defect (34% of threads).</b></p>
+      <p class="ru"><b>Якорь: История 5 — дефект entity-resolution на 6.2B записей (34% тредов).</b></p>
+      <pre class="en"><span class="k">S</span>: ER defect mis-linking threads -&gt; silently corrupting 100+ metrics/ML features
+<span class="k">T</span>: root-cause, quantify blast radius, fix at scale, keep it fixed
+<span class="k">A</span>: 1) quantify blast radius (records/threads/consumers)
+   2) trace ER logic to the bad-merge condition
+   3) fix at root
+   4) <span class="s">validate ALL 6.2B records by reconciliation vs ground truth</span>
+      <span class="c"># at 34% of threads, sampling = irresponsible</span>
+   5) confirm downstream recovery with owners
+<span class="k">R</span>: restored accuracy for 100+ metrics/ML features for abuse detection</pre>
+      <pre class="ru"><span class="k">S</span>: дефект ER неправильно линкует треды -&gt; тихо коррапит 100+ метрик/ML фич
+<span class="k">T</span>: root-cause, квантифицировать blast radius, фикс на масштабе, держать фикс
+<span class="k">A</span>: 1) квантифицировать blast radius (записи/треды/потребители)
+   2) проследить логику ER до условия bad-merge
+   3) фикс у корня
+   4) <span class="s">валидировать ВСЕ 6.2B записей сверкой vs ground truth</span>
+      <span class="c"># при 34% тредов сэмплинг = безответственность</span>
+   5) подтвердить восстановление downstream с владельцами
+<span class="k">R</span>: восстановлена точность для 100+ метрик/ML фич для обнаружения абьюза</pre>
+      <div class="callout probe en"><span class="tag">Probe</span> "How did you <i>test</i> a fix across 6.2B rows?" → reconciliation vs source of truth, invariants (uniqueness/referential), before/after diff on affected partitions.</div>
+      <div class="callout probe ru"><span class="tag">Проверка</span> «Как ты <i>тестировал</i> фикс по 6.2B строкам?» → сверка vs source of truth, инварианты (уникальность/ссылочная целостность), before/after diff на затронутых партициях.</div>
+      <div class="callout win en"><span class="tag">Why it wins</span> This IS the "reasoning about complex failure modes." Your flagship.</div>
+      <div class="callout win ru"><span class="tag">Почему побеждает</span> Это И ЕСТЬ «рассуждение о сложных режимах сбоев». Твой флагман.</div>
+    </div>
+  </details>
+
+  <details class="coll">
+    <summary><span class="en">3. A time you disagreed with a peer/manager</span><span class="ru">3. Когда ты не соглашался с коллегой/менеджером</span> <span class="topflag">TOP 5</span><span class="diff med">med</span></summary>
+    <div class="coll-body">
+      <p class="en"><b>Anchor: Story 7 — shared spine across 8 brands.</b> See <a href="#disagree" style="color:var(--accent)">Disagreement</a> section for the full framework.</p>
+      <p class="ru"><b>Якорь: История 7 — общий spine для 8 брендов.</b> Смотри секцию <a href="#disagree" style="color:var(--accent)">Несогласие</a> для полного фреймворка.</p>
+      <ul class="en">
+        <li>Disagreed with keeping per-brand definitions. <b>Didn't mandate</b> -- made the cost concrete (same KPI diverging), ran the alignment, then <b class="grn">enforced the agreement in the model</b> (conformed dimensions), not just a doc.</li>
+        <li>Legit edge case → encoded as an attribute, not a forked definition.</li>
+        <li>R: one shared spine, board reporting consistent across all 8 brands.</li>
+      </ul>
+      <ul class="ru">
+        <li>Не согласился с сохранением определений по брендам. <b>Не навязывал</b> -- сделал стоимость конкретной (одинаковый KPI расходится), провёл выравнивание, затем <b class="grn">обеспечил соглашение в модели</b> (conformed dimensions), а не только в доке.</li>
+        <li>Легитимный edge case → закодирован как атрибут, а не форкнутое определение.</li>
+        <li>R: один общий spine, репортинг для борда консистентен по всем 8 брендам.</li>
+      </ul>
+      <div class="callout probe en"><span class="tag">Probe</span> "What if they still refused?" → escalate with data + a recommendation, commit to the call, instrument so the cost stays visible. Also have a "<i>when were YOU wrong</i>" ready (Q8).</div>
+      <div class="callout probe ru"><span class="tag">Проверка</span> «Что, если они всё равно отказались бы?» → эскалация с данными + рекомендацией, коммит к решению, инструментирование, чтобы стоимость оставалась видимой. Также имей готовым «<i>когда ТЫ был неправ</i>» (Q8).</div>
+    </div>
+  </details>
+
+  <details class="coll">
+    <summary><span class="en">4. The Flink / Iceberg / Python-stack gap</span><span class="ru">4. Пробел Flink / Iceberg / Python-стек</span> <span class="topflag">TOP 5</span><span class="diff hard">hard</span></summary>
+    <div class="coll-body">
+      <p class="en"><b>Graded as honesty + learning, not just technical.</b> Full script in <a href="#gap" style="color:var(--accent)">Stack Gap</a>.</p>
+      <p class="ru"><b>Оценивается как честность + обучение, а не только техническое.</b> Полный скрипт в <a href="#gap" style="color:var(--accent)">Пробелы в стеке</a>.</p>
+      <ul class="en">
+        <li>Name it clean: "Three honest gaps -- Flink, Iceberg, recent Java. I have the adjacent foundation for each and I'm closing them."</li>
+        <li>Bridge each to real experience (Kafka→Flink, Hive/Snowflake→Iceberg, Scala-on-JVM→Java).</li>
+        <li>Close on velocity: "New Meta stack in months, shipped a 10-system consolidation. Ramping a known OSS stack is the easier version of what I've done."</li>
+      </ul>
+      <ul class="ru">
+        <li>Назови чисто: «Три честных пробела -- Flink, Iceberg, свежая Java. У меня есть смежный фундамент для каждого, и я их закрываю.»</li>
+        <li>Проведи мост каждого к реальному опыту (Kafka→Flink, Hive/Snowflake→Iceberg, Scala-on-JVM→Java).</li>
+        <li>Закрой на скорости: «Новый стек Meta за месяцы, доставил консолидацию 10 систем. Освоение известного OSS-стека — более лёгкая версия того, что я делал.»</li>
+      </ul>
+      <div class="callout en"><span class="tag">Never</span> bluff a Flink internal. "I haven't hit that in prod; here's the model as I understand it" > confident wrong answer.</div>
+      <div class="callout ru"><span class="tag">Никогда</span> не блефуй Flink-разработчику. «Я не встречал это в проде; вот модель, как я её понимаю» > уверенный неправильный ответ.</div>
+    </div>
+  </details>
+
+  <details class="coll">
+    <summary><span class="en">5. A mistake / something went wrong</span><span class="ru">5. Ошибка / что-то пошло не так</span> <span class="topflag">TOP 5</span><span class="diff med">med</span></summary>
+    <div class="coll-body">
+      <p class="en"><b>Structure:</b> what went wrong → <b class="org">your</b> role (own it, no blame) → what you did → systemic change so it can't recur.</p>
+      <p class="ru"><b>Структура:</b> что пошло не так → <b class="org">твоя</b> роль (признай, без обвинений) → что ты сделал → системное изменение, чтобы это не повторилось.</p>
+      <ul class="en">
+        <li><b>Option A (own a defect):</b> the 6.2B-record bug had been silently shipping -- "I owned the blast-radius analysis and made full-scale reconciliation the standard so it can't recur silently."</li>
+        <li><b>Option B (more personal):</b> McMakler migration -- underestimated cutover/validation sequencing. Fix: incremental cutover, validate vs legacy before switching, users never saw a break. <b class="grn">Lesson: validate against the old system, don't trust the rewrite.</b></li>
+      </ul>
+      <ul class="ru">
+        <li><b>Вариант A (признать дефект):</b> баг 6.2B-записей тихо шёл в прод -- «Я взял на себя анализ blast-radius и сделал полномасштабную сверку стандартом, чтобы это не могло повториться тихо.»</li>
+        <li><b>Вариант B (более личный):</b> миграция McMakler -- недооценил секвенсинг cutover/валидации. Фикс: инкрементальный cutover, валидировать vs legacy перед переключением, пользователи не увидели разрыва. <b class="grn">Урок: валидировать против старой системы, не доверять переписыванию.</b></li>
+      </ul>
+      <div class="callout probe en"><span class="tag">Probe</span> "What would you do differently?" -- crisp, non-defensive, specific.</div>
+      <div class="callout probe ru"><span class="tag">Проверка</span> «Что бы ты сделал по-другому?» -- чётко, без защиты, конкретно.</div>
+    </div>
+  </details>
+</section>
+
+<!-- ===================== STACK GAP ===================== -->
+<section id="gap" class="reveal">
+  <h2 class="sec"><span class="en">Talking about the stack gap with confidence</span><span class="ru">Говорить о пробеле в стеке с уверенностью</span></h2>
+  <div class="callout win en"><span class="tag">Mindset</span> You are not apologising. You have <b>real production Scala, Spark, Kafka, and Airflow</b>. The gap is three named tools, each adjacent to something you've shipped. Honest + bridged + velocity = a <i>positive</i> learning signal.</div>
+  <div class="callout win ru"><span class="tag">Настрой</span> Ты не извиняешься. У тебя есть <b>реальные продовые Scala, Spark, Kafka и Airflow</b>. Пробел — это три названных инструмента, каждый смежный с тем, что ты доставил. Честность + мост + скорость = <i>позитивный</i> сигнал обучения.</div>
+
+  <div class="card">
+  <table class="en">
+    <tr><th>Gap</th><th>What you HAVE done</th><th>The bridge sentence</th></tr>
+    <tr><td><b class="org">Flink</b></td><td>Production Kafka streaming (Syntea, 80k+ students)</td><td>"Built prod streaming on Kafka. Haven't run Flink, but I know the model -- stateful streams, event vs processing time, watermarks, windowing, checkpointing/exactly-once, keyed state. Flink = true low-latency stateful; Spark Structured Streaming = micro-batch."</td></tr>
+    <tr><td><b class="purple" style="color:var(--purple)">Iceberg</b></td><td>Hive, Snowflake, BigQuery, dbt layers</td><td>"Worked Hive/Snowflake/BigQuery as table layers. Iceberg = table format: hidden partitioning, snapshot isolation/ACID, time travel, schema/partition evolution without rewrites, manifest metadata that scales past the Hive metastore."</td></tr>
+    <tr><td><b class="acc">Java / recent Scala</b></td><td>Production Scala on JVM (Front Tier, 2018-19)</td><td>"Production Scala on the JVM; refreshing functional idioms. Java -- same JVM, comfortable reading/writing; Scala is my production language. I won't claim deep recent Java."</td></tr>
+  </table>
+  <table class="ru">
+    <tr><th>Пробел</th><th>Что ты ДЕЛАЛ</th><th>Фраза-мост</th></tr>
+    <tr><td><b class="org">Flink</b></td><td>Продовый Kafka стриминг (Syntea, 80k+ студентов)</td><td>«Построил прод-стриминг на Kafka. Не запускал Flink, но знаю модель -- stateful streams, event vs processing time, watermarks, windowing, checkpointing/exactly-once, keyed state. Flink = настоящий low-latency stateful; Spark Structured Streaming = micro-batch.»</td></tr>
+    <tr><td><b class="purple" style="color:var(--purple)">Iceberg</b></td><td>Hive, Snowflake, BigQuery, dbt слои</td><td>«Работал с Hive/Snowflake/BigQuery как table layers. Iceberg = формат таблиц: hidden partitioning, snapshot isolation/ACID, time travel, schema/partition evolution без переписываний, manifest metadata, масштабируется за пределы Hive metastore.»</td></tr>
+    <tr><td><b class="acc">Java / свежая Scala</b></td><td>Продовая Scala на JVM (Front Tier, 2018-19)</td><td>«Продовая Scala на JVM; освежаю функциональные идиомы. Java -- та же JVM, комфортно читать/писать; Scala — мой продовый язык. Не буду утверждать глубокую свежую Java.»</td></tr>
+  </table>
+  </div>
+
+  <details class="coll">
+    <summary><span class="en">The full 4-beat script (say it out loud 3x)</span><span class="ru">Полный 4-тактный скрипт (произнеси вслух 3x)</span></summary>
+    <div class="coll-body">
+      <pre class="en"><span class="n">1. NAME IT</span>  "Three honest gaps: Flink, Iceberg, recent Java."
+<span class="n">2. BRIDGE</span>  each -&gt; the adjacent thing I've shipped (table above)
+<span class="n">3. SHOW MODEL</span>  prove I understand the concept, not just the name
+<span class="n">4. VELOCITY</span>  "New internal stack at Meta in months -&gt; shipped a
+            10-system, 3.6B/day consolidation. Ramping a KNOWN
+            OSS stack is the easier version of what I've done."</pre>
+      <pre class="ru"><span class="n">1. НАЗОВИ</span>  «Три честных пробела: Flink, Iceberg, свежая Java.»
+<span class="n">2. МОСТ</span>  каждый -&gt; смежная вещь, которую я доставил (таблица выше)
+<span class="n">3. ПОКАЖИ МОДЕЛЬ</span>  докажи, что понимаю концепцию, а не только имя
+<span class="n">4. СКОРОСТЬ</span>  «Новый внутренний стек Meta за месяцы -&gt; доставил
+            консолидацию 10 систем, 3.6B/день. Освоение ИЗВЕСТНОГО
+            OSS-стека — более лёгкая версия того, что я делал.»</pre>
+      <div class="callout en"><span class="tag">Gotcha</span> Do not volunteer the gap unprompted in every answer. State it once, cleanly, when asked; then redirect to strengths.</div>
+      <div class="callout ru"><span class="tag">Ошибка</span> Не предлагай пробел без запроса в каждом ответе. Сформулируй один раз, чисто, когда спросят; затем перенаправь на сильные стороны.</div>
+    </div>
+  </details>
+</section>
+
+<!-- ===================== DISAGREEMENT ===================== -->
+<section id="disagree" class="reveal">
+  <h2 class="sec"><span class="en">Disagreement & "disagree and commit"</span><span class="ru">Несогласие и «не согласись и коммит»</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin-top:0"><span class="en">How to disagree (the good way)</span><span class="ru">Как не соглашаться (правильно)</span></h3>
+      <pre class="en"><span class="c"># the ladder interviewers want to hear</span>
+1. make the COST of status quo concrete (data)
+2. propose a clear RECOMMENDATION, not just a complaint
+3. listen for the legit edge case -&gt; encode it,
+   don't dismiss it
+4. turn agreement into something ENFORCED in the
+   system (conformed dims / canonical model)
+5. once the call is made -&gt; COMMIT fully, instrument
+   so reality is visible if you were right</pre>
+      <pre class="ru"><span class="c"># лестница, которую хотят слышать интервьюеры</span>
+1. сделай СТОИМОСТЬ статус-кво конкретной (данные)
+2. предложи чёткую РЕКОМЕНДАЦИЮ, а не просто жалобу
+3. слушай легитимный edge case -&gt; закодируй его,
+   не отмахивайся
+4. преврати соглашение в нечто ОБЕСПЕЧЕННОЕ в
+   системе (conformed dims / каноническая модель)
+5. после решения -&gt; КОММИТЬСЯ полностью, инструментируй,
+   чтобы реальность была видна, если ты был прав</pre>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0"><span class="en">Two answers you MUST have</span><span class="ru">Два ответа, которые ОБЯЗАНЫ быть у тебя</span></h3>
+      <ul class="en">
+        <li><b class="grn">When I disagreed and won:</b> 8-brand spine (Story 7).</li>
+        <li><b class="org">When I was wrong / changed my mind:</b> a real case where a teammate's evidence beat yours -- e.g. a conformed-dimension grain you revised after a brand owner surfaced a legit edge case you'd dismissed as noise. "I changed it because the evidence was better than mine, and I said so."</li>
+      </ul>
+      <ul class="ru">
+        <li><b class="grn">Когда я не согласился и победил:</b> spine для 8 брендов (История 7).</li>
+        <li><b class="org">Когда я был неправ / изменил мнение:</b> реальный случай, когда доказательства коллеги побили твои -- например, гранулярность conformed-dimension, которую ты пересмотрел после того, как владелец бренда всплыл легитимный edge case, который ты отбросил как шум. «Я изменил это, потому что доказательства были лучше моих, и я так сказал.»</li>
+      </ul>
+      <div class="callout en"><span class="tag">Gotcha</span> The "I was wrong" story must have <i>real cost</i>. A cosmetic change reads as fake humility.</div>
+      <div class="callout ru"><span class="tag">Ошибка</span> История «Я был неправ» должна иметь <i>реальную стоимость</i>. Косметическое изменение читается как фальшивая скромность.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ASK THEM ===================== -->
+<section id="ask" class="reveal">
+  <h2 class="sec"><span class="en">Questions to ask the interviewer</span><span class="ru">Вопросы, которые задать интервьюеру</span></h2>
+  <p class="muted en">Pick 3-4. Have 6 ready. They signal craftsmanship, scale-thinking, real interest. Turn your tonight-study into informed questions.</p>
+  <p class="muted ru">Выбери 3-4. Имей 6 готовых. Они сигнализируют качество, мышление масштабом, реальный интерес. Преврати своё сегодняшнее изучение в осведомлённые вопросы.</p>
+  <div class="card">
+    <ul class="en">
+      <li><b class="grn">Quality:</b> "How does the team define and enforce data correctness at billions of points/day -- what does 'good' look like, and how is it tested?"</li>
+      <li><b class="acc">Streaming:</b> "Where is the team on batch vs streaming today, and where's it heading -- how much is true streaming vs micro-batch?"</li>
+      <li><b class="pur">Scale:</b> "What's the most interesting failure mode the team had to reason about recently at this scale?"</li>
+      <li><b class="org">Bar:</b> "What does review culture look like -- how do you keep the engineering bar high as volume and the team grow?"</li>
+      <li><b class="grn">Ramp (honest):</b> "For someone strong on correctness + warehousing but newer to some tools in the stack, what does ramping and 6-month success look like?"</li>
+      <li><b class="acc">Product:</b> "How close is the data team to the product teams -- how directly does the work power user-facing features?"</li>
+    </ul>
+    <ul class="ru">
+      <li><b class="grn">Качество:</b> «Как команда определяет и обеспечивает корректность данных на миллиардах точек/день -- как выглядит 'хорошо' и как это тестируется?»</li>
+      <li><b class="acc">Стриминг:</b> «Где команда по батчу vs стримингу сегодня, и куда она движется -- сколько настоящего стриминга vs микро-батча?»</li>
+      <li><b class="pur">Масштаб:</b> «Какой самый интересный режим сбоя команда должна была недавно обдумывать на этом масштабе?»</li>
+      <li><b class="org">Планка:</b> «Как выглядит культура ревью -- как вы держите планку инженерии высокой по мере роста объёма и команды?»</li>
+      <li><b class="grn">Ramp (честно):</b> «Для человека сильного в корректности + хранилищах, но новичка в некоторых инструментах стека, как выглядит ramp и успех за 6 месяцев?»</li>
+      <li><b class="acc">Продукт:</b> «Насколько близка команда данных к командам продукта -- насколько прямо работа питает user-facing фичи?»</li>
+    </ul>
+    <div class="callout en"><span class="tag">Avoid</span> comp / leveling / WFH-policy in the behavioral round. Nothing answerable by the JD. No generic "what's the culture like."</div>
+    <div class="callout ru"><span class="tag">Избегай</span> comp / leveling / WFH-политики в поведенческом раунде. Ничего, на что можно ответить по JD. Никаких общих «какова культура».</div>
+  </div>
+</section>
+
+<!-- ===================== SELF-QUIZ ===================== -->
+<section id="quiz" class="reveal">
+  <h2 class="sec"><span class="en">Self-quiz — tap to flip</span><span class="ru">Самопроверка — нажми, чтобы перевернуть</span></h2>
+  <p class="muted en">Cover the answer, say yours out loud, then flip to check.</p>
+  <p class="muted ru">Закрой ответ, скажи свой вслух, затем переверни для проверки.</p>
+  <div class="flipgrid">
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">Your one-line career frame?</div><div class="q ru">Твоя карьерная рамка одной строкой?</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>"Reliable data systems at scale, with a bias toward correctness, not just throughput."</b> Open and close with it.</div><div class="ru"><b>«Надёжные data-системы на масштабе, с акцентом на корректность, а не только пропускную способность.»</b> Открывай и закрывай этим.</div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">Flagship "complex failure mode" story + number?</div><div class="q ru">Флагманская история «сложный режим сбоя» + цифра?</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>6.2B-record entity-resolution defect, 34% of threads, 100+ downstream metrics/ML features restored.</b> Validated by reconciliation, not sampling.</div><div class="ru"><b>Дефект entity-resolution на 6.2B записей, 34% тредов, 100+ downstream метрик/ML фич восстановлено.</b> Валидировано сверкой, не сэмплингом.</div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">"Where's your Scala?" -- one breath</div><div class="q ru">«Где твоя Scala?» -- на одном дыхании</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>"Production Scala/Spark on Hadoop at Front Tier, 2018-19 -- 50% loss cut. Refreshing functional idioms now. Scala is my production language; Java same JVM, comfortable reading/writing."</b></div><div class="ru"><b>«Продовая Scala/Spark на Hadoop в Front Tier, 2018-19 -- снижение потерь на 50%. Освежаю функциональные идиомы сейчас. Scala — мой продовый язык; Java — та же JVM, комфортно читать/писать.»</b></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">Flink in one contrast?</div><div class="q ru">Flink в одном контрасте?</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>Flink = true low-latency stateful streaming (event time, watermarks, checkpointing, keyed state). Spark Structured Streaming = micro-batch.</b> Bridge from Kafka.</div><div class="ru"><b>Flink = настоящий low-latency stateful стриминг (event time, watermarks, checkpointing, keyed state). Spark Structured Streaming = micro-batch.</b> Мост от Kafka.</div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">Iceberg in one breath?</div><div class="q ru">Iceberg на одном дыхании?</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>Table format: hidden partitioning, snapshot isolation/ACID, time travel, schema/partition evolution without rewrites, manifest metadata scaling past Hive metastore.</b></div><div class="ru"><b>Формат таблиц: hidden partitioning, snapshot isolation/ACID, time travel, schema/partition evolution без переписываний, manifest metadata, масштабируется за пределы Hive metastore.</b></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">"What does quality mean to you?"</div><div class="q ru">«Что для тебя качество?»</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>Correctness you can prove. A green pipeline emitting wrong numbers is worse than one that fails loudly.</b> Validate vs source of truth, DQ monitors, idempotency.</div><div class="ru"><b>Корректность, которую можно доказать. Зелёный пайплайн, выдающий неправильные числа, хуже того, который падает громко.</b> Валидировать vs source of truth, DQ-мониторы, идемпотентность.</div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">Disagreement story anchor?</div><div class="q ru">Якорь истории несогласия?</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>8-brand shared spine.</b> Made cost concrete, ran alignment, enforced in conformed dimensions, encoded edge cases as attributes.</div><div class="ru"><b>Общий spine для 8 брендов.</b> Сделал стоимость конкретной, провёл выравнивание, обеспечил в conformed dimensions, закодировал edge cases как атрибуты.</div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">Ambiguity story anchor + number?</div><div class="q ru">Якорь истории неопределённости + цифра?</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>3.6B events/day consolidation, 10 systems, no shared model → 47% redundancy eliminated.</b> Decompose, canonical grain, validate vs loaders.</div><div class="ru"><b>Консолидация 3.6B событий/день, 10 систем, нет общей модели → 47% избыточности устранено.</b> Декомпозировать, каноническая гранулярность, валидировать vs loaders.</div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">How do you attention-to-detail at billions of rows you can't eyeball?</div><div class="q ru">Как ты обращаешь внимание на детали на миллиардах строк, которые не можешь посмотреть глазами?</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>Systematic verification: invariants (uniqueness/referential/row-count conservation), reconciliation vs source of truth, before/after partition diffs, DQ monitors, CI gating.</b></div><div class="ru"><b>Систематическая верификация: инварианты (уникальность/ссылочная целостность/сохранение числа строк), сверка vs source of truth, before/after partition diffs, DQ-мониторы, CI gating.</b></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">"Why this role / company?"</div><div class="q ru">«Почему эта роль / компания?»</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>My problem at scale: billions/day, batch+realtime, powering real products; values fit on quality + failure-mode reasoning; want to deepen on a high-bar team.</b></div><div class="ru"><b>Моя проблема на масштабе: миллиарды/день, батч+реалтайм, питает реальные продукты; ценности совпадают по качеству + рассуждению о режимах сбоев; хочу углубиться в команде с высокой планкой.</b></div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">A real weakness?</div><div class="q ru">Реальная слабость?</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>Recent stack drifted to Python/SQL/internal tooling → deliberately re-deepening OSS JVM stack.</b> OR early over-owning, fixed by scoped ownership for juniors (3 promoted).</div><div class="ru"><b>Недавний стек сместился в Python/SQL/внутренний тулинг → намеренно углубляюсь в OSS JVM-стек.</b> ИЛИ раннее over-owning, исправлено ограниченной ответственностью для джуниоров (3 promoted).</div></div>
+    </div></div>
+
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q en">"Going beyond / thinking differently" story?</div><div class="q ru">История «Выход за рамки / нестандартное мышление»?</div><div class="hint"><span class="en">tap to reveal</span><span class="ru">нажми для показа</span></div></div>
+      <div class="flip-face flip-back"><div class="en"><b>Untangler -- multi-agent AI for safe pipeline restructuring. Won EMEA Data Eng Hackathon 2026, selected for Meta internal tooling.</b> Also the OSS-contribution answer.</div><div class="ru"><b>Untangler -- мульти-агентный AI для безопасного переустройства пайплайнов. Победил EMEA Data Eng Hackathon 2026, выбран для внутреннего тулинга Meta.</b> Также ответ на OSS-контрибьюцию.</div></div>
+    </div></div>
+
+  </div>
+</section>
+
+<!-- ===================== GOTCHAS ===================== -->
+<section id="gotchas" class="reveal">
+  <h2 class="sec"><span class="en">Gotchas & final reminders</span><span class="ru">Ошибки и финальные напоминания</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin-top:0"><span class="en">Don't</span><span class="ru">Не</span></h3>
+      <ul class="en">
+        <li>Bluff a tool internal. "Here's the model as I understand it" wins.</li>
+        <li>Narrate Situation for 60 seconds. Cut to <b class="grn">Action</b>.</li>
+        <li>Say "we" for decisions you made alone.</li>
+        <li>Use internal tool names without translating.</li>
+        <li>Pick a cosmetic "mistake" / "weakness" -- reads as fake.</li>
+        <li>Say "I don't have strong opinions" -- reads junior.</li>
+        <li>Ask comp/level/WFH in the behavioral round.</li>
+      </ul>
+      <ul class="ru">
+        <li>Блефуй разработчику инструмента. «Вот модель, как я её понимаю» побеждает.</li>
+        <li>Рассказывай Situation 60 секунд. Переходи к <b class="grn">Action</b>.</li>
+        <li>Говори «мы» для решений, которые ты принял один.</li>
+        <li>Используй внутренние имена инструментов без перевода.</li>
+        <li>Выбирай косметическую «ошибку» / «слабость» -- читается как фальшь.</li>
+        <li>Говори «У меня нет сильных мнений» -- читается как джуниор.</li>
+        <li>Спрашивай comp/level/WFH в поведенческом раунде.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0"><span class="en">Do</span><span class="ru">Делай</span></h3>
+      <ul class="en">
+        <li>Lead with Action + Result; keep numbers <b>exact</b>.</li>
+        <li>State the gap once, cleanly, then redirect to strengths.</li>
+        <li>Have "I was wrong" + "I disagreed" + "I made a mistake" all loaded.</li>
+        <li>Frame data correctness as a <b>first-class testing problem</b>.</li>
+        <li>End answers on the result and its impact, not a trailing detail.</li>
+        <li>Turn tonight's study into questions you ask <i>them</i>.</li>
+      </ul>
+      <ul class="ru">
+        <li>Начинай с Action + Result; держи цифры <b>точными</b>.</li>
+        <li>Сформулируй пробел один раз, чисто, затем перенаправь на сильные стороны.</li>
+        <li>Имей загруженными «Я был неправ» + «Я не согласился» + «Я сделал ошибку».</li>
+        <li>Представляй корректность данных как <b>первоклассную проблему тестирования</b>.</li>
+        <li>Заканчивай ответы на результате и его влиянии, а не на деталях в конце.</li>
+        <li>Преврати сегодняшнее изучение в вопросы, которые ты задаёшь <i>им</i>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0"><span class="en">Numbers, memorised cold</span><span class="ru">Цифры, заучены наизусть</span></h3>
+    <pre class="mono">3.6B events/day  |  47% redundancy cut  |  6.2B records  |  34% of threads
+100+ downstream metrics/ML features  |  EUR 1M+  |  team 2->7  |  3 promoted
+50% loss reduction  |  80,000+ students  |  +20% ARPU  |  +10% satisfaction</pre>
+  </div>
+</section>
+
+<div class="footer">
+  <span class="en">Behavioral & Values — Data Engineering Interview Prep &middot; Built for Amal Imangulov</span>
+  <span class="ru">Поведенческое интервью и ценности — Подготовка к DE-интервью &middot; Сделано для Amal Imangulov</span>
+  <br>
+  <span class="en">Tip: press <kbd>T</kbd> to toggle theme, <kbd>L</kbd> to toggle language.</span>
+  <span class="ru">Совет: нажми <kbd>T</kbd> для переключения темы, <kbd>L</kbd> для переключения языка.</span>
+</div>
+
+</div>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  var langBtn = document.getElementById('langBtn');
+
+  // theme
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+    try { localStorage.setItem('de_cheat_theme', t); } catch(e) {}
+  }
+  var savedTheme = 'dark';
+  try { savedTheme = localStorage.getItem('de_cheat_theme') || 'dark'; } catch(e) {}
+  applyTheme(savedTheme);
+  themeBtn.addEventListener('click', function() {
+    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  // lang
+  function applyLang(lang) {
+    root.setAttribute('data-lang', lang);
+    langBtn.textContent = lang === 'en' ? '🌐 RU' : '🌐 EN';
+    try { localStorage.setItem('de_cheat_lang', lang); } catch(e) {}
+  }
+  var savedLang = 'en';
+  try { savedLang = localStorage.getItem('de_cheat_lang') || 'en'; } catch(e) {}
+  applyLang(savedLang);
+  langBtn.addEventListener('click', function() {
+    applyLang(root.getAttribute('data-lang') === 'en' ? 'ru' : 'en');
+  });
+
+  // keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (/input|textarea/i.test(e.target.tagName)) return;
+    if (e.key === 't' || e.key === 'T') {
+      applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    }
+    if (e.key === 'l' || e.key === 'L') {
+      applyLang(root.getAttribute('data-lang') === 'en' ? 'ru' : 'en');
+    }
+  });
+
+  // flip cards
+  document.querySelectorAll('.flip').forEach(function(c) {
+    c.addEventListener('click', function() { c.classList.toggle('flipped'); });
+  });
+
+  // scroll reveal
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(es) {
+      es.forEach(function(en) {
+        if (en.isIntersecting) {
+          en.target.classList.add('in');
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(function(el) { io.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function(el) { el.classList.add('in'); });
+  }
+})();
+</script>
+</body>
+</html>

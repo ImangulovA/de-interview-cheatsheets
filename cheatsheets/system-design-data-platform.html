@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Platform System Design — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a; --card: #151d30; --card2: #1b2540; --text: #e6ecf7; --muted: #93a1bf;
+    --accent: #1877F2; --green: #02e2ac; --orange: #f59e0b; --purple: #a855f7;
+    --border: #243049; --code-bg: #0d1424; --shadow: rgba(0,0,0,.45);
+    --kw: #a855f7; --str: #02e2ac; --com: #5d6b8a; --num: #f59e0b; --fn: #1877F2;
+  }
+  [data-theme="light"] {
+    --bg: #f4f7fc; --card: #ffffff; --card2: #eef3fb; --text: #15203a; --muted: #5a6b88;
+    --accent: #1877F2; --green: #06b389; --orange: #d97706; --purple: #8b3ec7;
+    --border: #d6e0f0; --code-bg: #f0f4fb; --shadow: rgba(20,40,80,.10);
+    --kw: #8b3ec7; --str: #06916f; --com: #8a96ac; --num: #c2700a; --fn: #1565d8;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55; font-size: 15px; transition: background .25s, color .25s;
+  }
+  code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* nav */
+  nav {
+    position: sticky; top: 0; z-index: 100; background: rgba(10,14,26,.92);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px; padding: 9px 14px; flex-wrap: wrap;
+  }
+  [data-theme="light"] nav { background: rgba(244,247,252,.92); }
+  nav .brand { font-weight: 700; color: var(--accent); margin-right: 8px; white-space: nowrap; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 12.5px; padding: 4px 8px;
+    border-radius: 6px; white-space: nowrap;
+  }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  header.hero { padding: 34px 20px 14px; max-width: 1000px; margin: 0 auto; }
+  header.hero h1 { font-size: 27px; margin: 0 0 6px; line-height: 1.2; }
+  header.hero .sub { color: var(--muted); font-size: 14px; }
+  .pill { display: inline-block; font-size: 11px; padding: 2px 9px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted); margin: 2px 4px 2px 0; }
+  .pill.acc { color: var(--accent); border-color: var(--accent); }
+  .pill.grn { color: var(--green); border-color: var(--green); }
+  .pill.org { color: var(--orange); border-color: var(--orange); }
+  .pill.pur { color: var(--purple); border-color: var(--purple); }
+
+  main { max-width: 1000px; margin: 0 auto; padding: 10px 16px 80px; }
+  section { margin: 22px 0; }
+  h2.sec { font-size: 20px; border-left: 4px solid var(--accent); padding-left: 10px; margin: 8px 0 14px; }
+  h3 { font-size: 16px; margin: 16px 0 6px; color: var(--text); }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; margin: 12px 0; box-shadow: 0 2px 10px var(--shadow);
+  }
+  .card.tight { padding: 4px 16px; }
+
+  /* collapsibles */
+  details { background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    margin: 10px 0; overflow: hidden; }
+  details > summary {
+    cursor: pointer; padding: 13px 16px; font-weight: 600; list-style: none;
+    display: flex; align-items: center; gap: 10px; user-select: none;
+  }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::before { content: "▸"; color: var(--accent); transition: transform .2s; font-size: 13px; }
+  details[open] > summary::before { transform: rotate(90deg); }
+  details > summary:hover { background: var(--card2); }
+  details .body { padding: 2px 16px 14px; border-top: 1px solid var(--border); }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13.5px; }
+  th, td { border: 1px solid var(--border); padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: var(--card2); color: var(--text); font-weight: 600; }
+  tr:nth-child(even) td { background: rgba(127,127,127,.04); }
+
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.5; }
+  pre.ascii { line-height: 1.25; font-size: 11.5px; }
+  code.inline { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px;
+    padding: 1px 5px; font-size: 12.5px; color: var(--green); }
+  .kw{color:var(--kw)} .str{color:var(--str)} .com{color:var(--com)} .num{color:var(--num)} .fn{color:var(--fn)}
+
+  .callout { border-left: 3px solid var(--orange); background: var(--card2); border-radius: 0 8px 8px 0;
+    padding: 9px 13px; margin: 10px 0; font-size: 13.5px; }
+  .callout.probe { border-left-color: var(--purple); }
+  .callout.probe b { color: var(--purple); }
+  .callout.gotcha { border-left-color: var(--orange); }
+  .callout.gotcha b { color: var(--orange); }
+  .callout.hook { border-left-color: var(--green); }
+  .callout.hook b { color: var(--green); }
+
+  ul { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  .def b { color: var(--accent); }
+
+  /* flip cards */
+  .quizgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .flip { perspective: 1200px; min-height: 140px; cursor: pointer; }
+  .flip-inner { position: relative; width: 100%; height: 100%; min-height: 140px;
+    transition: transform .5s; transform-style: preserve-3d; }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 12px;
+    border: 1px solid var(--border); padding: 14px; display: flex; flex-direction: column;
+    background: var(--card); box-shadow: 0 2px 10px var(--shadow); }
+  .flip-front { justify-content: center; }
+  .flip-front .q { font-weight: 600; font-size: 14px; }
+  .flip-front .tap { color: var(--muted); font-size: 11px; margin-top: 8px; }
+  .flip-back { transform: rotateY(180deg); background: var(--card2); font-size: 13px; overflow-y: auto; }
+  .flip-back .a { color: var(--green); font-weight: 600; font-size: 11px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  .tag { font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 5px; vertical-align: middle; }
+  .tag.H { background: rgba(245,158,11,.18); color: var(--orange); }
+  .tag.M { background: rgba(24,119,242,.18); color: var(--accent); }
+  .tag.E { background: rgba(2,226,172,.16); color: var(--green); }
+  .tag.flag { background: rgba(168,85,247,.18); color: var(--purple); }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 680px){ .grid2 { grid-template-columns: 1fr; } header.hero h1{font-size:22px;} }
+  footer { color: var(--muted); font-size: 12px; text-align: center; padding: 30px 16px; }
+  .anchor { scroll-margin-top: 72px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand"><span class="en">System Design</span><span class="ru">Системный дизайн</span></span>
+  <a href="#structure"><span class="en">Structure</span><span class="ru">Структура</span></a>
+  <a href="#requirements"><span class="en">Requirements</span><span class="ru">Требования</span></a>
+  <a href="#arch"><span class="en">Architecture</span><span class="ru">Архитектура</span></a>
+  <a href="#ingest"><span class="en">Ingest</span><span class="ru">Ingestion</span></a>
+  <a href="#storage"><span class="en">Storage</span><span class="ru">Хранение</span></a>
+  <a href="#revisions"><span class="en">Revisions</span><span class="ru">Ревизии</span></a>
+  <a href="#serve"><span class="en">Serve</span><span class="ru">Отдача</span></a>
+  <a href="#quality"><span class="en">Quality</span><span class="ru">Качество</span></a>
+  <a href="#lineage"><span class="en">Lineage</span><span class="ru">Lineage</span></a>
+  <a href="#reliability"><span class="en">Reliability</span><span class="ru">Надёжность</span></a>
+  <a href="#cost"><span class="en">Cost</span><span class="ru">Стоимость</span></a>
+  <a href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Data Platform System Design — <span style="color:var(--accent)">DE Interview Prep</span></span><span class="ru">Системный дизайн платформы данных — <span style="color:var(--accent)">Подготовка к DE-интервью</span></span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE.</span>
+  </div>
+  <div style="margin-top:10px">
+    <span class="pill acc"><span class="en">open-ended design</span><span class="ru">открытый дизайн</span></span>
+    <span class="pill grn"><span class="en">vendor econ time-series</span><span class="ru">экон. временные ряды поставщиков</span></span>
+    <span class="pill org"><span class="en">Terminal · analytics · enterprise</span><span class="ru">Terminal · аналитика · enterprise</span></span>
+    <span class="pill pur"><span class="en">point-in-time / vintages</span><span class="ru">point-in-time / vintages</span></span>
+    <span class="pill"><span class="en">60-min screen</span><span class="ru">60-минутный скрининг</span></span>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <p class="en"><b style="color:var(--accent)">The one prompt to over-prepare:</b> <i>"Design a platform that ingests vendor-supplied economic time-series and serves them to Terminal, analytics queries, and Enterprise."</i>
+    Nearly everything below is a probe into one slice of it. <b>Do not start drawing.</b> Clarify first.</p>
+    <p class="ru"><b style="color:var(--accent)">Единственный запрос для сверхподготовки:</b> <i>"Спроектируй платформу, которая забирает экономические временные ряды от поставщиков и отдаёт их в Terminal, аналитические запросы и Enterprise."</i>
+    Почти всё ниже — это зондирование одного среза. <b>Не начинай рисовать.</b> Сначала уточняй.</p>
+    <div class="callout hook en" style="margin-bottom:0"><b>Credibility anchor:</b> you've run Meta's ~3.6B events/day unified model and a 6.2B-record entity-resolution fix. The senior move here is recognizing economics data is <b>low-volume, high-correctness</b> — and <i>not</i> over-engineering for scale that isn't there.</div>
+    <div class="callout hook ru" style="margin-bottom:0"><b>Якорь доверия:</b> ты управлял унифицированной моделью Meta на ~3.6B событий/день и фиксом entity-resolution на 6.2B записей. Сеньорский ход здесь — признать, что экономические данные — это <b>малый объём, высокая корректность</b> — и <i>не</i> избыточное инженерное решение для масштаба, которого нет.</div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ STRUCTURE ============ -->
+<section id="structure" class="anchor reveal">
+  <h2 class="sec"><span class="en">1 · How to structure the answer</span><span class="ru">1 · Как структурировать ответ</span></h2>
+  <div class="card">
+    <p class="en">The interviewer scores <b>how you reason</b>, not how fast you draw boxes. Say this scaffold out loud and walk it.</p>
+    <p class="ru">Интервьюер оценивает <b>как ты рассуждаешь</b>, а не как быстро рисуешь прямоугольники. Проговори этот каркас вслух и пройди по нему.</p>
+    <pre class="ascii en">
+ ┌─ 1. CLARIFY ──────┐  ┌─ 2. PROPOSE ──────┐  ┌─ 3. TRADE-OFFS ───┐  ┌─ 4. DEEP-DIVE ────┐  ┌─ 5. FAILURE/OPS ──┐
+ │ restate prompt    │  │ end-to-end at a    │  │ for each choice:   │  │ they pick OR you  │  │ replay/backfill   │
+ │ volume? latency?  │─▶│ high level:        │─▶│ name the alt + why │─▶│ volunteer the     │─▶│ observability     │
+ │ freshness SLA?    │  │ ingest→land→       │  │ you chose it       │  │ domain one:       │  │ what breaks &     │
+ │ revisions? consis-│  │ validate→model→    │  │                    │  │ revisions/PIT or  │  │ how you detect    │
+ │ tency? consumers? │  │ serve (+QC/lineage)│  │                    │  │ the quality gate  │  │                   │
+ └───────────────────┘  └────────────────────┘  └────────────────────┘  └───────────────────┘  └───────────────────┘
+   ~3-5 min                ~5-8 min                 woven in                ~8-10 min               close strong
+    </pre>
+    <pre class="ascii ru">
+ ┌─ 1. УТОЧНЕНИЕ ────┐  ┌─ 2. ПРЕДЛОЖЕНИЕ ──┐  ┌─ 3. КОМПРОМИССЫ ──┐  ┌─ 4. УГЛУБЛЕНИЕ ───┐  ┌─ 5. СБОИ/ОПС ─────┐
+ │ переформулировать │  │ end-to-end на      │  │ для каждого выбора:│  │ они выбирают ИЛИ  │  │ replay/backfill   │
+ │ объём? задержка?  │─▶│ высоком уровне:    │─▶│ назвать альтернативу│─▶│ ты предлагаешь    │─▶│ наблюдаемость     │
+ │ SLA свежести?     │  │ ingest→land→       │  │ + почему выбрал    │  │ доменный аспект:  │  │ что ломается &    │
+ │ ревизии? согласов.│  │ validate→model→    │  │                    │  │ ревизии/PIT или   │  │ как обнаруживаешь │
+ │ консьюмеры?       │  │ serve (+QC/lineage)│  │                    │  │ гейт качества     │  │                   │
+ └───────────────────┘  └────────────────────┘  └────────────────────┘  └───────────────────┘  └───────────────────┘
+   ~3-5 мин                ~5-8 мин                 вплетено               ~8-10 мин               завершить сильно
+    </pre>
+    <div class="callout gotcha en"><b>#1 red flag:</b> jumping to a diagram or a tech stack before clarifying requirements. The JD is about translating needs into engineering; show that muscle in the first 4 minutes.</div>
+    <div class="callout gotcha ru"><b>Красный флаг №1:</b> прыгать к диаграмме или стеку технологий до уточнения требований. JD про перевод потребностей в инженерное решение; покажи эту мышцу в первые 4 минуты.</div>
+    <div class="callout hook en"><b>Hook:</b> "Before I design anything I'd separate the hard constraints — for economics data that's <i>timeliness and revision correctness</i> — from throughput, which is modest here versus the 3.6B-events/day systems I'm used to."</div>
+    <div class="callout hook ru"><b>Зацепка:</b> «Прежде чем проектировать, я бы разделил жёсткие ограничения — для экономических данных это <i>своевременность и корректность ревизий</i> — и пропускную способность, которая здесь скромная по сравнению с системами на 3.6B событий/день, с которыми я работаю.»</div>
+  </div>
+</section>
+
+<!-- ============ REQUIREMENTS ============ -->
+<section id="requirements" class="anchor reveal">
+  <h2 class="sec"><span class="en">2 · Requirements gathering — the five axes</span><span class="ru">2 · Сбор требований — пять осей</span></h2>
+  <div class="card">
+    <p class="en">Ask about each. Memorize the acronym mentally: <b>V-L-F-C-R</b> (Volume, Latency, Freshness, Consistency, Revisions) + consumers.</p>
+    <p class="ru">Спроси про каждую. Запомни мнемонику: <b>V-L-F-C-R</b> (Volume, Latency, Freshness, Consistency, Revisions) + консьюмеры.</p>
+    <table class="en">
+      <tr><th>Axis</th><th>What to ask</th><th>Why it shapes the design</th></tr>
+      <tr><td><b>Volume / cardinality</b></td><td>How many vendors, series, observations/release? Growth?</td><td>Macro = thousands–millions of series, tiny per release. Drives "don't over-engineer".</td></tr>
+      <tr><td><b>Latency / timeliness</b></td><td>Which feeds are release-time-critical (CPI/NFP/GDP) vs monthly batch?</td><td>Event-trigger for critical; scheduled pull for the rest.</td></tr>
+      <tr><td><b>Freshness SLA</b></td><td>"On Terminal within N min of the official print"? Miss behavior?</td><td>Release-calendar-driven scheduling + deferrable sensor + escalation.</td></tr>
+      <tr><td><b>Consistency</b></td><td>Atomic release visibility, or can a client see partial data?</td><td>Stage-then-swap publish; ACID table formats.</td></tr>
+      <tr><td><b>Revisions</b></td><td>How are revisions delivered? Need point-in-time / as-of?</td><td>Append-only vintages, bitemporal grain. <b>The domain differentiator.</b></td></tr>
+      <tr><td><b>Consumers</b></td><td>Terminal (point lookups), analytics (analytical scans), Enterprise/DL (bulk)?</td><td>One source of truth, multiple read shapes.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Ось</th><th>Что спросить</th><th>Почему это формирует дизайн</th></tr>
+      <tr><td><b>Объём / кардинальность</b></td><td>Сколько поставщиков, рядов, наблюдений/релиз? Рост?</td><td>Макро = тысячи–миллионы рядов, крошечный объём на релиз. Ведёт к «не переинженерить».</td></tr>
+      <tr><td><b>Задержка / своевременность</b></td><td>Какие фиды критичны по времени релиза (CPI/NFP/GDP) vs месячный батч?</td><td>Событийный триггер для критичных; запланированный pull для остальных.</td></tr>
+      <tr><td><b>SLA свежести</b></td><td>«В Terminal в течение N минут от официального релиза»? Поведение при промахе?</td><td>Планирование по календарю релизов + отложенный сенсор + эскалация.</td></tr>
+      <tr><td><b>Согласованность</b></td><td>Атомарная видимость релиза, или клиент может увидеть частичные данные?</td><td>Публикация stage-then-swap; ACID табличные форматы.</td></tr>
+      <tr><td><b>Ревизии</b></td><td>Как доставляются ревизии? Нужны point-in-time / as-of?</td><td>Append-only vintages, bitemporal grain. <b>Доменный дифференциатор.</b></td></tr>
+      <tr><td><b>Консьюмеры</b></td><td>Terminal (point lookups), аналитика (аналитические сканы), Enterprise/DL (bulk)?</td><td>Один источник правды, множество форм чтения.</td></tr>
+    </table>
+    <div class="callout probe en"><b>Interviewer will probe:</b> "What's the hardest constraint?" Answer: <b>revision correctness + timeliness</b>, not scale. Naming that shows domain judgment.</div>
+    <div class="callout probe ru"><b>О чём спросит интервьюер:</b> «Какое самое жёсткое ограничение?» Ответ: <b>корректность ревизий + своевременность</b>, а не масштаб. Называние этого показывает доменное суждение.</div>
+  </div>
+</section>
+
+<!-- ============ ARCHITECTURE ============ -->
+<section id="arch" class="anchor reveal">
+  <h2 class="sec"><span class="en">3 · Reference architecture (ingest → serve)</span><span class="ru">3 · Референсная архитектура (ingest → serve)</span></h2>
+  <div class="card">
+    <pre class="ascii en">
+ VENDORS              INGEST            LAND (bronze)      VALIDATE+CONFORM (silver)   MODEL (gold)        SERVE
+ ┌────────┐ push/pull ┌──────────┐     ┌────────────┐     ┌─────────────────────┐    ┌───────────┐     ┌──────────────┐
+ │ SFTP   │──────────▶│ adapters │────▶│ IMMUTABLE  │────▶│ parse · type ·      │───▶│ canonical │────▶│ Terminal     │
+ │ API    │           │ per feed │     │ raw object │     │ QUALITY GATE        │    │ long fmt  │     │  (lookups)   │
+ │ Kafka  │           │ (registry│     │ store      │     │ (fail-closed) ·     │    │ +vintages │     │ analytics    │
+ │ files  │           │  driven) │     │ part by    │     │ quarantine bad rows·│    │ +derived  │     │  (scans)     │
+ └────────┘           └──────────┘     │ load_date  │     │ conform to ONE model│    │ series    │     │ Enterprise/DL│
+                                        └────────────┘     └─────────────────────┘    └───────────┘     │  (bulk)      │
+                                                                                                          └──────────────┘
+ ══ CROSS-CUTTING ══▶  orchestration (release-calendar as data) · observability (freshness/completeness/validity) · lineage + metadata catalog
+    </pre>
+    <pre class="ascii ru">
+ ПОСТАВЩИКИ           INGEST            LAND (bronze)      VALIDATE+CONFORM (silver)   MODEL (gold)        SERVE
+ ┌────────┐ push/pull ┌──────────┐     ┌────────────┐     ┌─────────────────────┐    ┌───────────┐     ┌──────────────┐
+ │ SFTP   │──────────▶│ адаптеры │────▶│ НЕИЗМЕНЯЕМОЕ│────▶│ parse · type ·      │───▶│ каноничный│────▶│ Terminal     │
+ │ API    │           │ на фид   │     │ сырое хран. │     │ ГЕЙТ КАЧЕСТВА       │    │ long fmt  │     │  (lookups)   │
+ │ Kafka  │           │ (реестр- │     │ объектов    │     │ (fail-closed) ·     │    │ +vintages │     │ аналитика    │
+ │ файлы  │           │  управл.)│     │ part по     │     │ карантин плохих ·   │    │ +производные│   │  (сканы)     │
+ └────────┘           └──────────┘     │ load_date   │     │ conform к ОДНОЙ     │    │ ряды      │     │ Enterprise/DL│
+                                        └────────────┘     │ модели              │    └───────────┘     │  (bulk)      │
+                                                            └─────────────────────┘                      └──────────────┘
+ ══ СКВОЗНЫЕ ══▶  оркестрация (календарь релизов как данные) · наблюдаемость (свежесть/полнота/валидность) · lineage + каталог метаданных
+    </pre>
+    <div class="grid2">
+      <div>
+        <h3 class="en">The layers</h3>
+        <h3 class="ru">Слои</h3>
+        <ul class="en">
+          <li><b style="color:var(--accent)">Ingest adapters (registry-driven):</b> one adapter per transport; a feed registry holds cadence/format/contract/SLA/PK. New feed = config change.</li>
+          <li><b style="color:var(--accent)">Land (bronze):</b> raw payload written <i>immutably</i>, partitioned <code class="inline">vendor/dataset/load_date</code> + hash. The replay source. Never mutate.</li>
+          <li><b style="color:var(--accent)">Validate + conform (silver):</b> typed staging; <b>quality gate before publish</b>; quarantine bad rows; conform every vendor into ONE model.</li>
+          <li><b style="color:var(--accent)">Model (gold):</b> grain <code class="inline">(series_id, observation_date, value, revision_id, publish_ts, status)</code>; derived (MoM/YoY) are downstream models.</li>
+          <li><b style="color:var(--accent)">Serve:</b> warehouse for analytics; fast point-lookup for Terminal; bulk for Enterprise; <b>as-of views</b> first-class.</li>
+        </ul>
+        <ul class="ru">
+          <li><b style="color:var(--accent)">Ingest адаптеры (управляемые реестром):</b> один адаптер на транспорт; реестр фидов хранит частоту/формат/контракт/SLA/PK. Новый фид = изменение конфига.</li>
+          <li><b style="color:var(--accent)">Land (bronze):</b> сырой payload записан <i>неизменяемо</i>, партиционирован <code class="inline">vendor/dataset/load_date</code> + хеш. Источник для replay. Никогда не мутировать.</li>
+          <li><b style="color:var(--accent)">Validate + conform (silver):</b> типизированный staging; <b>гейт качества перед публикацией</b>; карантин плохих строк; conform каждого поставщика в ОДНУ модель.</li>
+          <li><b style="color:var(--accent)">Model (gold):</b> grain <code class="inline">(series_id, observation_date, value, revision_id, publish_ts, status)</code>; производные (MoM/YoY) — это downstream-модели.</li>
+          <li><b style="color:var(--accent)">Serve:</b> хранилище для аналитики; быстрый point-lookup для Terminal; bulk для Enterprise; <b>as-of views</b> первоклассные.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="en">Bronze / Silver / Gold — say it plainly</h3>
+        <h3 class="ru">Bronze / Silver / Gold — проговори просто</h3>
+        <table class="en">
+          <tr><th>Layer</th><th>Contract</th><th>Mutability</th></tr>
+          <tr><td>Bronze (raw)</td><td>schema-on-read</td><td>immutable, append</td></tr>
+          <tr><td>Silver (conformed)</td><td>schema-on-write, gated</td><td>idempotent rewrite per partition</td></tr>
+          <tr><td>Gold (served)</td><td>canonical + vintages</td><td>append-only vintages</td></tr>
+        </table>
+        <table class="ru">
+          <tr><th>Слой</th><th>Контракт</th><th>Изменяемость</th></tr>
+          <tr><td>Bronze (сырой)</td><td>schema-on-read</td><td>immutable, append</td></tr>
+          <tr><td>Silver (conformed)</td><td>schema-on-write, gated</td><td>идемпотентная перезапись на партицию</td></tr>
+          <tr><td>Gold (served)</td><td>canonical + vintages</td><td>append-only vintages</td></tr>
+        </table>
+        <div class="callout hook en"><b>Hook:</b> "Same shape as the Meta consolidation: profile heterogeneous sources, land immutably, conform to one model, validate before publish. The pivot for econ is that <i>correctness, timeliness, and revision history</i> dominate, not throughput."</div>
+        <div class="callout hook ru"><b>Зацепка:</b> «Та же форма, что и консолидация в Meta: профилировать гетерогенные источники, приземлять неизменяемо, conform к одной модели, валидировать перед публикацией. Поворот для econ в том, что доминируют <i>корректность, своевременность и история ревизий</i>, а не пропускная способность.»</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INGEST ============ -->
+<section id="ingest" class="anchor reveal">
+  <h2 class="sec"><span class="en">4 · Ingestion layer</span><span class="ru">4 · Слой ingestion</span></h2>
+
+  <details open>
+    <summary><span class="en">Push vs pull — decide per feed</span><span class="ru">Push vs pull — решать на фид</span></summary>
+    <div class="body">
+      <table class="en">
+        <tr><th></th><th>Push (vendor sends)</th><th>Pull (you fetch)</th></tr>
+        <tr><td>Transport</td><td>webhook, Kafka, SFTP-drop+event</td><td>scheduled API poll, SFTP scan</td></tr>
+        <tr><td>Latency</td><td>low, reacts at publish</td><td>bounded by poll interval</td></tr>
+        <tr><td>Timing control</td><td>vendor controls; you must be ready</td><td>you control; risk overshooting SLA</td></tr>
+        <tr><td>Reliability need</td><td>idempotent receipt + dedup</td><td>retry + freshness sensor</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th></th><th>Push (поставщик отправляет)</th><th>Pull (вы забираете)</th></tr>
+        <tr><td>Транспорт</td><td>webhook, Kafka, SFTP-drop+event</td><td>запланированный API poll, SFTP scan</td></tr>
+        <tr><td>Задержка</td><td>низкая, реагирует при публикации</td><td>ограничена интервалом poll</td></tr>
+        <tr><td>Контроль времени</td><td>контролирует поставщик; вы должны быть готовы</td><td>контролируете вы; риск перестрелить SLA</td></tr>
+        <tr><td>Требование надёжности</td><td>идемпотентный приём + dedup</td><td>retry + сенсор свежести</td></tr>
+      </table>
+      <p class="en"><b>Rule:</b> release-time-critical → <b>push/event trigger + short-interval deferrable sensor safety net</b>, driven off the release calendar (not a coarse cron). Periodic batch → scheduled pull. <b>Land everything immutably regardless</b> so downstream is identical.</p>
+      <p class="ru"><b>Правило:</b> критично по времени релиза → <b>push/event trigger + короткоинтервальная отложенная страховочная сеть сенсора</b>, управляемая календарём релизов (не грубым cron). Периодический батч → запланированный pull. <b>Приземлять всё неизменяемо независимо</b>, чтобы downstream был идентичен.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="en">Heterogeneous formats (CSV / JSON / XML / fixed-width)</span><span class="ru">Гетерогенные форматы (CSV / JSON / XML / fixed-width)</span></summary>
+    <div class="body">
+      <ul class="en">
+        <li><b>Feed registry as config</b> — per-vendor format, contract, PK, cadence, SLA. Generate adapters/DAGs from it.</li>
+        <li><b>Normalize early in silver</b> — date formats, decimal separators (<code class="inline">1.234,56</code> vs <code class="inline">1,234.56</code>), unit codes, NULL/sign conventions. Vendor quirks live ONLY in staging.</li>
+        <li><b>Conflicting values across vendors</b> for the same series → explicit precedence / tie-break rule + record provenance so you can explain which source won.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Реестр фидов как конфиг</b> — формат/контракт/PK/частота/SLA на поставщика. Генерировать адаптеры/DAG из него.</li>
+        <li><b>Нормализовать рано в silver</b> — форматы дат, десятичные разделители (<code class="inline">1.234,56</code> vs <code class="inline">1,234.56</code>), коды единиц, NULL/знаковые конвенции. Причуды поставщика живут ТОЛЬКО в staging.</li>
+        <li><b>Конфликтующие значения разных поставщиков</b> для одного ряда → явное правило приоритета / tie-break + запись provenance, чтобы объяснить, какой источник победил.</li>
+      </ul>
+      <div class="callout hook en"><b>Hook:</b> "Conforming heterogeneous sources to one model is the Meta 10-logging-system consolidation — mapping overlapping fields to one schema cut 47% redundant volume."</div>
+      <div class="callout hook ru"><b>Зацепка:</b> «Conform гетерогенных источников к одной модели — это консолидация 10 систем логирования в Meta — маппинг перекрывающихся полей к одной схеме сократил 47% избыточного объёма.»</div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="en">Schema-on-read vs schema-on-write — where each applies</span><span class="ru">Schema-on-read vs schema-on-write — где каждый применим</span></summary>
+    <div class="body">
+      <p class="def en"><b>schema-on-read</b> = store raw, impose structure at query time. <b>schema-on-write</b> = enforce structure at ingest, reject non-conforming.</p>
+      <p class="def ru"><b>schema-on-read</b> = хранить сырое, налагать структуру при запросе. <b>schema-on-write</b> = насаждать структуру при ingestion, отклонять несоответствующее.</p>
+      <p class="en"><b>The split:</b> <span class="str">schema-on-read at landing</span> (capture even malformed files, lose nothing, replayable) → <span class="str">schema-on-write at the conformed/served layer</span> (strictly typed, contract-enforced before publish). <b>The quality gate IS the boundary between the two.</b></p>
+      <p class="ru"><b>Разделение:</b> <span class="str">schema-on-read при приземлении</span> (захватить даже некорректные файлы, не потерять ничего, replayable) → <span class="str">schema-on-write в conformed/served слое</span> (строго типизировано, контракт насаждается перед публикацией). <b>Гейт качества — это граница между ними.</b></p>
+      <div class="callout gotcha en"><b>Gotcha:</b> if you enforce schema at ingest and reject a drifted file, you lose the evidence and can't replay. Land it, then gate it.</div>
+      <div class="callout gotcha ru"><b>Подвох:</b> если насаждаешь схему при ingestion и отклоняешь дрейфовавший файл, ты теряешь улику и не можешь replay. Приземли его, затем gate.</div>
+    </div>
+  </details>
+</section>
+
+<!-- ============ STORAGE ============ -->
+<section id="storage" class="anchor reveal">
+  <h2 class="sec"><span class="en">5 · Storage & partitioning</span><span class="ru">5 · Хранение и партиционирование</span></h2>
+  <div class="card">
+    <h3 class="en">Lakehouse vs warehouse vs time-series DB</h3>
+    <h3 class="ru">Lakehouse vs хранилище vs time-series DB</h3>
+    <table class="en">
+      <tr><th>Option</th><th>What it is</th><th>Fit for econ time-series</th><th>Verdict</th></tr>
+      <tr><td><b>Columnar warehouse</b><br>Snowflake / BigQuery</td><td>MPP columnar, SQL-native</td><td>Great for analytics scans, joins to reference data, date pruning</td><td class="str">Primary served/analytics store</td></tr>
+      <tr><td><b>Lakehouse</b><br>object store + Iceberg/Delta</td><td>Open table format, ACID, time-travel, cheap</td><td>Ideal raw landing + history archive; time-travel aids replay</td><td class="str">Landing + archive layer</td></tr>
+      <tr><td><b>Time-series DB</b><br>kdb+ / Influx / Timescale</td><td>Optimized for high-freq inserts + window queries</td><td>Overkill for monthly macro; kdb+ is tick-data world</td><td class="num">Only if a feed is truly high-freq</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Вариант</th><th>Что это</th><th>Подходит для econ time-series</th><th>Вердикт</th></tr>
+      <tr><td><b>Колоночное хранилище</b><br>Snowflake / BigQuery</td><td>MPP колоночное, SQL-native</td><td>Отлично для аналитических сканов, join к референс-данным, date pruning</td><td class="str">Первичное served/аналитика хранилище</td></tr>
+      <tr><td><b>Lakehouse</b><br>object store + Iceberg/Delta</td><td>Открытый табличный формат, ACID, time-travel, дешёвый</td><td>Идеально для сырого landing + архив истории; time-travel помогает replay</td><td class="str">Слой landing + архив</td></tr>
+      <tr><td><b>Time-series DB</b><br>kdb+ / Influx / Timescale</td><td>Оптимизирована для высокочастотных insert + оконных запросов</td><td>Избыточно для месячного макро; kdb+ — это мир tick-data</td><td class="num">Только если фид действительно высокочастотный</td></tr>
+    </table>
+    <p class="en"><b>My answer:</b> lakehouse for <b>immutable landing + archive</b> feeding a columnar warehouse for the <b>conformed/served layer</b>. <b>Not</b> a tick-DB for monthly data. Lakehouse = openness + cost + replay; warehouse = query perf + concurrency + governance. Using both is the standard split, not a contradiction.</p>
+    <p class="ru"><b>Мой ответ:</b> lakehouse для <b>неизменяемого landing + архива</b>, питающего колоночное хранилище для <b>conformed/served слоя</b>. <b>Не</b> tick-DB для месячных данных. Lakehouse = открытость + цена + replay; хранилище = query perf + конкуренция + governance. Использовать оба — это стандартное разделение, а не противоречие.</p>
+    <div class="callout hook en"><b>Hook:</b> "At McMakler I migrated GCP-native → Snowflake for exactly this columnar reason and ran object-storage landing; I'd combine them rather than force one store to do both jobs."</div>
+    <div class="callout hook ru"><b>Зацепка:</b> «В McMakler я мигрировал GCP-native → Snowflake именно по этой колоночной причине и запускал landing в object storage; я бы комбинировал их, а не заставлял одно хранилище делать обе работы.»</div>
+  </div>
+
+  <div class="card">
+    <h3 class="en">Partitioning for time-series</h3>
+    <h3 class="ru">Партиционирование для time-series</h3>
+    <ul class="en">
+      <li><b>Partition by <code class="inline">observation_date</code></b> (coarser <code class="inline">load_date</code> for raw). It's what you filter and reprocess on → cheap incrementals, partition-level idempotent overwrite, pruned as-of scans.</li>
+      <li><b>Cluster/sort within partition by <code class="inline">series_id</code></b> → fast single-series Terminal lookups.</li>
+      <li><b>Keep revisions inside the <code class="inline">observation_date</code> partition</b> → a late revision rewrites exactly one partition.</li>
+      <li>Avoid over-partitioning (small-files / metadata bloat) AND skewed mega-partitions. Monthly macro may want monthly/per-load partitions, not daily.</li>
+    </ul>
+    <ul class="ru">
+      <li><b>Партиционировать по <code class="inline">observation_date</code></b> (грубее <code class="inline">load_date</code> для сырого). Это то, по чему фильтруешь и перепроцессируешь → дешёвые инкрементали, идемпотентная перезапись на уровне партиции, pruned as-of scans.</li>
+      <li><b>Cluster/сортировать внутри партиции по <code class="inline">series_id</code></b> → быстрые одноранговые Terminal lookups.</li>
+      <li><b>Хранить ревизии внутри партиции <code class="inline">observation_date</code></b> → поздняя ревизия переписывает ровно одну партицию.</li>
+      <li>Избегать избыточного партиционирования (маленькие файлы / bloat метаданных) И перекошенных мега-партиций. Месячное макро может хотеть месячные/per-load партиции, а не дневные.</li>
+    </ul>
+    <div class="callout probe en"><b>Interviewer will probe:</b> "Why not partition by <code class="inline">series_id</code>?" → Bad for time-range scans and for reprocessing a release (one release touches many series for one date → you'd rewrite thousands of partitions). Date-partition + series-cluster is the right split.</div>
+    <div class="callout probe ru"><b>О чём спросит интервьюер:</b> «Почему не партиционировать по <code class="inline">series_id</code>?» → Плохо для time-range сканов и для перепроцессинга релиза (один релиз касается многих рядов на одну дату → ты бы переписал тысячи партиций). Date-partition + series-cluster — это правильное разделение.</div>
+  </div>
+</section>
+
+<!-- ============ REVISIONS ============ -->
+<section id="revisions" class="anchor reveal">
+  <h2 class="sec"><span class="en">6 · Revisions & point-in-time <span class="tag flag">DOMAIN</span></span><span class="ru">6 · Ревизии и point-in-time <span class="tag flag">DOMAIN</span></span></h2>
+  <div class="card">
+    <p class="en">The single most important econ concept. A CPI/GDP/NFP figure is <b>revised for months</b>; "the latest value" is not what a client knew at the time.</p>
+    <p class="ru">Самая важная концепция econ. Фигура CPI/GDP/NFP <b>ревизуется месяцами</b>; «последнее значение» — это не то, что клиент знал в тот момент.</p>
+    <div class="grid2">
+      <div>
+        <h3 class="en">Bitemporal grain</h3>
+        <h3 class="ru">Bitemporal grain</h3>
+        <pre class="en"><span class="com"># two time axes — keep BOTH</span>
+observation_date  <span class="com"># the period data is ABOUT (valid time)</span>
+publish_timestamp <span class="com"># when WE knew it (transaction time)</span>
+
+<span class="com"># grain</span>
+(series_id, observation_date,
+ revision_id, publish_timestamp,
+ value, unit, status)</pre>
+        <pre class="ru"><span class="com"># две временные оси — хранить ОБЕ</span>
+observation_date  <span class="com"># период, о котором данные (valid time)</span>
+publish_timestamp <span class="com"># когда МЫ узнали об этом (transaction time)</span>
+
+<span class="com"># grain</span>
+(series_id, observation_date,
+ revision_id, publish_timestamp,
+ value, unit, status)</pre>
+        <ul class="en">
+          <li><b>Append a new vintage, never overwrite.</b></li>
+          <li><b>"Current"</b> = view: latest revision per <code class="inline">(series_id, observation_date)</code>.</li>
+          <li><b>"As-of X"</b> = view: latest revision where <code class="inline">publish_ts &lt;= X</code>.</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Дописать новый vintage, никогда не перезаписывать.</b></li>
+          <li><b>"Current"</b> = view: последняя ревизия на <code class="inline">(series_id, observation_date)</code>.</li>
+          <li><b>"As-of X"</b> = view: последняя ревизия, где <code class="inline">publish_ts &lt;= X</code>.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="en">Why it matters</h3>
+        <h3 class="ru">Почему это важно</h3>
+        <ul class="en">
+          <li>Prevents <b>look-ahead bias</b> in any backtest / forecast evaluation / client analysis.</li>
+          <li>A model trained on revised-after-the-fact numbers is <i>silently cheating</i>.</li>
+          <li>One revised value changes several MoM/YoY/rolling points → <b>recompute the affected derived window.</b></li>
+        </ul>
+        <ul class="ru">
+          <li>Предотвращает <b>look-ahead bias</b> в любом backtest / forecast evaluation / анализе клиента.</li>
+          <li>Модель, обученная на ревизованных постфактум числах, <i>тихо жульничает</i>.</li>
+          <li>Одно ревизованное значение меняет несколько MoM/YoY/rolling точек → <b>пересчитать затронутое производное окно.</b></li>
+        </ul>
+        <div class="callout probe en"><b>Probe:</b> say the word <b>"bitemporal"</b> — valid time vs transaction time. It signals you know revisions are append-only vintages, not updates.</div>
+        <div class="callout probe ru"><b>Зондирование:</b> произнеси слово <b>"bitemporal"</b> — valid time vs transaction time. Это сигналит, что ты знаешь, что ревизии — это append-only vintages, а не обновления.</div>
+      </div>
+    </div>
+    <div class="callout hook en"><b>Hook:</b> "At Front Tier on bank financial data I learned point-in-time discipline: a default model trained on after-the-fact numbers looks great and fails in production. Same discipline applies to macro vintages."</div>
+    <div class="callout hook ru"><b>Зацепка:</b> «Во Front Tier на банковских финансовых данных я усвоил дисциплину point-in-time: дефолтная модель, обученная на постфактумных числах, выглядит отлично и проваливается в продакшне. Та же дисциплина применима к макро-vintages.»</div>
+  </div>
+</section>
+
+<!-- ============ SERVE ============ -->
+<section id="serve" class="anchor reveal">
+  <h2 class="sec"><span class="en">7 · Serving / query layer</span><span class="ru">7 · Слой отдачи / запросов</span></h2>
+  <div class="card">
+    <table class="en">
+      <tr><th>Consumer</th><th>Read pattern</th><th>Serving shape</th></tr>
+      <tr><td><b>Terminal</b></td><td>interactive point lookups ("US CPI YoY now / as-of X")</td><td>low-latency; <code class="inline">series_id</code>-clustered; materialized latest-vintage view / cache</td></tr>
+      <tr><td><b>Analytics queries</b></td><td>analytical scans across many series/dates</td><td>columnar warehouse; date partition pruning</td></tr>
+      <tr><td><b>Enterprise / Data License</b></td><td>bulk extract / replication to client systems</td><td>scheduled bulk export / replication feed; idempotent, vintage-labeled</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Консьюмер</th><th>Паттерн чтения</th><th>Форма отдачи</th></tr>
+      <tr><td><b>Terminal</b></td><td>интерактивные point lookups («US CPI YoY сейчас / as-of X»)</td><td>низкая задержка; кластер по <code class="inline">series_id</code>; материализованный latest-vintage view / кеш</td></tr>
+      <tr><td><b>Аналитические запросы</b></td><td>аналитические сканы по многим рядам/датам</td><td>колоночное хранилище; date partition pruning</td></tr>
+      <tr><td><b>Enterprise / Data License</b></td><td>bulk-экстракт / репликация в системы клиента</td><td>запланированный bulk-экспорт / фид репликации; идемпотентный, vintage-labeled</td></tr>
+    </table>
+    <p class="en"><b>One source of truth:</b> all three read the same vintage-aware canonical model. Current and as-of are <i>views over one table</i> — never recompute the same number two ways (that's how a client sees a discrepancy).</p>
+    <p class="ru"><b>Один источник правды:</b> все три читают одну и ту же каноничную модель, осведомлённую о vintages. Current и as-of — это <i>views поверх одной таблицы</i> — никогда не пересчитывай одно число двумя способами (так клиент видит расхождение).</p>
+    <div class="callout probe en"><b>Probe:</b> "Keep Terminal fast without a drifting copy?" → Materialize a latest-vintage view from the same gold table, refresh on publish, never hand-maintain a parallel copy.</div>
+    <div class="callout probe ru"><b>Зондирование:</b> «Держать Terminal быстрым без дрейфующей копии?» → Материализовать latest-vintage view из той же gold-таблицы, обновлять при публикации, никогда не поддерживать вручную параллельную копию.</div>
+  </div>
+  <div class="card">
+    <h3 class="en">Atomic release visibility</h3>
+    <h3 class="ru">Атомарная видимость релиза</h3>
+    <p class="en"><b>Stage-then-swap:</b> build the release fully in staging, validate, then make it visible in one atomic op (partition swap / view repoint / Iceberg-Delta commit). Consumers read the previous consistent state until the swap. Never publish mid-write.</p>
+    <p class="ru"><b>Stage-then-swap:</b> собрать релиз полностью в staging, валидировать, затем сделать видимым одной атомарной операцией (partition swap / view repoint / Iceberg-Delta commit). Консьюмеры читают предыдущее согласованное состояние до swap. Никогда не публикуй посередине записи.</p>
+  </div>
+</section>
+
+<!-- ============ QUALITY ============ -->
+<section id="quality" class="anchor reveal">
+  <h2 class="sec"><span class="en">8 · Quality & observability — woven through</span><span class="ru">8 · Качество и наблюдаемость — вплетено насквозь</span></h2>
+  <div class="card">
+    <p class="en">Structure by <b>WHERE</b> (lifecycle) and <b>WHAT</b> (check type).</p>
+    <p class="ru">Структурировать по <b>ГДЕ</b> (жизненный цикл) и <b>ЧТО</b> (тип проверки).</p>
+    <div class="grid2">
+      <div>
+        <h3 class="en">WHERE (lifecycle)</h3>
+        <h3 class="ru">ГДЕ (жизненный цикл)</h3>
+        <ul class="en">
+          <li><b style="color:var(--orange)">Ingest gate (fail-closed)</b> — the heart. Bad data never reaches consumers. Quarantine bad rows; fail on systemic issues.</li>
+          <li><b>Post-publish monitors</b> — trend drift after the gate.</li>
+          <li><b>Contract at the boundary</b> — validate vendor schema on arrival.</li>
+        </ul>
+        <ul class="ru">
+          <li><b style="color:var(--orange)">Ingest gate (fail-closed)</b> — сердце. Плохие данные никогда не достигают консьюмеров. Карантин плохих строк; фейл на системных проблемах.</li>
+          <li><b>Мониторы после публикации</b> — отслеживать дрейф после gate.</li>
+          <li><b>Контракт на границе</b> — валидировать схему поставщика при прибытии.</li>
+        </ul>
+        <h3 class="en">Observability — golden signals for data</h3>
+        <h3 class="ru">Наблюдаемость — золотые сигналы для данных</h3>
+        <p class="en"><b>Freshness · Completeness · Volume · Validity · Schema</b> — as metrics with SLAs, not log lines. Per-feed dashboard + lineage = blast radius at a glance.</p>
+        <p class="ru"><b>Свежесть · Полнота · Объём · Валидность · Схема</b> — как метрики с SLA, не лог-строки. Dashboard на фид + lineage = blast radius с одного взгляда.</p>
+      </div>
+      <div>
+        <h3 class="en">WHAT (check types)</h3>
+        <h3 class="ru">ЧТО (типы проверок)</h3>
+        <ul class="en">
+          <li><b>Schema/contract</b> — columns, types, enum domains (catch drift)</li>
+          <li><b>Completeness</b> — rows vs expected; all series/dates present (gap detection)</li>
+          <li><b>Freshness</b> — landed within SLA of official release time</li>
+          <li><b>Validity/range</b> — plausible bounds, non-null, unit sanity</li>
+          <li><b>Uniqueness/PK</b> — <code class="inline">(series_id, observation_date, revision)</code></li>
+          <li><b>Referential</b> — series_id in series master</li>
+          <li><b>Anomaly</b> — &gt; N-sigma / sudden jump (catches a misplaced decimal or unit change)</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Схема/контракт</b> — колонки, типы, enum-домены (ловить дрейф)</li>
+          <li><b>Полнота</b> — строки vs ожидаемые; все ряды/даты присутствуют (обнаружение пропусков)</li>
+          <li><b>Свежесть</b> — приземлилось в пределах SLA от официального времени релиза</li>
+          <li><b>Валидность/диапазон</b> — правдоподобные границы, non-null, unit sanity</li>
+          <li><b>Уникальность/PK</b> — <code class="inline">(series_id, observation_date, revision)</code></li>
+          <li><b>Референциальная</b> — series_id в series master</li>
+          <li><b>Аномалия</b> — &gt; N-sigma / резкий скачок (ловит неправильную десятичную или смену unit)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout gotcha en"><b>Behavior rule:</b> AI/anomaly <b>flags</b>, deterministic gates <b>decide</b>. Never let a probabilistic step silently publish.</div>
+    <div class="callout gotcha ru"><b>Правило поведения:</b> AI/anomaly <b>флагают</b>, детерминистские gates <b>решают</b>. Никогда не позволяй вероятностному шагу тихо публиковать.</div>
+    <div class="callout hook en"><b>Hook:</b> "At Career.io I institutionalised dbt code-review + testing so quality was a property of the workflow. At Meta I validated the entity-resolution fix against what 100+ downstream consumers saw, not just at the source."</div>
+    <div class="callout hook ru"><b>Зацепка:</b> «В Career.io я институционализировал dbt code-review + тестирование, чтобы качество стало свойством workflow. В Meta я валидировал фикс entity-resolution относительно того, что видели 100+ downstream-консьюмеров, а не только у источника.»</div>
+  </div>
+</section>
+
+<!-- ============ LINEAGE ============ -->
+<section id="lineage" class="anchor reveal">
+  <h2 class="sec"><span class="en">9 · Lineage, metadata, governance</span><span class="ru">9 · Lineage, метаданные, governance</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <h3 class="en">Lineage source → Terminal</h3>
+      <h3 class="ru">Lineage источник → Terminal</h3>
+      <ul class="en">
+        <li>Model layer (dbt graph) + pipeline/asset layer (Airflow/Dagster, OpenLineage).</li>
+        <li><b>Column-level</b> lineage + load metadata (load_ts, file hash, vintage).</li>
+        <li>Value: impact analysis, root-cause (wrong Terminal number → trace to source vintage), audit.</li>
+        <li>Record <i>which vintage</i> fed a derived value → reproduce exactly what the client saw.</li>
+      </ul>
+      <ul class="ru">
+        <li>Слой модели (dbt graph) + слой pipeline/asset (Airflow/Dagster, OpenLineage).</li>
+        <li><b>Column-level</b> lineage + метаданные загрузки (load_ts, file hash, vintage).</li>
+        <li>Ценность: impact-анализ, root-cause (неверное число в Terminal → отследить до source vintage), аудит.</li>
+        <li>Записывать, <i>какой vintage</i> питал производное значение → воспроизвести в точности то, что увидел клиент.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="en">Metadata catalog</h3>
+      <h3 class="ru">Каталог метаданных</h3>
+      <ul class="en">
+        <li><b>Feed registry</b> (cadence, format, contract, SLA, owner)</li>
+        <li><b>Series master</b> (id, definition, unit, source, geography)</li>
+        <li><b>Schema contracts</b> versioned in source control</li>
+        <li><b>Quality results</b> per run · <b>lineage graph</b> · <b>load audit</b> (hash, ts, counts)</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Реестр фидов</b> (частота, формат, контракт, SLA, владелец)</li>
+        <li><b>Series master</b> (id, определение, unit, источник, география)</li>
+        <li><b>Контракты схем</b> версионированы в source control</li>
+        <li><b>Результаты качества</b> на run · <b>lineage graph</b> · <b>load audit</b> (хеш, ts, counts)</li>
+      </ul>
+      <div class="callout en"><b>CDMP/DMBOK quick win:</b> the live areas are quality-in-pipeline, metadata/lineage, lifecycle (raw→marts→retention), ownership. Vocabulary signals fit.</div>
+      <div class="callout ru"><b>CDMP/DMBOK быстрый win:</b> живые области — quality-in-pipeline, metadata/lineage, жизненный цикл (raw→marts→retention), ownership. Словарь сигналит fit.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RELIABILITY ============ -->
+<section id="reliability" class="anchor reveal">
+  <h2 class="sec"><span class="en">10 · Reliability, failure modes, replay</span><span class="ru">10 · Надёжность, режимы сбоев, replay</span></h2>
+  <div class="card">
+    <h3 class="en">Failure modes checklist (name these — strong senior signal)</h3>
+    <h3 class="ru">Чеклист режимов сбоев (называй их — сильный сеньорский сигнал)</h3>
+    <table class="en">
+      <tr><th>Failure</th><th>Detect</th><th>Recover</th></tr>
+      <tr><td>Vendor feed late / missing</td><td>freshness SLA breach (deferrable sensor)</td><td>page + runbook (re-pull, check vendor)</td></tr>
+      <tr><td>Vendor schema drift</td><td>contract check at gate</td><td>quarantine + alert; do not publish</td></tr>
+      <tr><td>Malformed rows</td><td>parse/validity check</td><td>quarantine bad, process good</td></tr>
+      <tr><td>Bad value / wrong unit</td><td>range / anomaly check</td><td>gate holds; vendor vs parse bug</td></tr>
+      <tr><td>Duplicate / replayed delivery</td><td>content-hash dedup</td><td>idempotent receipt, no double-count</td></tr>
+      <tr><td>Late-arriving revision</td><td>arrives for old observation_date</td><td>append vintage in that partition; recompute derived window</td></tr>
+      <tr><td>Pipeline bug published bad data</td><td>monitor / client report</td><td>idempotent reprocess from immutable raw</td></tr>
+      <tr><td>Partial release visible</td><td>—</td><td>stage-then-swap prevents it</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Сбой</th><th>Обнаружить</th><th>Восстановить</th></tr>
+      <tr><td>Фид поставщика опоздал / отсутствует</td><td>нарушение SLA свежести (deferrable sensor)</td><td>page + runbook (re-pull, проверить поставщика)</td></tr>
+      <tr><td>Дрейф схемы поставщика</td><td>проверка контракта на gate</td><td>карантин + алерт; не публиковать</td></tr>
+      <tr><td>Некорректные строки</td><td>parse/validity check</td><td>карантин плохих, обработать хорошие</td></tr>
+      <tr><td>Плохое значение / неверный unit</td><td>range / anomaly check</td><td>gate держит; баг поставщика vs parse</td></tr>
+      <tr><td>Дубликат / переиграная доставка</td><td>content-hash dedup</td><td>идемпотентный приём, нет двойного счёта</td></tr>
+      <tr><td>Поздняя ревизия</td><td>приходит для старого observation_date</td><td>дописать vintage в ту партицию; пересчитать производное окно</td></tr>
+      <tr><td>Баг pipeline опубликовал плохие данные</td><td>монитор / жалоба клиента</td><td>идемпотентный reprocess из неизменяемого сырого</td></tr>
+      <tr><td>Частичный релиз видим</td><td>—</td><td>stage-then-swap предотвращает</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3 class="en">Replay / backfill story</h3>
+    <h3 class="ru">История replay / backfill</h3>
+    <ul class="en">
+      <li><b>Immutable raw landing = the replay source.</b> Re-derive any downstream state deterministically.</li>
+      <li><b>Idempotent, partition-keyed reprocessing</b> — re-run replaces partitions; backfill any range, any order, in parallel, converges.</li>
+      <li><b>Triggers:</b> bug fix, revision, new derived series, contract change → replay from raw.</li>
+      <li><b>Lookback window</b> in incrementals so late revisions to old dates aren't missed.</li>
+    </ul>
+    <ul class="ru">
+      <li><b>Неизменяемое сырое landing = источник replay.</b> Перевывести любое downstream-состояние детерминистски.</li>
+      <li><b>Идемпотентный, partition-keyed reprocessing</b> — перезапуск заменяет партиции; backfill любого диапазона, в любом порядке, параллельно, сходится.</li>
+      <li><b>Триггеры:</b> фикс бага, ревизия, новый производный ряд, изменение контракта → replay из сырого.</li>
+      <li><b>Lookback window</b> в инкременталах, чтобы поздние ревизии старых дат не пропустились.</li>
+    </ul>
+    <div class="callout hook en"><b>Hook:</b> "Idempotent partition-level reprocessing is what let me fix the Meta entity-resolution defect across 6.2B records safely, without double-counting."</div>
+    <div class="callout hook ru"><b>Зацепка:</b> «Идемпотентный reprocessing на уровне партиций — это то, что позволило мне безопасно зафиксить дефект entity-resolution в Meta на 6.2B записях, без двойного счёта.»</div>
+  </div>
+  <div class="card">
+    <h3 class="en">Scale — where it actually bites (be honest)</h3>
+    <h3 class="ru">Масштаб — где он действительно кусает (будь честен)</h3>
+    <p class="en">Raw row volume is NOT the challenge (macro is low-frequency). The pressure points: <b>number of feeds</b> (config-driven onboarding, not bespoke code) · <b>serving concurrency</b> (many Terminal/analytics clients) · <b>history/vintage growth</b> (every revision kept forever → partition + cheap object storage + archival tiers).</p>
+    <p class="ru">Объём сырых строк — НЕ челлендж (макро низкочастотный). Точки давления: <b>количество фидов</b> (config-driven onboarding, не bespoke-код) · <b>конкуренция при отдаче</b> (много Terminal/аналитики клиентов) · <b>рост истории/vintages</b> (каждая ревизия хранится вечно → партиция + дешёвое object storage + архивные tier).</p>
+    <div class="callout hook en"><b>Hook:</b> "I'm comfortable at scale — ~3.6B events/day at Meta. The judgment here is recognizing econ's hard constraints are correctness, timeliness, and feed heterogeneity, and <i>not</i> over-building for throughput that isn't there."</div>
+    <div class="callout hook ru"><b>Зацепка:</b> «Мне комфортно на масштабе — ~3.6B событий/день в Meta. Суждение здесь — признать, что жёсткие ограничения econ — это корректность, своевременность и гетерогенность фидов, а <i>не</i> избыточное строительство под пропускную способность, которой нет.»</div>
+  </div>
+</section>
+
+<!-- ============ COST ============ -->
+<section id="cost" class="anchor reveal">
+  <h2 class="sec"><span class="en">11 · Cost</span><span class="ru">11 · Стоимость</span></h2>
+  <div class="card">
+    <ul class="en">
+      <li><b>Storage:</b> raw + every vintage forever can balloon → cheap object storage for landing/archive; warehouse only for hot/served; tier cold history; compress (Parquet).</li>
+      <li><b>Compute:</b> push transforms to warehouse/Spark; incremental over full-refresh; avoid full scans; separate critical-feed compute from bulk.</li>
+      <li><b>Don't over-engineer:</b> no streaming infra, no tick-DB, no real-time-everything for monthly data. <b>Matching architecture to modest volume IS the cost optimization.</b></li>
+    </ul>
+    <ul class="ru">
+      <li><b>Хранение:</b> сырое + каждый vintage навсегда может раздуться → дешёвое object storage для landing/архива; хранилище только для горячего/served; tier холодной истории; сжимать (Parquet).</li>
+      <li><b>Вычисления:</b> пушить трансформации в хранилище/Spark; инкрементально поверх full-refresh; избегать полных сканов; разделять вычисления критичных фидов от bulk.</li>
+      <li><b>Не переинженерить:</b> никакой стримингой инфраструктуры, никакой tick-DB, никакого real-time-всего для месячных данных. <b>Совпадение архитектуры со скромным объёмом — это и ЕСТЬ оптимизация стоимости.</b></li>
+    </ul>
+    <div class="callout hook en"><b>Hook:</b> "At McMakler I saved EUR 1M+ on migrations, including hundreds of thousands/yr in orchestration licensing, by replacing a proprietary orchestrator with Airflow — same instinct as not over-building for absent scale."</div>
+    <div class="callout hook ru"><b>Зацепка:</b> «В McMakler я сэкономил EUR 1M+ на миграциях, включая сотни тысяч/год на лицензировании оркестрации, заменив проприетарный оркестратор на Airflow — тот же инстинкт, что и не строить избыточно под отсутствующий масштаб.»</div>
+  </div>
+</section>
+
+<!-- ============ MODERNIZATION ============ -->
+<section class="reveal">
+  <h2 class="sec"><span class="en">12 · Modernization</span><span class="ru">12 · Модернизация</span></h2>
+  <div class="card">
+    <h3 class="en">Inherit a fragile platform that breaks weekly → modernize without breaking consumers</h3>
+    <h3 class="ru">Унаследовал хрупкую платформу, которая ломается еженедельно → модернизируй, не ломая консьюмеров</h3>
+    <pre class="ascii en">
+ map consumers ─▶ stand up new path ─▶ parallel-run ─▶ reconcile ─▶ cutover ─▶ decommission old
+ (FIRST,          (strangler-fig,      (both to        (counts,     (consumer-   (embed QC+tests
+  non-negotiable)  not rip-replace)     separate        key diffs,    by-consumer,  so debt
+                                        targets)        tolerances)   keep fallback) doesn't return)
+    </pre>
+    <pre class="ascii ru">
+ мапить консьюмеров ─▶ поднять новый путь ─▶ parallel-run ─▶ сверить ─▶ cutover ─▶ списать старое
+ (ПЕРВОЕ,              (strangler-fig,       (оба в          (counts,    (консьюмер-   (встроить QC+тесты
+  без переговоров)      не rip-replace)       отдельные       key diffs,   за-консьюмером, чтобы долг
+                                              targets)        tolerances)  держать fallback) не вернулся)
+    </pre>
+    <div class="callout hook en"><b>Hook:</b> "Exactly the McMakler triple migration — proprietary orchestrator→Airflow, GCP-native→Snowflake, Postgres→dbt — run in parallel and reconciled before cutover, 200+ users served throughout, EUR 1M+ saved."</div>
+    <div class="callout hook ru"><b>Зацепка:</b> «Точно тройная миграция в McMakler — проприетарный оркестратор→Airflow, GCP-native→Snowflake, Postgres→dbt — запущены параллельно и сверены перед cutover, 200+ пользователей обслуживались постоянно, EUR 1M+ сэкономлены.»</div>
+    <div class="callout en"><b>AI safely:</b> anomaly detection on incoming values, schema/format inference for messy feeds, LLM-assisted rule suggestion. Always human-in-the-loop: AI flags, deterministic gates decide. <i>(Untangler — won Meta EMEA DE Hackathon, adopted internally.)</i></div>
+    <div class="callout ru"><b>AI безопасно:</b> обнаружение аномалий на входящих значениях, schema/format inference для грязных фидов, LLM-ассистированное предложение правил. Всегда human-in-the-loop: AI флагует, детерминистские gates решают. <i>(Untangler — победитель Meta EMEA DE Hackathon, принят внутри.)</i></div>
+  </div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz" class="anchor reveal">
+  <h2 class="sec"><span class="en">13 · Self-quiz — tap to reveal</span><span class="ru">13 · Самопроверка — нажми, чтобы открыть</span></h2>
+  <div class="quizgrid">
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">What's the FIRST thing you do when handed an open-ended design prompt?</span><span class="ru">Что ты делаешь ПЕРВЫМ, когда тебе дают открытый запрос на дизайн?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Clarify, don't draw. Ask V-L-F-C-R: Volume, Latency, Freshness SLA, Consistency, Revisions — plus consumers. Spend the first 3-5 min here.</span><span class="ru">Уточняй, не рисуй. Спроси V-L-F-C-R: Объём, Задержка, SLA свежести, Согласованность, Ревизии — плюс консьюмеры. Потрать первые 3-5 мин здесь.</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Why is "the latest value" wrong for economic data?</span><span class="ru">Почему «последнее значение» неверно для экономических данных?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Macro figures are revised for months. The latest value isn't what a client knew at the time. You need append-only vintages + as-of views to avoid look-ahead bias.</span><span class="ru">Макро-фигуры ревизуются месяцами. Последнее значение — это не то, что клиент знал в тот момент. Нужны append-only vintages + as-of views, чтобы избежать look-ahead bias.</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Define bitemporal grain for a series observation.</span><span class="ru">Определи bitemporal grain для наблюдения ряда.</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">observation_date (valid time — period data is about) + publish_timestamp (transaction time — when we knew it). Grain: (series_id, observation_date, revision_id, publish_ts, value).</span><span class="ru">observation_date (valid time — период, о котором данные) + publish_timestamp (transaction time — когда мы узнали об этом). Grain: (series_id, observation_date, revision_id, publish_ts, value).</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Partition by date or by series_id? Why?</span><span class="ru">Партиционировать по дате или по series_id? Почему?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Partition by observation_date, cluster by series_id within. A release touches many series for one date; date-partitioning means a release/late-revision rewrites one partition, not thousands.</span><span class="ru">Партиционировать по observation_date, кластеризовать по series_id внутри. Релиз касается многих рядов на одну дату; date-партиционирование означает, что релиз/поздняя ревизия переписывает одну партицию, а не тысячи.</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Lakehouse, warehouse, or time-series DB?</span><span class="ru">Lakehouse, хранилище или time-series DB?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Both lakehouse + warehouse: lakehouse for immutable raw landing + archive (cheap, replay, time-travel); columnar warehouse for served/analytics. Skip a tick-DB — monthly macro doesn't need it.</span><span class="ru">И lakehouse, и хранилище: lakehouse для неизменяемого сырого landing + архива (дёшево, replay, time-travel); колоночное хранилище для served/аналитики. Пропусти tick-DB — месячное макро не нуждается.</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Where do schema-on-read and schema-on-write each live?</span><span class="ru">Где живут schema-on-read и schema-on-write соответственно?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Schema-on-read at landing (capture even malformed files, replayable). Schema-on-write at the conformed/served layer (strict, contract-enforced). The quality gate is the boundary.</span><span class="ru">Schema-on-read при приземлении (захватить даже некорректные файлы, replayable). Schema-on-write в conformed/served слое (строго, контракт насажден). Гейт качества — это граница.</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">What makes the platform replayable?</span><span class="ru">Что делает платформу replayable?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Immutable raw landing (the replay source) + idempotent partition-keyed reprocessing. Re-run any date range, any order, in parallel, and converge to the correct state.</span><span class="ru">Неизменяемое сырое landing (источник replay) + идемпотентный partition-keyed reprocessing. Перезапустить любой диапазон дат, в любом порядке, параллельно, и сойтись к правильному состоянию.</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">How does a release appear atomically to clients?</span><span class="ru">Как релиз появляется атомарно для клиентов?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Stage-then-swap: build + validate the full release in staging, then make it visible in one atomic op (partition swap / view repoint / Iceberg-Delta commit). Never publish mid-write.</span><span class="ru">Stage-then-swap: собрать + валидировать полный релиз в staging, затем сделать видимым одной атомарной операцией (partition swap / view repoint / Iceberg-Delta commit). Никогда не публикуй посередине записи.</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Five golden signals for data observability?</span><span class="ru">Пять золотых сигналов для наблюдаемости данных?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Freshness, Completeness, Volume, Validity, Schema — surfaced as metrics with SLAs (not log lines), per-feed, tied to lineage for blast radius.</span><span class="ru">Свежесть, Полнота, Объём, Валидность, Схема — представлены как метрики с SLA (не лог-строки), на фид, привязаны к lineage для blast radius.</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Speed vs correctness when CPI is late or looks wrong?</span><span class="ru">Скорость vs корректность, когда CPI опаздывает или выглядит неправильно?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Correctness wins — publish late with a clear signal, never fast-but-wrong. Run minimal critical-path validation, surface the delay, have a documented decision owner. Silent wrong number = huge blast radius.</span><span class="ru">Побеждает корректность — публикуй поздно с чётким сигналом, никогда быстро-но-неправильно. Запусти минимальную валидацию критического пути, поверхностно задержку, имей задокументированного владельца решения. Тихое неправильное число = огромный blast radius.</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Where does scale actually bite in econ data?</span><span class="ru">Где масштаб действительно кусает в экон-данных?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Not row volume. It's: number of feeds (config-driven onboarding), serving concurrency (many clients), and vintage/history growth (every revision kept forever → tiered cheap storage).</span><span class="ru">Не объём строк. Это: количество фидов (config-driven onboarding), конкуренция при отдаче (много клиентов), и рост vintages/истории (каждая ревизия хранится вечно → tier дешёвого хранилища).</span></div>
+      </div>
+    </div>
+
+    <div class="flip">
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><div class="q"><span class="en">Modernize a fragile legacy platform — the sequence?</span><span class="ru">Модернизировать хрупкую легаси-платформу — последовательность?</span></div><div class="tap"><span class="en">tap to flip</span><span class="ru">нажми, чтобы перевернуть</span></div></div>
+        <div class="flip-face flip-back"><div class="a"><span class="en">Answer</span><span class="ru">Ответ</span></div><span class="en">Map consumers → strangler-fig new path → parallel-run → reconcile (counts/key-diffs/tolerances) → cut over consumer-by-consumer with fallback → decommission. Embed QC so debt doesn't return.</span><span class="ru">Мапить консьюмеров → strangler-fig новый путь → parallel-run → сверить (counts/key-diffs/tolerances) → cutover консьюмер-за-консьюмером с fallback → списать. Встроить QC, чтобы долг не вернулся.</span></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <span class="en">Data Platform System Design · Data Engineering Interview Prep · companion to system-design questions<br>
+  Clarify → Propose → Trade-offs → Deep-dive → Failure/Ops. Correctness &gt; throughput. Vintages are first-class.</span>
+  <span class="ru">Системный дизайн платформы данных · Подготовка к Data Engineering интервью · дополнение к вопросам по системному дизайну<br>
+  Уточнение → Предложение → Компромиссы → Углубление → Сбои/Опс. Корректность &gt; пропускная способность. Vintages первоклассные.</span>
+</footer>
+
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  // ---- theme toggle ----
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+  }
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('de_cheat_theme'); } catch (e) {}
+  applyTheme(savedTheme || 'dark');
+  themeBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('de_cheat_theme', next); } catch (e) {}
+  });
+
+  // ---- language toggle ----
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l) {
+    root.setAttribute('data-lang', l);
+    root.setAttribute('lang', l);
+    langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+  }
+  var savedLang = null;
+  try { savedLang = localStorage.getItem('de_cheat_lang'); } catch (e) {}
+  applyLang(savedLang || 'en');
+  langBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+    applyLang(next);
+    try { localStorage.setItem('de_cheat_lang', next); } catch (e) {}
+  });
+
+  // ---- flip cards ----
+  document.querySelectorAll('.flip').forEach(function (c) {
+    c.addEventListener('click', function () { c.classList.toggle('flipped'); });
+  });
+
+  // ---- scroll reveal ----
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+  // ---- active nav highlight ----
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav a'));
+  var secs = links.map(function (l) { return document.querySelector(l.getAttribute('href')); }).filter(Boolean);
+  var spy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        links.forEach(function (l) { l.style.color = ''; l.style.background = ''; });
+        var active = links.find(function (l) { return l.getAttribute('href') === '#' + en.target.id; });
+        if (active) { active.style.color = 'var(--text)'; active.style.background = 'var(--card2)'; }
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  secs.forEach(function (s) { spy.observe(s); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Spark — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #151d30;
+    --card2: #1b2540;
+    --text: #e6ecf5;
+    --muted: #8a97b0;
+    --accent: #1877F2;
+    --green: #02e2ac;
+    --orange: #f59e0b;
+    --purple: #a855f7;
+    --border: #25304d;
+    --code-bg: #0d1426;
+    --shadow: 0 6px 24px rgba(0,0,0,0.4);
+  }
+  [data-theme="light"] {
+    --bg: #f3f5fa;
+    --card: #ffffff;
+    --card2: #eef1f8;
+    --text: #11161f;
+    --muted: #5a6580;
+    --accent: #1877F2;
+    --green: #058a6c;
+    --orange: #b5730a;
+    --purple: #7c3aed;
+    --border: #d6dced;
+    --code-bg: #f0f2f8;
+    --shadow: 0 6px 24px rgba(20,40,90,0.10);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    font-size: 15px;
+    transition: background .25s, color .25s;
+  }
+  code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+  /* ---- i18n language toggle ---- */
+  [data-lang="en"] .ru { display: none !important; }
+  [data-lang="ru"] .en { display: none !important; }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,26,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; flex-wrap: wrap;
+  }
+  [data-theme="light"] nav { background: rgba(243,245,250,0.92); }
+  nav .brand { font-weight: 800; color: var(--accent); white-space: nowrap; letter-spacing:.3px; }
+  nav .links { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 12.5px;
+    padding: 4px 9px; border-radius: 7px; white-space: nowrap;
+  }
+  nav a:hover { color: var(--text); background: var(--card2); }
+  .toggles { margin-left: auto; display: flex; gap: 6px; flex-shrink:0; }
+  .toggle-btn {
+    background: var(--card2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 11px; cursor: pointer; font-size: 13px; font-weight:600;
+  }
+  .toggle-btn:hover { border-color: var(--accent); }
+
+  header.hero {
+    max-width: 1000px; margin: 0 auto; padding: 32px 20px 10px;
+  }
+  header.hero h1 { margin: 0 0 6px; font-size: 28px; line-height:1.2; }
+  header.hero .sub { color: var(--muted); font-size: 14px; }
+  .pill {
+    display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: 20px; margin-right: 6px; letter-spacing:.4px;
+  }
+  .pill.gap { background: rgba(245,158,11,.16); color: var(--orange); }
+
+  main { max-width: 1000px; margin: 0 auto; padding: 10px 20px 80px; }
+
+  section { margin: 22px 0; }
+  .sec-head {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    user-select: none; margin: 18px 0 10px;
+  }
+  .sec-head h2 { margin: 0; font-size: 19px; }
+  .sec-head .chev { color: var(--muted); transition: transform .2s; font-size: 13px; }
+  .sec-head.collapsed .chev { transform: rotate(-90deg); }
+  .sec-body { overflow: hidden; }
+  .sec-head.collapsed + .sec-body { display: none; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; margin: 12px 0; box-shadow: var(--shadow);
+  }
+  .card h3 { margin: 0 0 8px; font-size: 15.5px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px){ .grid2 { grid-template-columns: 1fr; } nav .links{display:none;} }
+
+  ul { margin: 6px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  .muted { color: var(--muted); }
+  b.acc { color: var(--accent); }
+  b.grn { color: var(--green); }
+  b.org { color: var(--orange); }
+  b.pur { color: var(--purple); }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 9px;
+    padding: 12px 14px; overflow-x: auto; font-size: 13px; margin: 8px 0;
+  }
+  pre .k { color: var(--purple); }
+  pre .f { color: var(--accent); }
+  pre .s { color: var(--green); }
+  pre .c { color: var(--muted); font-style: italic; }
+  pre .n { color: var(--orange); }
+  code.inl { background: var(--code-bg); padding: 1px 6px; border-radius: 5px; font-size: 12.5px; border: 1px solid var(--border); }
+
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--accent); font-size: 12.5px; text-transform: uppercase; letter-spacing:.4px; }
+  tr:last-child td { border-bottom: none; }
+
+  .callout {
+    border-left: 3px solid var(--orange); background: var(--card2);
+    padding: 10px 14px; border-radius: 0 9px 9px 0; margin: 10px 0; font-size: 14px;
+  }
+  .callout.probe { border-left-color: var(--purple); }
+  .callout.gap { border-left-color: var(--orange); }
+  .callout.anchor { border-left-color: var(--green); }
+  .callout .tag { font-weight: 800; font-size: 11px; letter-spacing:.5px; text-transform: uppercase; }
+  .callout.probe .tag { color: var(--purple); }
+  .callout.gap .tag { color: var(--orange); }
+  .callout.anchor .tag { color: var(--green); }
+
+  /* ASCII diagram */
+  .ascii {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 9px;
+    padding: 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.35; color: var(--text);
+    white-space: pre;
+  }
+
+  /* flip cards */
+  .flips { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px){ .flips { grid-template-columns: 1fr; } }
+  .flip {
+    perspective: 1200px; min-height: 130px; cursor: pointer;
+  }
+  .flip-inner {
+    position: relative; width: 100%; height: 100%; min-height: 130px;
+    transition: transform .5s; transform-style: preserve-3d;
+  }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border: 1px solid var(--border); border-radius: 11px; padding: 14px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .flip-front { background: var(--card); }
+  .flip-back { background: var(--card2); transform: rotateY(180deg); }
+  .flip-q { font-weight: 700; font-size: 14px; }
+  .flip-hint { color: var(--muted); font-size: 11.5px; margin-top: 8px; }
+  .flip-a { font-size: 13px; }
+
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s, transform .5s; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  .toc-top { text-align:center; margin: 8px 0 0; }
+  .toc-top a { color: var(--muted); font-size: 12px; text-decoration: none; }
+  footer { text-align:center; color: var(--muted); font-size: 12px; padding: 30px 20px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">⚡ SPARK</span>
+  <div class="links">
+    <a href="#fundamentals"><span class="en">Fundamentals</span><span class="ru">Основы</span></a>
+    <a href="#apis"><span class="en">RDD/DF/DS</span><span class="ru">RDD/DF/DS</span></a>
+    <a href="#lazy"><span class="en">Lazy &amp; DAG</span><span class="ru">Ленивость &amp; DAG</span></a>
+    <a href="#deps"><span class="en">Deps &amp; Shuffle</span><span class="ru">Зависимости &amp; Shuffle</span></a>
+    <a href="#joins"><span class="en">Joins</span><span class="ru">Джойны</span></a>
+    <a href="#catalyst"><span class="en">Catalyst/Tungsten</span><span class="ru">Catalyst/Tungsten</span></a>
+    <a href="#cache"><span class="en">Cache</span><span class="ru">Кеш</span></a>
+    <a href="#partition"><span class="en">Partitioning</span><span class="ru">Партиционирование</span></a>
+    <a href="#skew"><span class="en">Skew &amp; AQE</span><span class="ru">Перекос &amp; AQE</span></a>
+    <a href="#memory"><span class="en">Memory</span><span class="ru">Память</span></a>
+    <a href="#cluster"><span class="en">Cluster</span><span class="ru">Кластер</span></a>
+    <a href="#streaming"><span class="en">Streaming</span><span class="ru">Стриминг</span></a>
+    <a href="#tuning"><span class="en">Tuning</span><span class="ru">Тюнинг</span></a>
+    <a href="#quiz"><span class="en">Self-Quiz</span><span class="ru">Самопроверка</span></a>
+  </div>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <span class="pill gap"><span class="en">SCALA / FLINK / ICEBERG = STUDY-GAP</span><span class="ru">SCALA / FLINK / ICEBERG = ПРОБЕЛ ДЛЯ ИЗУЧЕНИЯ</span></span>
+  <h1>Apache Spark — <span class="acc"><span class="en">DE Interview Prep</span><span class="ru">Подготовка к DE-интервью</span></span></h1>
+  <div class="sub">
+    <span class="en">Fast-revision cheatsheet for Data Engineering interviews. Tailored for Senior/Lead DE. Dense, skimmable, with interviewer-probe callouts, comparison tables, ASCII diagrams, and self-quiz flip cards. Anchor Spark hands-on to <b class="grn">Front Tier (Scala/Spark on Hadoop)</b>; anchor scale to <b class="acc">Meta (3.6B events/day)</b>.</span>
+    <span class="ru">Шпаргалка для быстрого повторения перед Data Engineering интервью. Заточена под Senior/Lead DE. Плотная, удобная для беглого чтения, с указаниями на вопросы интервьюера, сравнительными таблицами, ASCII-диаграммами и карточками самопроверки. Практический якорь Spark — <b class="grn">Front Tier (Scala/Spark на Hadoop)</b>; якорь масштаба — <b class="acc">Meta (3,6 млрд событий/день)</b>.</span>
+  </div>
+</header>
+
+<main>
+
+<!-- FUNDAMENTALS -->
+<section id="fundamentals">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">1 · Fundamentals &amp; Architecture</span><span class="ru">1 · Основы и архитектура</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3><span class="en">The mental model in one screen</span><span class="ru">Ментальная модель на одном экране</span></h3>
+      <div class="ascii en">  SparkSession (Driver JVM)
+   │  builds logical+physical plan, owns DAG/Task scheduler
+   ▼
+Cluster Manager  (YARN / Kubernetes / Standalone)
+   │  allocates executors
+   ▼
+┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+│  Executor 1   │   │  Executor 2   │   │  Executor N   │
+│  tasks+cache  │   │  tasks+cache  │   │  tasks+cache  │
+│  shuffle disk │   │  shuffle disk │   │  shuffle disk │
+└───────────────┘   └───────────────┘   └───────────────┘
+
+Job  ──split-at-shuffle──►  Stages  ──one-per-partition──►  Tasks</div>
+      <div class="ascii ru">  SparkSession (Driver JVM)
+   │  строит логический+физический план, владеет DAG/Task scheduler
+   ▼
+Cluster Manager  (YARN / Kubernetes / Standalone)
+   │  выделяет executors
+   ▼
+┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+│  Executor 1   │   │  Executor 2   │   │  Executor N   │
+│  задачи+кеш   │   │  задачи+кеш   │   │  задачи+кеш   │
+│  shuffle disk │   │  shuffle disk │   │  shuffle disk │
+└───────────────┘   └───────────────┘   └───────────────┘
+
+Job  ──разделение на shuffle──►  Stages  ──одна на партицию──►  Tasks</div>
+      <table class="en">
+        <tr><th>Term</th><th>What it is</th></tr>
+        <tr><td><b class="acc">Driver</b></td><td>Runs <code class="inl">main</code>, builds plan, schedules, collects results. One per app. Don't <code class="inl">collect()</code> big data here.</td></tr>
+        <tr><td><b class="acc">Executor</b></td><td>JVM on a worker; runs tasks, holds cache + shuffle files. Many per app.</td></tr>
+        <tr><td><b class="acc">Job</b></td><td>Triggered by one action.</td></tr>
+        <tr><td><b class="acc">Stage</b></td><td>Set of tasks with no shuffle between them. Boundary = wide dependency.</td></tr>
+        <tr><td><b class="acc">Task</b></td><td>Smallest unit; one task per partition of a stage.</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Термин</th><th>Что это</th></tr>
+        <tr><td><b class="acc">Driver</b></td><td>Исполняет <code class="inl">main</code>, строит план, планирует, собирает результаты. Один на приложение. Не делай <code class="inl">collect()</code> больших данных сюда.</td></tr>
+        <tr><td><b class="acc">Executor</b></td><td>JVM на воркере; выполняет задачи, хранит кеш + shuffle-файлы. Много на приложение.</td></tr>
+        <tr><td><b class="acc">Job</b></td><td>Запускается одним action.</td></tr>
+        <tr><td><b class="acc">Stage</b></td><td>Набор задач без shuffle между ними. Граница = широкая зависимость.</td></tr>
+        <tr><td><b class="acc">Task</b></td><td>Наименьшая единица; одна задача на партицию стадии.</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- APIS -->
+<section id="apis">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">2 · RDD vs DataFrame vs Dataset</span><span class="ru">2 · RDD vs DataFrame vs Dataset</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <table class="en">
+        <tr><th></th><th>RDD</th><th>DataFrame</th><th>Dataset</th></tr>
+        <tr><td>Schema</td><td>No</td><td>Yes (Row)</td><td>Yes (typed)</td></tr>
+        <tr><td>Type safety</td><td>Compile-time</td><td>Runtime only</td><td><b class="grn">Compile-time</b></td></tr>
+        <tr><td>Catalyst/Tungsten</td><td><b class="org">No</b></td><td><b class="grn">Yes</b></td><td><b class="grn">Yes</b></td></tr>
+        <tr><td>Languages</td><td>All</td><td>All</td><td>Scala/Java only</td></tr>
+        <tr><td>Use when</td><td>Unstructured, custom partitioner, full control</td><td>Default ETL/analytics</td><td>Typed pipelines, testability</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th></th><th>RDD</th><th>DataFrame</th><th>Dataset</th></tr>
+        <tr><td>Схема</td><td>Нет</td><td>Да (Row)</td><td>Да (типизированная)</td></tr>
+        <tr><td>Типобезопасность</td><td>Compile-time</td><td>Только runtime</td><td><b class="grn">Compile-time</b></td></tr>
+        <tr><td>Catalyst/Tungsten</td><td><b class="org">Нет</b></td><td><b class="grn">Да</b></td><td><b class="grn">Да</b></td></tr>
+        <tr><td>Языки</td><td>Все</td><td>Все</td><td>Только Scala/Java</td></tr>
+        <tr><td>Когда использовать</td><td>Неструктурированные данные, кастомный партиционер, полный контроль</td><td>Стандартный ETL/аналитика</td><td>Типизированные пайплайны, тестируемость</td></tr>
+      </table>
+      <p class="muted en">One-liner: <i>"Prefer DataFrame/Dataset so Catalyst can optimize; drop to RDD only when you need control the optimizer can't give you."</i></p>
+      <p class="muted ru">В одну строку: <i>«Предпочитай DataFrame/Dataset, чтобы Catalyst мог оптимизировать; спускайся к RDD только когда нужен контроль, который оптимизатор дать не может.»</i></p>
+      <div class="callout anchor en"><span class="tag">Anchor</span> Sell the <b>typed Dataset</b> (Scala) as a craftsmanship/testing win over untyped PySpark: compile-time safety, refactorable, fewer runtime surprises.</div>
+      <div class="callout anchor ru"><span class="tag">Якорь</span> Продавай <b>типизированный Dataset</b> (Scala) как преимущество качества/тестирования над нетипизированным PySpark: безопасность на этапе компиляции, рефакторимость, меньше runtime-сюрпризов.</div>
+    </div>
+  </div>
+</section>
+
+<!-- LAZY -->
+<section id="lazy">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">3 · Transformations, Actions, Lazy Eval &amp; the DAG</span><span class="ru">3 · Трансформации, actions, ленивое выполнение и DAG</span></h2></div>
+  <div class="sec-body">
+    <div class="grid2">
+      <div class="card reveal">
+        <h3><span class="en">Transformations (lazy)</span><span class="ru">Трансформации (ленивые)</span></h3>
+        <p class="muted en">Build the DAG, return a new RDD/DF, execute nothing.</p>
+        <p class="muted ru">Строят DAG, возвращают новый RDD/DF, ничего не выполняют.</p>
+        <p><code class="inl">map filter select join groupBy withColumn repartition</code></p>
+      </div>
+      <div class="card reveal">
+        <h3><span class="en">Actions (eager)</span><span class="ru">Actions (нетерпеливые)</span></h3>
+        <p class="muted en">Trigger execution; return to driver or write out.</p>
+        <p class="muted ru">Запускают выполнение; возвращают драйверу или пишут наружу.</p>
+        <p><code class="inl">count collect take show write foreach reduce first</code></p>
+      </div>
+    </div>
+    <div class="card reveal">
+      <h3><span class="en">What happens on an action (the end-to-end walk)</span><span class="ru">Что происходит при action (полный путь)</span></h3>
+      <div class="ascii en">Lazy transforms ─► Unresolved Logical Plan
+ ─► Analyzed (resolve vs catalog)
+ ─► Optimized Logical Plan   (Catalyst rules: pushdown, pruning, fold...)
+ ─► Physical Plans ─► Cost-based pick ─► WholeStageCodegen
+ ─► DAGScheduler splits into STAGES at shuffle boundaries
+ ─► TaskScheduler ships TASKS to executors (1 / partition)
+ ─► shuffle: map writes files to local disk ► reduce fetches over network
+ ─► result to driver (collect) / sink (write)</div>
+      <div class="ascii ru">Ленивые трансформации ─► Неразрешённый логический план
+ ─► Проанализированный (резолв по каталогу)
+ ─► Оптимизированный логический план   (правила Catalyst: pushdown, pruning, fold...)
+ ─► Физические планы ─► Выбор по стоимости ─► WholeStageCodegen
+ ─► DAGScheduler делит на СТАДИИ на границах shuffle
+ ─► TaskScheduler отправляет ЗАДАЧИ на executors (1 / партицию)
+ ─► shuffle: map пишет файлы на локальный диск ► reduce забирает по сети
+ ─► результат драйверу (collect) / в приёмник (write)</div>
+      <div class="callout en"><span class="tag">Gotcha</span> An action re-runs the <b>entire lineage every time</b> unless you <code class="inl">cache()</code>. <code class="inl">count()</code> then <code class="inl">write()</code> on an uncached DF = DAG runs twice.</div>
+      <div class="callout ru"><span class="tag">Подвох</span> Action перезапускает <b>всю родословную каждый раз</b>, если не сделать <code class="inl">cache()</code>. <code class="inl">count()</code>, а потом <code class="inl">write()</code> на некешированном DF = DAG выполняется дважды.</div>
+      <div class="callout probe en"><span class="tag">Interviewer will probe</span> "Where does the shuffle physically live?" → <b>executor local disk</b> (shuffle data + index files), served by the external shuffle service so it survives executor loss. "What's a stage boundary?" → a <b>wide dependency</b>.</div>
+      <div class="callout probe ru"><span class="tag">О чём спросит интервьюер</span> «Где физически лежит shuffle?» → <b>локальный диск executor</b> (данные shuffle + индекс-файлы), обслуживается external shuffle service, чтобы пережить потерю executor. «Что такое граница стадии?» → <b>широкая зависимость</b>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- DEPS & SHUFFLE -->
+<section id="deps">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">4 · Narrow vs Wide Dependencies &amp; Shuffles</span><span class="ru">4 · Узкие vs широкие зависимости и shuffle</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <div class="ascii en">NARROW (pipelined, no network)        WIDE (shuffle, stage boundary)
+P0 ─► C0     map/filter/union          P0 ─┐
+P1 ─► C1     coalesce(down)            P1 ─┼─► C0   groupByKey / join /
+P2 ─► C2                               P2 ─┘       distinct / repartition
+1 parent → at most 1 child            many parents → 1 child</div>
+      <div class="ascii ru">УЗКАЯ (конвейерная, без сети)         ШИРОКАЯ (shuffle, граница стадии)
+P0 ─► C0     map/filter/union          P0 ─┐
+P1 ─► C1     coalesce(вниз)            P1 ─┼─► C0   groupByKey / join /
+P2 ─► C2                               P2 ─┘       distinct / repartition
+1 родитель → макс. 1 ребёнок          много родителей → 1 ребёнок</div>
+      <table class="en">
+        <tr><th></th><th>Narrow</th><th>Wide (shuffle)</th></tr>
+        <tr><td>Network</td><td>None</td><td>Disk write + network fetch</td></tr>
+        <tr><td>Examples</td><td>map, filter, union, mapPartitions</td><td>groupByKey, reduceByKey, join*, distinct, repartition</td></tr>
+        <tr><td>Cost</td><td>Cheap, pipelined</td><td><b class="org">Dominant cost + skew surface</b></td></tr>
+        <tr><td>Recovery</td><td>Recompute 1 partition</td><td>May recompute upstream</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th></th><th>Узкая</th><th>Широкая (shuffle)</th></tr>
+        <tr><td>Сеть</td><td>Нет</td><td>Запись на диск + fetch по сети</td></tr>
+        <tr><td>Примеры</td><td>map, filter, union, mapPartitions</td><td>groupByKey, reduceByKey, join*, distinct, repartition</td></tr>
+        <tr><td>Цена</td><td>Дёшево, конвейерно</td><td><b class="org">Доминирующая стоимость + площадка для перекоса</b></td></tr>
+        <tr><td>Восстановление</td><td>Перевычислить 1 партицию</td><td>Может перевычислить upstream</td></tr>
+      </table>
+      <div class="callout probe en"><span class="tag">Probe</span> "reduceByKey vs groupByKey?" → <b class="grn">reduceByKey</b> does <b>map-side combine</b> before the shuffle → far less data moved. <code class="inl">groupByKey</code> shuffles everything → OOM on hot keys.</div>
+      <div class="callout probe ru"><span class="tag">Вопрос</span> «reduceByKey vs groupByKey?» → <b class="grn">reduceByKey</b> делает <b>комбинацию на стороне map</b> перед shuffle → гораздо меньше данных. <code class="inl">groupByKey</code> шафлит всё → OOM на горячих ключах.</div>
+      <div class="card en" style="background:var(--card2)">
+        <b>Minimize shuffles:</b> broadcast small joins · filter/aggregate <i>before</i> shuffling · <code class="inl">reduceByKey</code> over <code class="inl">groupByKey</code> · bucket on join keys · prune columns · right-size partitions.
+      </div>
+      <div class="card ru" style="background:var(--card2)">
+        <b>Минимизировать shuffle:</b> broadcast небольших джойнов · фильтровать/агрегировать <i>до</i> shuffle · <code class="inl">reduceByKey</code> вместо <code class="inl">groupByKey</code> · bucket по ключам джойна · обрезать колонки · правильно подбирать партиции.
+      </div>
+      <div class="callout anchor en"><span class="tag">Anchor — Front Tier</span> "On my Scala/Spark training pipeline on Hadoop, shuffles on a categorical key were the bottleneck; I cut them with map-side aggregation and salting."</div>
+      <div class="callout anchor ru"><span class="tag">Якорь — Front Tier</span> «В моём Scala/Spark пайплайне обучения на Hadoop shuffle по категориальному ключу были узким местом; я обрезал их через агрегацию на стороне map и salting.»</div>
+    </div>
+  </div>
+</section>
+
+<!-- JOINS -->
+<section id="joins">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">5 · Join Strategies</span><span class="ru">5 · Стратегии джойнов</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <table class="en">
+        <tr><th>Strategy</th><th>When</th><th>Mechanism</th></tr>
+        <tr><td><b class="grn">Broadcast Hash (BHJ)</b></td><td>One side &lt; ~10MB (<code class="inl">autoBroadcastJoinThreshold</code>)</td><td>Ship small side to all executors, build hash map. <b>No big-side shuffle.</b> Fastest.</td></tr>
+        <tr><td><b class="acc">Sort-Merge (SMJ)</b></td><td>Default large–large equi-join</td><td>Shuffle both by key, sort, merge. Robust, pays full shuffle+sort.</td></tr>
+        <tr><td>Shuffle Hash (SHJ)</td><td>One side fits per-partition; sort too costly</td><td>Hash one side per partition, no sort.</td></tr>
+        <tr><td>Broadcast Nested Loop / Cartesian</td><td>Non-equi / cross</td><td>Fallback; expensive.</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Стратегия</th><th>Когда</th><th>Механизм</th></tr>
+        <tr><td><b class="grn">Broadcast Hash (BHJ)</b></td><td>Одна сторона &lt; ~10MB (<code class="inl">autoBroadcastJoinThreshold</code>)</td><td>Отправить маленькую сторону всем executors, построить хеш-карту. <b>Без shuffle большой стороны.</b> Быстрейший.</td></tr>
+        <tr><td><b class="acc">Sort-Merge (SMJ)</b></td><td>По умолчанию для больших equi-join</td><td>Shuffle обеих по ключу, сортировка, слияние. Надёжный, платит полный shuffle+сортировка.</td></tr>
+        <tr><td>Shuffle Hash (SHJ)</td><td>Одна сторона влезает на партицию; сортировка слишком дорогая</td><td>Хеш одной стороны на партицию, без сортировки.</td></tr>
+        <tr><td>Broadcast Nested Loop / Cartesian</td><td>Non-equi / cross</td><td>Резервный; дорогой.</td></tr>
+      </table>
+      <pre class="en"><span class="c"># force broadcast (PySpark)</span>
+<span class="k">from</span> pyspark.sql.functions <span class="k">import</span> broadcast
+big.join(<span class="f">broadcast</span>(small), <span class="s">"key"</span>)
+<span class="c">-- SQL hint</span>
+<span class="k">SELECT</span> /*+ <span class="f">BROADCAST</span>(dim) */ ... <span class="k">FROM</span> fact <span class="k">JOIN</span> dim ...</pre>
+      <pre class="ru"><span class="c"># принудительный broadcast (PySpark)</span>
+<span class="k">from</span> pyspark.sql.functions <span class="k">import</span> broadcast
+big.join(<span class="f">broadcast</span>(small), <span class="s">"key"</span>)
+<span class="c">-- SQL hint</span>
+<span class="k">SELECT</span> /*+ <span class="f">BROADCAST</span>(dim) */ ... <span class="k">FROM</span> fact <span class="k">JOIN</span> dim ...</pre>
+      <div class="callout probe en"><span class="tag">Probe</span> "When does broadcast hurt?" → side bigger than judged → <b>driver OOM</b> gathering it or <b>executor OOM</b> holding the map; many concurrent broadcasts. Disable with threshold <code class="inl">-1</code>.</div>
+      <div class="callout probe ru"><span class="tag">Вопрос</span> «Когда broadcast вредит?» → сторона больше, чем посчитано → <b>OOM драйвера</b> при сборе или <b>OOM executor</b> при хранении карты; много одновременных broadcasts. Отключить порогом <code class="inl">-1</code>.</div>
+      <div class="callout en"><span class="tag">Current-knowledge flex</span> AQE can convert <b>SMJ → BHJ at runtime</b> once it sees real post-filter sizes.</div>
+      <div class="callout ru"><span class="tag">Демонстрация текущих знаний</span> AQE может конвертировать <b>SMJ → BHJ во время выполнения</b>, увидев реальные размеры после фильтров.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CATALYST -->
+<section id="catalyst">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">6 · Catalyst Optimizer &amp; Tungsten</span><span class="ru">6 · Оптимизатор Catalyst и Tungsten</span></h2></div>
+  <div class="sec-body">
+    <div class="grid2">
+      <div class="card reveal">
+        <h3 class="en">Catalyst = <i>planning</i></h3>
+        <h3 class="ru">Catalyst = <i>планирование</i></h3>
+        <p class="muted en">Extensible rule-based + cost-based optimizer over plan trees.</p>
+        <p class="muted ru">Расширяемый rule-based + cost-based оптимизатор над деревьями планов.</p>
+        <ul class="en">
+          <li>Phases: analysis → logical opt → physical planning → codegen</li>
+          <li>Rules: <b>predicate pushdown</b>, <b>column pruning</b>, constant folding, filter reorder, <b>partition pruning</b>, join reordering (CBO)</li>
+          <li>CBO needs stats: <code class="inl">ANALYZE TABLE … COMPUTE STATISTICS</code></li>
+        </ul>
+        <ul class="ru">
+          <li>Фазы: анализ → логическая опт. → физическое планирование → codegen</li>
+          <li>Правила: <b>predicate pushdown</b>, <b>обрезка колонок</b>, сворачивание констант, переупорядочивание фильтров, <b>partition pruning</b>, переупорядочивание джойнов (CBO)</li>
+          <li>CBO нужна статистика: <code class="inl">ANALYZE TABLE … COMPUTE STATISTICS</code></li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3 class="en">Tungsten = <i>execution</i></h3>
+        <h3 class="ru">Tungsten = <i>выполнение</i></h3>
+        <ul class="en">
+          <li><b>Off-heap binary memory</b> (no JVM object overhead/GC)</li>
+          <li><b>Whole-stage codegen</b>: fuse operator chain into one generated Java function</li>
+          <li>Cache-aware + vectorized/columnar Parquet reads</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Off-heap бинарная память</b> (без оверхеда JVM-объектов/GC)</li>
+          <li><b>Whole-stage codegen</b>: сливает цепочку операторов в одну сгенерированную Java-функцию</li>
+          <li>Cache-aware + векторизованное/колоночное чтение Parquet</li>
+        </ul>
+        <p class="muted en">One-liner: <i>"Catalyst decides <b>what</b> plan; Tungsten makes its <b>execution</b> fast and memory-lean."</i></p>
+        <p class="muted ru">В одну строку: <i>«Catalyst решает, <b>какой</b> план; Tungsten делает его <b>выполнение</b> быстрым и экономным по памяти.»</i></p>
+      </div>
+    </div>
+    <div class="callout en"><span class="tag">Read the plan</span> <code class="inl">df.explain(True)</code> / <code class="inl">explain("formatted")</code> → look for <code class="inl">Exchange</code> (=shuffle), <code class="inl">BroadcastHashJoin</code>, <code class="inl">*(n)</code> codegen stages, pushed filters.</div>
+    <div class="callout ru"><span class="tag">Читать план</span> <code class="inl">df.explain(True)</code> / <code class="inl">explain("formatted")</code> → искать <code class="inl">Exchange</code> (=shuffle), <code class="inl">BroadcastHashJoin</code>, <code class="inl">*(n)</code> стадии codegen, pushed-фильтры.</div>
+  </div>
+</section>
+
+<!-- CACHE -->
+<section id="cache">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">7 · Caching &amp; Persistence</span><span class="ru">7 · Кеширование и персистентность</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <ul class="en">
+        <li><code class="inl">cache()</code> = <code class="inl">persist(MEMORY_AND_DISK)</code> for DataFrames (RDD cache = MEMORY_ONLY).</li>
+        <li>Levels: <code class="inl">MEMORY_ONLY</code> · <code class="inl">MEMORY_AND_DISK</code> · <code class="inl">*_SER</code> · <code class="inl">DISK_ONLY</code> · <code class="inl">*_2</code> (replicated) · off-heap.</li>
+        <li><b class="grn">Cache when</b> a DF is reused across <b>multiple actions / iterations</b> (ML loops). <b class="org">Don't</b> cache a once-through pipeline.</li>
+      </ul>
+      <ul class="ru">
+        <li><code class="inl">cache()</code> = <code class="inl">persist(MEMORY_AND_DISK)</code> для DataFrames (кеш RDD = MEMORY_ONLY).</li>
+        <li>Уровни: <code class="inl">MEMORY_ONLY</code> · <code class="inl">MEMORY_AND_DISK</code> · <code class="inl">*_SER</code> · <code class="inl">DISK_ONLY</code> · <code class="inl">*_2</code> (реплицированный) · off-heap.</li>
+        <li><b class="grn">Кешировать, когда</b> DF переиспользуется через <b>несколько actions / итераций</b> (ML-циклы). <b class="org">Не</b> кешировать одноразовый пайплайн.</li>
+      </ul>
+      <div class="callout en"><span class="tag">Gotchas</span> Cache is <b>lazy</b> (materializes on next action) · over-caching evicts &amp; forces recompute/spill · forgetting <code class="inl">unpersist()</code> leaks memory.</div>
+      <div class="callout ru"><span class="tag">Подвохи</span> Кеш — <b>ленивый</b> (материализуется на следующем action) · избыток кеша вытесняет и заставляет перевычислять/spill · забытый <code class="inl">unpersist()</code> течёт память.</div>
+      <div class="callout anchor en"><span class="tag">Anchor</span> ML training (Front Tier) = the canonical cache case: the feature matrix is iterated many times.</div>
+      <div class="callout anchor ru"><span class="tag">Якорь</span> ML-обучение (Front Tier) = канонический случай кеша: матрица признаков итерируется много раз.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PARTITIONING -->
+<section id="partition">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">8 · Partitioning &amp; Pruning</span><span class="ru">8 · Партиционирование и обрезка</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <table class="en">
+        <tr><th>Concept</th><th>Meaning</th></tr>
+        <tr><td>Input partitions</td><td>From source (file/block size, <code class="inl">maxPartitionBytes</code>)</td></tr>
+        <tr><td>Shuffle partitions</td><td><code class="inl">spark.sql.shuffle.partitions</code> (default 200) — AQE coalesces now</td></tr>
+        <tr><td><b>repartition(n[,col])</b></td><td>Full <b>shuffle</b>; increase/even out; can hash by col</td></tr>
+        <tr><td><b>coalesce(n)</b></td><td><b>No shuffle</b>; only merges (reduce); can cause skew</td></tr>
+        <tr><td><b>write.partitionBy(col)</b></td><td>On-<b>disk</b> directory layout for later pruning (different from repartition)</td></tr>
+      </table>
+      <table class="ru">
+        <tr><th>Концепция</th><th>Смысл</th></tr>
+        <tr><td>Входные партиции</td><td>Из источника (размер файла/блока, <code class="inl">maxPartitionBytes</code>)</td></tr>
+        <tr><td>Shuffle-партиции</td><td><code class="inl">spark.sql.shuffle.partitions</code> (по умолчанию 200) — AQE сливает теперь</td></tr>
+        <tr><td><b>repartition(n[,col])</b></td><td>Полный <b>shuffle</b>; увеличить/выровнять; можно хешировать по col</td></tr>
+        <tr><td><b>coalesce(n)</b></td><td><b>Без shuffle</b>; только слияние (уменьшение); может вызвать перекос</td></tr>
+        <tr><td><b>write.partitionBy(col)</b></td><td>На-<b>диске</b> структура папок для последующего pruning (отличается от repartition)</td></tr>
+      </table>
+      <div class="callout probe en"><span class="tag">Probe</span> "Reduce 2000→50 before write?" → <b>coalesce(50)</b> (no shuffle) unless skewed, then <b>repartition(50)</b>.</div>
+      <div class="callout probe ru"><span class="tag">Вопрос</span> «Уменьшить 2000→50 перед записью?» → <b>coalesce(50)</b> (без shuffle), если только не перекос, тогда <b>repartition(50)</b>.</div>
+      <div class="card en" style="background:var(--card2)">
+        <b>Predicate pushdown</b>: filter into the file format (Parquet row-group min/max skip).<br>
+        <b>Partition pruning</b>: physically partitioned table (by <code class="inl">ds</code>/date) → read only matching dirs.<br>
+        <b class="pur">Dynamic Partition Pruning</b>: prune the big fact table at runtime using keys from the small broadcast dim side — star-schema win.
+      </div>
+      <div class="card ru" style="background:var(--card2)">
+        <b>Predicate pushdown</b>: фильтр в формат файла (пропуск row-group Parquet по min/max).<br>
+        <b>Partition pruning</b>: физически партиционированная таблица (по <code class="inl">ds</code>/дате) → читать только подходящие папки.<br>
+        <b class="pur">Dynamic Partition Pruning</b>: обрезать большую fact-таблицу в runtime, используя ключи из маленькой broadcast dim-стороны — выигрыш для star-схемы.
+      </div>
+      <div class="callout anchor en"><span class="tag">Anchor — Meta</span> Date-partitioned (<code class="inl">ds</code>) tables, reading only relevant partitions = daily bread; same idea as Hive/Iceberg pruning.</div>
+      <div class="callout anchor ru"><span class="tag">Якорь — Meta</span> Таблицы, партиционированные по дате (<code class="inl">ds</code>), чтение только релевантных партиций = ежедневный хлеб; та же идея, что Hive/Iceberg pruning.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SKEW & AQE -->
+<section id="skew">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">9 · Skew Handling &amp; AQE</span><span class="ru">9 · Работа с перекосом и AQE</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3 class="en">AQE — Adaptive Query Execution <span class="muted">(on by default 3.2+)</span></h3>
+      <h3 class="ru">AQE — Adaptive Query Execution <span class="muted">(по умолчанию с 3.2+)</span></h3>
+      <p class="en">Re-optimizes the physical plan <b>at runtime</b> from real shuffle stats:</p>
+      <p class="ru">Переоптимизирует физический план <b>в runtime</b> из реальной статистики shuffle:</p>
+      <ul class="en">
+        <li><b class="grn">Coalesce shuffle partitions</b> — collapse tiny post-shuffle partitions (kills the "200 default, mostly empty" problem)</li>
+        <li><b class="grn">Switch join strategy</b> — SMJ → BHJ when a side is small after filters</li>
+        <li><b class="grn">Optimize skew joins</b> — split skewed partitions into sub-partitions</li>
+      </ul>
+      <ul class="ru">
+        <li><b class="grn">Слияние shuffle-партиций</b> — сворачивает крошечные партиции после shuffle (убивает проблему «200 по умолчанию, в основном пустых»)</li>
+        <li><b class="grn">Переключение стратегии джойна</b> — SMJ → BHJ, когда сторона маленькая после фильтров</li>
+        <li><b class="grn">Оптимизация перекоса в джойнах</b> — разбивает перекошенные партиции на подпартиции</li>
+      </ul>
+      <div class="callout probe en"><span class="tag">Probe</span> "What can't AQE fix?" → bad layout / no pruning, fundamentally too much data shuffled, opaque UDF plans, skew inside a single partition's compute.</div>
+      <div class="callout probe ru"><span class="tag">Вопрос</span> «Что AQE не может исправить?» → плохая структура / нет pruning, фундаментально слишком много данных в shuffle, непрозрачные UDF-планы, перекос внутри вычисления одной партиции.</div>
+    </div>
+    <div class="card reveal">
+      <h3 class="en">Skew toolkit (concrete)</h3>
+      <h3 class="ru">Инструментарий для перекоса (конкретно)</h3>
+      <ol class="en">
+        <li><b>AQE skew join</b> — first line of defense.</li>
+        <li><b>Salt</b> the hot key: suffix <code class="inl">0..N</code> on both sides (replicate small side across salts), join on salted key, aggregate back.</li>
+        <li><b>Broadcast</b> the small side → remove the shuffle entirely.</li>
+        <li><b>Isolate hot keys</b>: process top-N separately (often broadcast), union the rest.</li>
+        <li><b>Pre-aggregate</b> (map-side combine) before the shuffle.</li>
+        <li><b>Handle nulls</b>: null join keys all hash to one partition — filter/coalesce them.</li>
+      </ol>
+      <ol class="ru">
+        <li><b>AQE skew join</b> — первая линия защиты.</li>
+        <li><b>Соление (salt)</b> горячего ключа: добавить суффикс <code class="inl">0..N</code> с обеих сторон (реплицировать маленькую сторону по солям), джойнить по солёному ключу, агрегировать обратно.</li>
+        <li><b>Broadcast</b> маленькой стороны → убрать shuffle полностью.</li>
+        <li><b>Изолировать горячие ключи</b>: обрабатывать топ-N отдельно (часто broadcast), объединить остальное.</li>
+        <li><b>Предагрегация</b> (комбинация на стороне map) перед shuffle.</li>
+        <li><b>Обработать null</b>: null join-ключи все хешируются в одну партицию — фильтровать/сливать их.</li>
+      </ol>
+      <div class="callout probe en"><span class="tag">Probe</span> "How do you <i>detect</i> skew?" → Spark UI task duration / shuffle-read <b>max-vs-median</b>; partition record counts. <b>199/200 done</b> = textbook skew.</div>
+      <div class="callout probe ru"><span class="tag">Вопрос</span> «Как <i>обнаружить</i> перекос?» → Spark UI продолжительность задач / shuffle-read <b>макс. vs медиана</b>; количество записей на партицию. <b>199/200 готово</b> = учебник перекоса.</div>
+    </div>
+  </div>
+</section>
+
+<!-- MEMORY -->
+<section id="memory">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">10 · Executor Memory Model</span><span class="ru">10 · Модель памяти Executor</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <div class="ascii en">Executor JVM heap
+┌────────────────────────────────────────────┐
+│ Reserved ~300MB                             │
+├────────────────────────────────────────────┤
+│ Unified (spark.memory.fraction ≈ 0.6)       │
+│   ┌─────────────┬──────────────────────┐    │
+│   │ Execution   │ Storage (cache)      │    │  ← borrow each other
+│   │ shuffle/sort│ cached blocks        │    │     dynamically
+│   │ /agg/join   │                      │    │
+│   └─────────────┴──────────────────────┘    │
+├────────────────────────────────────────────┤
+│ User memory ≈ 0.4 (UDF state, your structs) │
+└────────────────────────────────────────────┘
++ Off-heap (Tungsten)  + memoryOverhead (PySpark workers, netty)</div>
+      <div class="ascii ru">Куча JVM Executor
+┌────────────────────────────────────────────┐
+│ Зарезервированная ~300MB                    │
+├────────────────────────────────────────────┤
+│ Unified (spark.memory.fraction ≈ 0.6)       │
+│   ┌─────────────┬──────────────────────┐    │
+│   │ Execution   │ Storage (кеш)        │    │  ← берут друг у друга
+│   │ shuffle/sort│ кешированные блоки   │    │     динамически
+│   │ /agg/join   │                      │    │
+│   └─────────────┴──────────────────────┘    │
+├────────────────────────────────────────────┤
+│ Пользовательская память ≈ 0.4 (состояние UDF, твои структуры) │
+└────────────────────────────────────────────┘
++ Off-heap (Tungsten)  + memoryOverhead (PySpark workers, netty)</div>
+      <ul class="en">
+        <li><b>Execution can evict Storage</b> beyond a floor; the reverse is bounded (asymmetric).</li>
+        <li><b>Spill</b>: execution memory exhausted → sort/agg buffers go to disk (slower, avoids OOM).</li>
+        <li>OOM causes: huge broadcast · skewed partition too big · <code class="inl">collect()</code> to driver · too few partitions.</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Execution может вытеснить Storage</b> сверх минимума; обратное ограничено (асимметрично).</li>
+        <li><b>Spill</b>: execution-память исчерпана → буферы сортировки/агрегации уходят на диск (медленнее, избегает OOM).</li>
+        <li>Причины OOM: огромный broadcast · перекошенная партиция слишком большая · <code class="inl">collect()</code> на драйвер · слишком мало партиций.</li>
+      </ul>
+      <div class="callout en"><span class="tag">memoryOverhead gotcha</span> PySpark workers + off-heap buffers live <b>outside</b> <code class="inl">executor.memory</code> → tune <code class="inl">spark.executor.memoryOverhead</code> when PySpark OOMs mysteriously.</div>
+      <div class="callout ru"><span class="tag">Подвох memoryOverhead</span> PySpark-воркеры + off-heap буферы живут <b>вне</b> <code class="inl">executor.memory</code> → настраивай <code class="inl">spark.executor.memoryOverhead</code>, когда PySpark загадочно OOMится.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CLUSTER -->
+<section id="cluster">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">11 · Spark on YARN / Kubernetes &amp; Fault Tolerance</span><span class="ru">11 · Spark на YARN / Kubernetes и отказоустойчивость</span></h2></div>
+  <div class="sec-body">
+    <div class="grid2">
+      <div class="card reveal">
+        <h3 class="en">Cluster managers &amp; modes</h3>
+        <h3 class="ru">Менеджеры кластера и режимы</h3>
+        <ul class="en">
+          <li><b>YARN</b> — Hadoop-native, shared queues/capacity scheduler (Front Tier world)</li>
+          <li><b>Kubernetes</b> — executors as pods, cloud-native isolation, pod templates</li>
+          <li>Standalone / Mesos (legacy)</li>
+          <li><b>client</b> mode = driver on submit host (interactive); <b>cluster</b> mode = driver in cluster (prod)</li>
+          <li><b>Dynamic allocation</b> scales executors by pending tasks; needs external shuffle service (or k8s shuffle tracking)</li>
+        </ul>
+        <ul class="ru">
+          <li><b>YARN</b> — нативный для Hadoop, общие очереди/capacity scheduler (мир Front Tier)</li>
+          <li><b>Kubernetes</b> — executors как поды, cloud-native изоляция, шаблоны подов</li>
+          <li>Standalone / Mesos (легаси)</li>
+          <li><b>client</b> режим = драйвер на хосте подачи (интерактивный); <b>cluster</b> режим = драйвер в кластере (прод)</li>
+          <li><b>Dynamic allocation</b> масштабирует executors по pending-задачам; нужен external shuffle service (или k8s shuffle tracking)</li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3 class="en">Fault tolerance</h3>
+        <h3 class="ru">Отказоустойчивость</h3>
+        <ul class="en">
+          <li><b>Lineage (DAG)</b>: recompute lost partitions vs replicate data</li>
+          <li><b>Shuffle files on disk</b> + external shuffle service survive executor loss</li>
+          <li><b>Checkpointing</b>: truncate long lineage to reliable storage (HDFS); required for streaming state</li>
+          <li><b>Task retries + speculative execution</b> for stragglers</li>
+          <li>Driver = SPOF → cluster mode + supervision / streaming checkpoints</li>
+        </ul>
+        <ul class="ru">
+          <li><b>Родословная (DAG)</b>: перевычислить потерянные партиции vs реплицировать данные</li>
+          <li><b>Shuffle-файлы на диске</b> + external shuffle service переживают потерю executor</li>
+          <li><b>Checkpointing</b>: обрезать длинную родословную в надёжное хранилище (HDFS); требуется для streaming state</li>
+          <li><b>Ретраи задач + speculative execution</b> для отстающих</li>
+          <li>Драйвер = SPOF → cluster mode + supervision / streaming checkpoints</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STREAMING -->
+<section id="streaming">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">12 · Structured Streaming Basics</span><span class="ru">12 · Основы Structured Streaming</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <ul class="en">
+        <li><b>Model</b>: stream = <b>unbounded table</b>; each micro-batch appends rows; same DataFrame API, incremental execution. (Continuous mode = low-latency, experimental.)</li>
+        <li><b>Triggers</b>: default (ASAP) · fixed interval · <code class="inl">availableNow</code>/once (batch backfill) · continuous</li>
+        <li><b>Output modes</b>: <code class="inl">append</code> (new rows; needs watermark for aggs) · <code class="inl">update</code> · <code class="inl">complete</code> (whole result, aggs only)</li>
+        <li><b class="pur">Watermark</b>: <code class="inl">withWatermark("ts","10 minutes")</code> bounds state for late data; later events dropped</li>
+        <li><b>State + checkpoint</b>: stateful ops keep a state store, checkpointed → <b>exactly-once</b> with replayable source (Kafka offsets) + idempotent sink</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Модель</b>: поток = <b>неограниченная таблица</b>; каждый микро-батч добавляет строки; тот же API DataFrame, инкрементальное выполнение. (Continuous mode = низкая задержка, экспериментально.)</li>
+        <li><b>Триггеры</b>: по умолчанию (ASAP) · фиксированный интервал · <code class="inl">availableNow</code>/once (батч-backfill) · continuous</li>
+        <li><b>Output modes</b>: <code class="inl">append</code> (новые строки; нужен watermark для агрегатов) · <code class="inl">update</code> · <code class="inl">complete</code> (весь результат, только агрегаты)</li>
+        <li><b class="pur">Watermark</b>: <code class="inl">withWatermark("ts","10 minutes")</code> ограничивает state для поздних данных; более поздние события отбрасываются</li>
+        <li><b>State + checkpoint</b>: stateful-операции держат state store, чекпоинтятся → <b>exactly-once</b> с перечитываемым источником (Kafka offsets) + идемпотентным приёмником</li>
+      </ul>
+      <div class="callout anchor en"><span class="tag">Anchor — IU Group</span> Kafka ingestion for Syntea (80k+ students) is your streaming story.</div>
+      <div class="callout anchor ru"><span class="tag">Якорь — IU Group</span> Kafka-ingestion для Syntea (80k+ студентов) — твоя история про стриминг.</div>
+      <div class="callout gap en"><span class="tag">Gap-bridge</span> Flink: true record-at-a-time, richer event-time/state, savepoints. Concepts (event time, watermark, window, state, exactly-once) <b>transfer directly</b>; API/runtime differ. Say this confidently.</div>
+      <div class="callout gap ru"><span class="tag">Мост через пробел</span> Flink: настоящий запись-за-раз, более богатое event-time/state, savepoints. Концепции (event time, watermark, window, state, exactly-once) <b>переносятся напрямую</b>; API/runtime отличаются. Говори это уверенно.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TUNING -->
+<section id="tuning">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">13 · Performance Tuning &amp; Debugging Slow Jobs</span><span class="ru">13 · Тюнинг производительности и отладка медленных джобов</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <h3 class="en">The signature DE question: "this stage hangs at 199/200"</h3>
+      <h3 class="ru">Фирменный DE-вопрос: «эта стадия зависла на 199/200»</h3>
+      <ol class="en">
+        <li><b>Spark UI first</b> — stage timeline + task metrics. 199/200 = classic skew.</li>
+        <li><b>Confirm skew</b>: max vs median shuffle-read / duration (50x = skew).</li>
+        <li><b>Rule out</b>: skewed key (null/hot) · too few partitions · spill · GC · straggler node · small-files explosion.</li>
+        <li><b>Fix by cause</b>: AQE skew / salt / broadcast · filter nulls · raise partitions · more memory · speculative execution.</li>
+        <li><b>Verify</b> in the UI: compare shuffle-read distribution &amp; stage time.</li>
+      </ol>
+      <ol class="ru">
+        <li><b>Spark UI сначала</b> — timeline стадии + метрики задач. 199/200 = классический перекос.</li>
+        <li><b>Подтвердить перекос</b>: макс. vs медиана shuffle-read / продолжительность (50x = перекос).</li>
+        <li><b>Исключить</b>: перекошенный ключ (null/горячий) · слишком мало партиций · spill · GC · отстающий узел · взрыв мелких файлов.</li>
+        <li><b>Исправить по причине</b>: AQE skew / salt / broadcast · фильтровать null · увеличить партиции · больше памяти · speculative execution.</li>
+        <li><b>Проверить</b> в UI: сравнить распределение shuffle-read и время стадии.</li>
+      </ol>
+    </div>
+    <div class="card reveal">
+      <h3 class="en">General tuning checklist</h3>
+      <h3 class="ru">Общий чек-лист тюнинга</h3>
+      <ul class="en">
+        <li><b>Read less</b>: column/predicate/partition pruning · columnar Parquet/ORC · compact small files</li>
+        <li><b>Shuffle less</b>: broadcast small joins · pre-aggregate · bucket on join key · avoid needless repartition</li>
+        <li><b>Right-size parallelism</b>: partitions ≈ 2–4× cores · let AQE coalesce</li>
+        <li><b>Fix skew</b> · <b>cache only reused data</b></li>
+        <li><b>Executor sizing</b>: ~5 cores/executor heuristic (fat executors → GC/HDFS throughput pain) · memoryOverhead · dynamic allocation</li>
+        <li><b>Avoid Python UDFs</b> (serialization boundary) → built-in SQL fns or Arrow/pandas vectorized UDFs</li>
+        <li><b>Measure</b> before/after — never tune blind</li>
+      </ul>
+      <ul class="ru">
+        <li><b>Читать меньше</b>: обрезка колонок/предикатов/партиций · колоночный Parquet/ORC · компактировать мелкие файлы</li>
+        <li><b>Shuffle меньше</b>: broadcast маленьких джойнов · предагрегация · bucket по ключу джойна · избегать ненужных repartition</li>
+        <li><b>Подобрать параллелизм</b>: партиции ≈ 2–4× ядра · пусть AQE сливает</li>
+        <li><b>Исправить перекос</b> · <b>кешировать только переиспользуемые данные</b></li>
+        <li><b>Размер Executor</b>: эвристика ~5 ядер/executor (жирные executors → боль GC/пропускная способность HDFS) · memoryOverhead · dynamic allocation</li>
+        <li><b>Избегать Python UDFs</b> (граница сериализации) → встроенные SQL-функции или Arrow/pandas векторизованные UDFs</li>
+        <li><b>Измерять</b> до/после — никогда не тюнить вслепую</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="sec-head"><span class="chev">▼</span><h2><span class="en">15 · Self-Quiz — flip to reveal</span><span class="ru">15 · Самопроверка — переверни, чтобы открыть</span></h2></div>
+  <div class="sec-body">
+    <div class="card reveal">
+      <p class="muted en">Tap a card to flip. Answer out loud first.</p>
+      <p class="muted ru">Нажми на карточку, чтобы перевернуть. Сначала ответь вслух.</p>
+      <div class="flips">
+        <div class="flip"><div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q"><span class="en">What defines a stage boundary?</span><span class="ru">Что определяет границу стадии?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+          <div class="flip-face flip-back"><div class="flip-a"><span class="en">A <b class="grn">wide dependency</b> (shuffle). Each stage is a pipeline of narrow transforms; the shuffle splits stages.</span><span class="ru"><b class="grn">Широкая зависимость</b> (shuffle). Каждая стадия — конвейер узких трансформаций; shuffle разделяет стадии.</span></div></div>
+        </div></div>
+
+        <div class="flip"><div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q"><span class="en">reduceByKey vs groupByKey?</span><span class="ru">reduceByKey vs groupByKey?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+          <div class="flip-face flip-back"><div class="flip-a"><span class="en"><b class="grn">reduceByKey</b> = map-side combine before shuffle → less data. groupByKey shuffles all values → OOM risk on hot keys.</span><span class="ru"><b class="grn">reduceByKey</b> = комбинация на стороне map перед shuffle → меньше данных. groupByKey шафлит все значения → риск OOM на горячих ключах.</span></div></div>
+        </div></div>
+
+        <div class="flip"><div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q"><span class="en">Catalyst vs Tungsten?</span><span class="ru">Catalyst vs Tungsten?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+          <div class="flip-face flip-back"><div class="flip-a"><span class="en"><b>Catalyst</b> = planning/optimizer (what plan). <b>Tungsten</b> = execution engine (off-heap memory, whole-stage codegen).</span><span class="ru"><b>Catalyst</b> = планирование/оптимизатор (какой план). <b>Tungsten</b> = движок выполнения (off-heap память, whole-stage codegen).</span></div></div>
+        </div></div>
+
+        <div class="flip"><div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q"><span class="en">3 things AQE does at runtime?</span><span class="ru">3 вещи, которые AQE делает в runtime?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+          <div class="flip-face flip-back"><div class="flip-a"><span class="en">1) Coalesce shuffle partitions · 2) SMJ→BHJ join switch · 3) Split skewed partitions. On by default 3.2+.</span><span class="ru">1) Слияние shuffle-партиций · 2) Переключение джойна SMJ→BHJ · 3) Разделение перекошенных партиций. По умолчанию с 3.2+.</span></div></div>
+        </div></div>
+
+        <div class="flip"><div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q"><span class="en">repartition vs coalesce?</span><span class="ru">repartition vs coalesce?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+          <div class="flip-face flip-back"><div class="flip-a"><span class="en"><b>repartition</b> = full shuffle, up or down, can hash by col. <b>coalesce</b> = no shuffle, only reduce, can skew.</span><span class="ru"><b>repartition</b> = полный shuffle, вверх или вниз, можно хешировать по колонке. <b>coalesce</b> = без shuffle, только уменьшение, может перекосить.</span></div></div>
+        </div></div>
+
+        <div class="flip"><div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q"><span class="en">Stage hangs at 199/200 — what is it?</span><span class="ru">Стадия зависла на 199/200 — что это?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+          <div class="flip-face flip-back"><div class="flip-a"><span class="en"><b class="org">Data skew.</b> One task got a hot/null key. Fix: AQE skew join, salting, broadcast, isolate hot keys, filter nulls.</span><span class="ru"><b class="org">Перекос данных.</b> Одна задача получила горячий/null ключ. Лечение: AQE skew join, соление, broadcast, изолировать горячие ключи, фильтровать null.</span></div></div>
+        </div></div>
+
+        <div class="flip"><div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q"><span class="en">Default broadcast threshold?</span><span class="ru">Порог broadcast по умолчанию?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+          <div class="flip-face flip-back"><div class="flip-a"><span class="en"><b>10MB</b> (<code class="inl">spark.sql.autoBroadcastJoinThreshold</code>). Disable with <code class="inl">-1</code>. Force with <code class="inl">broadcast(df)</code>.</span><span class="ru"><b>10MB</b> (<code class="inl">spark.sql.autoBroadcastJoinThreshold</code>). Отключить через <code class="inl">-1</code>. Принудительно через <code class="inl">broadcast(df)</code>.</span></div></div>
+        </div></div>
+
+        <div class="flip"><div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q"><span class="en">Exactly-once in Structured Streaming needs?</span><span class="ru">Exactly-once в Structured Streaming требует?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+          <div class="flip-face flip-back"><div class="flip-a"><span class="en"><b>Replayable source</b> (Kafka offsets) + <b>checkpointing</b> + <b>idempotent sink</b>.</span><span class="ru"><b>Перечитываемый источник</b> (Kafka offsets) + <b>чекпоинтинг</b> + <b>идемпотентный приёмник</b>.</span></div></div>
+        </div></div>
+
+        <div class="flip"><div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q"><span class="en">What is a watermark for?</span><span class="ru">Для чего watermark?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+          <div class="flip-face flip-back"><div class="flip-a"><span class="en">Bounds how long streaming <b>state</b> is kept for late data so it doesn't grow forever; events later than it are dropped.</span><span class="ru">Ограничивает, как долго streaming <b>state</b> хранится для поздних данных, чтобы не рос вечно; события позже него отбрасываются.</span></div></div>
+        </div></div>
+
+        <div class="flip"><div class="flip-inner">
+          <div class="flip-face flip-front"><div class="flip-q"><span class="en">Why prefer Dataset over PySpark DataFrame?</span><span class="ru">Почему предпочесть Dataset вместо PySpark DataFrame?</span></div><div class="flip-hint"><span class="en">tap to reveal</span><span class="ru">нажми, чтобы открыть</span></div></div>
+          <div class="flip-face flip-back"><div class="flip-a"><span class="en">JVM-native (no Python ser boundary) + <b>compile-time type safety</b> → testable, maintainable, refactorable.</span><span class="ru">JVM-нативный (без границы сериализации Python) + <b>типобезопасность на этапе компиляции</b> → тестируемый, поддерживаемый, рефакторимый.</span></div></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="toc-top"><a href="#fundamentals"><span class="en">↑ back to top</span><span class="ru">↑ наверх</span></a></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Built for Amal Imangulov · Data Engineering interview prep · Anchor your Spark stories on <strong>Front Tier (Scala/Spark on Hadoop)</strong> and <strong>Meta (3.6B events/day)</strong>.</span>
+  <span class="ru">Сделано для Amal Imangulov · Подготовка к Data Engineering интервью · Якори для историй про Spark — <strong>Front Tier (Scala/Spark на Hadoop)</strong> и <strong>Meta (3,6 млрд событий/день)</strong>.</span>
+</footer>
+
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  // ---- theme toggle ----
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '🌙 Dark' : '☀️ Light';
+  }
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('de_cheat_theme'); } catch (e) {}
+  applyTheme(savedTheme || 'dark');
+  themeBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('de_cheat_theme', next); } catch (e) {}
+  });
+
+  // ---- language toggle ----
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l) {
+    root.setAttribute('data-lang', l);
+    root.setAttribute('lang', l);
+    langBtn.textContent = l === 'en' ? '🌐 RU' : '🌐 EN';
+  }
+  var savedLang = null;
+  try { savedLang = localStorage.getItem('de_cheat_lang'); } catch (e) {}
+  applyLang(savedLang || 'en');
+  langBtn.addEventListener('click', function () {
+    var next = root.getAttribute('data-lang') === 'en' ? 'ru' : 'en';
+    applyLang(next);
+    try { localStorage.setItem('de_cheat_lang', next); } catch (e) {}
+  });
+
+  // ---- collapsible sections ----
+  document.querySelectorAll('.sec-head').forEach(function(h){
+    h.addEventListener('click', function(){ h.classList.toggle('collapsed'); });
+  });
+
+  // ---- flip cards ----
+  document.querySelectorAll('.flip').forEach(function (c) {
+    c.addEventListener('click', function () { c.classList.toggle('flipped'); });
+  });
+
+  // ---- scroll reveal ----
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+
+  // ---- active nav highlight ----
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav a'));
+  var secs = links.map(function (l) { return document.querySelector(l.getAttribute('href')); }).filter(Boolean);
+  var spy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        links.forEach(function (l) { l.style.color = ''; l.style.background = ''; });
+        var active = links.find(function (l) { return l.getAttribute('href') === '#' + en.target.id; });
+        if (active) { active.style.color = 'var(--text)'; active.style.background = 'var(--card2)'; }
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  secs.forEach(function (s) { spy.observe(s); });
+})();
+</script>
+</body>
+</html>
