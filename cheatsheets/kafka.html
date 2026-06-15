@@ -49,6 +49,13 @@
   [data-lang="en"] .ru { display: none !important; }
   [data-lang="ru"] .en { display: none !important; }
 
+  /* ---- level switcher ---- */
+  .levels { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .level { padding: 6px 13px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted);
+    font-size: 12.5px; font-weight: 600; text-decoration: none; }
+  .level:hover { border-color: var(--accent); color: var(--text); }
+  .level.active { border-color: var(--accent); color: var(--text); }
+
   /* ---- Nav ---- */
   nav {
     position: sticky; top: 0; z-index: 100;
@@ -238,6 +245,10 @@
   <span class="pill"><span class="en">Failure modes</span><span class="ru">Режимы сбоев</span></span>
   <span class="pill"><span class="en">Streaming at scale</span><span class="ru">Стриминг на масштабе</span></span>
   <span class="pill"><span class="en">Anchor: IU Group / Syntea Kafka ingestion</span><span class="ru">Якорь: IU Group / Syntea Kafka ingestion</span></span>
+  <div class="levels">
+    <a class="level" href="kafka-beginner.html">🟢 <span class="en">Beginner</span><span class="ru">Новичок</span></a>
+    <a class="level active" href="kafka.html">🔴 <span class="en">Advanced</span><span class="ru">Продвинутый</span></a>
+  </div>
 </header>
 
 <main>

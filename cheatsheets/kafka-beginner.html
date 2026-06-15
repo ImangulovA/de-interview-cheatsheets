@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Kafka (Beginner) — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:180px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13.5px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">⚡ Kafka · <span class="en">Beginner</span><span class="ru">Новичок</span></span>
+  <a href="#what"><span class="en">What is it</span><span class="ru">Что это</span></a>
+  <a href="#model"><span class="en">The log</span><span class="ru">Лог</span></a>
+  <a href="#parts"><span class="en">Topics/partitions</span><span class="ru">Топики/партиции</span></a>
+  <a href="#groups"><span class="en">Consumers</span><span class="ru">Консьюмеры</span></a>
+  <a href="#delivery"><span class="en">Duplicates</span><span class="ru">Дубли</span></a>
+  <a href="#safe"><span class="en">Not losing data</span><span class="ru">Без потерь</span></a>
+  <a href="#why"><span class="en">Why Kafka</span><span class="ru">Зачем Kafka</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Apache Kafka — the friendly intro</span><span class="ru">Apache Kafka — дружелюбное введение</span></h1>
+  <div class="sub">
+    <span class="en">What Kafka actually is, in plain words and everyday analogies. When you're comfortable here, switch to Advanced.</span>
+    <span class="ru">Что такое Kafka на самом деле — простыми словами и аналогиями из жизни. Когда станет комфортно, переключайся на Advanced.</span>
+  </div>
+  <div class="levels">
+    <a class="level active" href="kafka-beginner.html">🟢 <span class="en">Beginner</span><span class="ru">Новичок</span></a>
+    <a class="level" href="kafka.html">🔴 <span class="en">Advanced</span><span class="ru">Продвинутый</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. What is Kafka?</span><span class="ru">1. Что такое Kafka?</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Kafka</strong> is a system for <strong>moving streams of messages</strong> between programs, reliably and at huge scale. One side <em>writes</em> messages (events), the other side <em>reads</em> them — and Kafka keeps every message safely in the middle for a while, in order.</p>
+    <p class="ru"><strong>Kafka</strong> — это система для <strong>передачи потоков сообщений</strong> между программами, надёжно и на огромном масштабе. Одна сторона <em>пишет</em> сообщения (события), другая <em>читает</em> — а Kafka надёжно хранит каждое сообщение посередине какое-то время и по порядку.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">Think of a <strong>conveyor belt with a logbook</strong>. Producers drop items on the belt; consumers pick them up further down. Unlike a normal belt, Kafka also <em>writes down everything that passed</em>, so you can rewind and re-read it later.</span>
+      <span class="ru">Представь <strong>конвейерную ленту с журналом</strong>. Продюсеры кладут предметы на ленту; консьюмеры забирают их дальше. В отличие от обычной ленты, Kafka ещё и <em>записывает всё, что проехало</em>, поэтому можно «отмотать назад» и перечитать.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">One line</span><span class="ru">Одной строкой</span></span>
+      <span class="en">Kafka is a <strong>durable, replayable log</strong> that decouples the programs that produce data from the ones that consume it.</span>
+      <span class="ru">Kafka — это <strong>надёжный перечитываемый лог</strong>, который развязывает программы, производящие данные, и те, что их потребляют.</span>
+    </div>
+  </div>
+</section>
+
+<section id="model">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. The big idea: an append-only log</span><span class="ru">2. Главная идея: лог только на дозапись</span></h2>
+  <div class="card reveal">
+    <p class="en">Most databases let you change rows in place. Kafka is different: it's a <strong>log</strong>. New messages are only ever <strong>added to the end</strong>, never edited. Each reader remembers <em>how far it has read</em> and moves forward at its own pace.</p>
+    <p class="ru">Большинство баз позволяют менять строки на месте. Kafka устроена иначе: это <strong>лог</strong>. Новые сообщения только <strong>дописываются в конец</strong>, их не редактируют. Каждый читатель помнит, <em>до какого места он дочитал</em>, и двигается вперёд в своём темпе.</p>
+    <div class="ascii">producers ──write──▶  [ msg0 ][ msg1 ][ msg2 ][ msg3 ] ... ──▶ (new ones added here)
+                                  ▲                ▲
+                          reader A is here   reader B is here  (each at its own spot)</div>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">Like a <strong>group chat history</strong>: messages keep getting added at the bottom, nobody rewrites old ones, and each person has their own "last read" marker. You can always scroll back.</span>
+      <span class="ru">Как <strong>история в групповом чате</strong>: сообщения добавляются снизу, старые никто не переписывает, и у каждого свой маркер «прочитано до». Всегда можно прокрутить назад.</span>
+    </div>
+  </div>
+</section>
+
+<section id="parts">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">3. Topics, partitions, offsets</span><span class="ru">3. Топики, партиции, оффсеты</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li>A <strong>topic</strong> is a named stream — like a channel. E.g. <code class="inline">orders</code> or <code class="inline">clicks</code>.</li>
+      <li>Each topic is split into <strong>partitions</strong> — separate parallel lanes of the same topic. More partitions = more readers can work at once.</li>
+      <li>An <strong>offset</strong> is just the position number of a message inside its partition (like a line number). Readers track their offset to know where they are.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Топик</strong> — именованный поток, как канал. Например <code class="inline">orders</code> или <code class="inline">clicks</code>.</li>
+      <li>Каждый топик делится на <strong>партиции</strong> — отдельные параллельные «дорожки» одного топика. Больше партиций = больше читателей работают одновременно.</li>
+      <li><strong>Оффсет</strong> — просто номер позиции сообщения внутри его партиции (как номер строки). Читатели хранят свой оффсет, чтобы знать, где они.</li>
+    </ul>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">A topic is a <strong>book</strong>; partitions are its <strong>volumes</strong> so several people can read different volumes at the same time; the offset is the <strong>page number</strong> you're on.</span>
+      <span class="ru">Топик — это <strong>книга</strong>; партиции — её <strong>тома</strong>, чтобы несколько человек читали разные тома одновременно; оффсет — это <strong>номер страницы</strong>, на которой ты.</span>
+    </div>
+    <div class="key">
+      <span class="lbl"><span class="en">The one ordering rule</span><span class="ru">Единственное правило порядка</span></span>
+      <span class="en">Order is guaranteed <strong>only within a single partition</strong>, not across the whole topic. So if order matters for, say, one user, send all that user's messages to the <em>same</em> partition (by using the user id as the key).</span>
+      <span class="ru">Порядок гарантирован <strong>только внутри одной партиции</strong>, а не по всему топику. Поэтому если порядок важен, например, для одного пользователя, отправляй все его сообщения в <em>одну</em> партицию (используя id пользователя как ключ).</span>
+    </div>
+  </div>
+</section>
+
+<section id="groups">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">4. Producers, consumers &amp; consumer groups</span><span class="ru">4. Продюсеры, консьюмеры и группы консьюмеров</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li>A <strong>producer</strong> writes messages into a topic.</li>
+      <li>A <strong>consumer</strong> reads them.</li>
+      <li>A <strong>consumer group</strong> is a team of consumers sharing the work: Kafka gives each partition to <em>one</em> member of the team, so they read in parallel without stepping on each other.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Продюсер</strong> пишет сообщения в топик.</li>
+      <li><strong>Консьюмер</strong> их читает.</li>
+      <li><strong>Группа консьюмеров</strong> — команда консьюмеров, делящая работу: Kafka отдаёт каждую партицию <em>одному</em> члену команды, чтобы они читали параллельно, не мешая друг другу.</li>
+    </ul>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">A big pile of mail (the topic) is split into bins (partitions). A team of sorters (a consumer group) takes one bin each — twice the sorters, twice the speed, up to the number of bins. You can't have more active sorters than bins.</span>
+      <span class="ru">Большая куча писем (топик) разложена по корзинам (партициям). Команда сортировщиков (группа консьюмеров) берёт по корзине — вдвое больше сортировщиков, вдвое быстрее, но не больше числа корзин. Активных сортировщиков не может быть больше, чем корзин.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Why this is powerful</span><span class="ru">Почему это мощно</span></span>
+      <span class="en">Many <em>different</em> groups can read the same topic independently, each at its own speed — e.g. one group fills a database, another powers alerts, a third trains a model. They don't interfere because each tracks its own offsets.</span>
+      <span class="ru">Много <em>разных</em> групп могут читать один топик независимо, каждая в своём темпе — например, одна наполняет базу, другая шлёт алерты, третья обучает модель. Они не мешают, потому что у каждой свои оффсеты.</span>
+    </div>
+  </div>
+</section>
+
+<section id="delivery">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">5. "It might arrive twice" — duplicates</span><span class="ru">5. «Может прийти дважды» — дубли</span></h2>
+  <div class="card reveal">
+    <p class="en">Networks are unreliable, so to avoid <em>losing</em> a message Kafka prefers to <strong>retry</strong> until it's sure the message was received. A side effect: sometimes a message is delivered <strong>more than once</strong>. There are three levels:</p>
+    <p class="ru">Сети ненадёжны, поэтому чтобы не <em>потерять</em> сообщение, Kafka предпочитает <strong>повторять</strong>, пока не убедится, что оно получено. Побочный эффект: иногда сообщение доставляется <strong>больше одного раза</strong>. Есть три уровня:</p>
+    <table class="en">
+      <tr><th>Level</th><th>Meaning</th><th>Risk</th></tr>
+      <tr><td>At-most-once</td><td>Send and forget, no retry</td><td>Can lose messages</td></tr>
+      <tr><td>At-least-once <em>(common)</em></td><td>Retry until confirmed</td><td>Can get duplicates</td></tr>
+      <tr><td>Exactly-once</td><td>No loss and no duplicates</td><td>More cost &amp; complexity</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Уровень</th><th>Смысл</th><th>Риск</th></tr>
+      <tr><td>At-most-once</td><td>Отправил и забыл, без повторов</td><td>Можно потерять сообщения</td></tr>
+      <tr><td>At-least-once <em>(частый)</em></td><td>Повтор до подтверждения</td><td>Можно получить дубли</td></tr>
+      <tr><td>Exactly-once</td><td>Без потерь и без дублей</td><td>Дороже и сложнее</td></tr>
+    </table>
+    <div class="key">
+      <span class="lbl"><span class="en">The trick: make duplicates harmless</span><span class="ru">Приём: сделать дубли безвредными</span></span>
+      <span class="en">The usual approach is "at-least-once + make processing safe to repeat" (called <strong>idempotency</strong>). Give each message a unique id; if you see the same id again, ignore it. Then a duplicate delivery doesn't cause double-counting.</span>
+      <span class="ru">Обычный подход — «at-least-once + сделать обработку безопасной к повтору» (это называется <strong>идемпотентность</strong>). Дай каждому сообщению уникальный id; если видишь тот же id снова — игнорируй. Тогда повторная доставка не приведёт к двойному счёту.</span>
+    </div>
+  </div>
+</section>
+
+<section id="safe">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">6. How Kafka avoids losing data</span><span class="ru">6. Как Kafka не теряет данные</span></h2>
+  <div class="card reveal">
+    <p class="en">Kafka runs on several servers called <strong>brokers</strong>. Each partition is <strong>copied</strong> onto a few brokers (this is <strong>replication</strong>). One copy is the "leader" that handles reads/writes; the others stay in sync as backups. If a broker dies, a backup copy takes over — no data lost.</p>
+    <p class="ru">Kafka работает на нескольких серверах — <strong>брокерах</strong>. Каждая партиция <strong>копируется</strong> на несколько брокеров (это <strong>репликация</strong>). Одна копия — «лидер», она обслуживает чтение/запись; остальные держатся в синхроне как резерв. Если брокер умирает, резервная копия берёт управление — данные не теряются.</p>
+    <p class="en">A producer can also choose how careful to be with <code class="inline">acks</code>: wait for all copies to confirm (safest) or just the leader (faster, riskier).</p>
+    <p class="ru">Продюсер также выбирает, насколько осторожным быть, через <code class="inline">acks</code>: ждать подтверждения всех копий (надёжнее) или только лидера (быстрее, рискованнее).</p>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Also: it remembers, then forgets</span><span class="ru">Ещё: помнит, потом забывает</span></span>
+      <span class="en">Kafka keeps messages for a set <strong>retention</strong> time (e.g. 7 days), so consumers can re-read or catch up. After that, old messages are deleted to free space. Kafka is a buffer, not infinite storage.</span>
+      <span class="ru">Kafka хранит сообщения заданное время <strong>retention</strong> (например 7 дней), чтобы консьюмеры могли перечитать или догнать. После этого старые сообщения удаляются ради места. Kafka — это буфер, а не бесконечное хранилище.</span>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">7. Why teams use Kafka</span><span class="ru">7. Зачем команды используют Kafka</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><strong>Decoupling:</strong> producers don't need to know who reads the data. Add new consumers anytime without touching producers.</li>
+      <li><strong>Absorbing spikes:</strong> if a sudden flood of events arrives, Kafka holds them and consumers drain at their own pace — instead of crashing.</li>
+      <li><strong>Replay:</strong> because it's a stored log, you can reprocess history (e.g. after fixing a bug) by re-reading from an earlier offset.</li>
+      <li><strong>Scale:</strong> partitions let many machines share the load — millions of messages per second.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Развязка:</strong> продюсерам не нужно знать, кто читает данные. Новых консьюмеров можно добавлять в любой момент, не трогая продюсеров.</li>
+      <li><strong>Гашение всплесков:</strong> если внезапно нахлынул поток событий, Kafka держит их, а консьюмеры разбирают в своём темпе — вместо падения.</li>
+      <li><strong>Перечитка:</strong> раз это хранимый лог, можно переобработать историю (например, после фикса бага), перечитав с более раннего оффсета.</li>
+      <li><strong>Масштаб:</strong> партиции позволяют многим машинам делить нагрузку — миллионы сообщений в секунду.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">Kafka vs Flink (the next page)</span><span class="ru">Kafka vs Flink (следующая страница)</span></span>
+      <span class="en">Kafka <strong>moves and stores</strong> the stream. It doesn't do heavy computation on it. To <em>compute</em> over a stream (running totals, windows, joins) you use a stream processor like <strong>Flink</strong>, which usually reads from and writes back to Kafka.</span>
+      <span class="ru">Kafka <strong>перемещает и хранит</strong> поток. Она не делает тяжёлых вычислений над ним. Чтобы <em>вычислять</em> по потоку (бегущие суммы, окна, джоины), берут процессор потоков вроде <strong>Flink</strong>, который обычно читает из Kafka и пишет обратно в неё.</span>
+    </div>
+  </div>
+</section>
+
+<section id="glossary">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">8. Mini-glossary</span><span class="ru">8. Мини-словарь</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Word</th><th>Plain meaning</th></tr>
+      <tr><td>Broker</td><td>One Kafka server.</td></tr>
+      <tr><td>Topic</td><td>A named stream / channel of messages.</td></tr>
+      <tr><td>Partition</td><td>A parallel lane of a topic; ordering holds only inside one.</td></tr>
+      <tr><td>Offset</td><td>A message's position number in a partition.</td></tr>
+      <tr><td>Producer / Consumer</td><td>Writer / reader of messages.</td></tr>
+      <tr><td>Consumer group</td><td>A team of consumers splitting the partitions.</td></tr>
+      <tr><td>Replication</td><td>Copies of a partition on other brokers, for safety.</td></tr>
+      <tr><td>Retention</td><td>How long messages are kept before deletion.</td></tr>
+      <tr><td>Idempotency</td><td>Processing the same message twice is safe.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Слово</th><th>Простой смысл</th></tr>
+      <tr><td>Брокер</td><td>Один сервер Kafka.</td></tr>
+      <tr><td>Топик</td><td>Именованный поток / канал сообщений.</td></tr>
+      <tr><td>Партиция</td><td>Параллельная дорожка топика; порядок держится только внутри одной.</td></tr>
+      <tr><td>Оффсет</td><td>Номер позиции сообщения в партиции.</td></tr>
+      <tr><td>Продюсер / Консьюмер</td><td>Писатель / читатель сообщений.</td></tr>
+      <tr><td>Группа консьюмеров</td><td>Команда консьюмеров, делящая партиции.</td></tr>
+      <tr><td>Репликация</td><td>Копии партиции на других брокерах ради сохранности.</td></tr>
+      <tr><td>Retention</td><td>Сколько хранятся сообщения до удаления.</td></tr>
+      <tr><td>Идемпотентность</td><td>Обработать одно сообщение дважды — безопасно.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">9. Quick self-check</span><span class="ru">9. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">In one sentence, what is Kafka?</span><span class="ru">Одним предложением — что такое Kafka?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A durable, replayable <strong>log</strong> that moves streams of messages between programs and decouples producers from consumers.</span><span class="ru">Надёжный перечитываемый <strong>лог</strong>, который передаёт потоки сообщений между программами и развязывает продюсеров и консьюмеров.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Where is message order guaranteed?</span><span class="ru">Где гарантирован порядок сообщений?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Only <strong>within one partition</strong>. To keep one entity's events ordered, send them to the same partition by using a key (e.g. user id).</span><span class="ru">Только <strong>внутри одной партиции</strong>. Чтобы события одной сущности были по порядку, шли их в одну партицию через ключ (например id пользователя).</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why add more partitions?</span><span class="ru">Зачем добавлять партиции?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">More parallelism: each partition can be read by one consumer in a group, so more partitions let more consumers work at once.</span><span class="ru">Больше параллелизма: каждую партицию читает один консьюмер в группе, поэтому больше партиций — больше консьюмеров работают одновременно.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">A message arrived twice. How do you cope?</span><span class="ru">Сообщение пришло дважды. Как справиться?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Make processing <strong>idempotent</strong>: give messages a unique id and ignore ids you've already handled. Then duplicates don't double-count.</span><span class="ru">Сделай обработку <strong>идемпотентной</strong>: уникальный id у сообщений, уже обработанные id игнорируй. Тогда дубли не дадут двойного счёта.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">How does Kafka survive a broker dying?</span><span class="ru">Как Kafka переживает смерть брокера?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Each partition is <strong>replicated</strong> onto several brokers. If the leader copy's broker dies, an in-sync backup copy takes over. No data lost (with safe <code class="inline">acks</code>).</span><span class="ru">Каждая партиция <strong>реплицирована</strong> на несколько брокеров. Если брокер с лидер-копией умирает, синхронная резервная копия берёт управление. Данные не теряются (при безопасных <code class="inline">acks</code>).</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Kafka vs Flink?</span><span class="ru">Kafka vs Flink?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Kafka <strong>moves and stores</strong> streams; Flink <strong>computes</strong> over them (totals, windows, joins). Flink usually reads from and writes back to Kafka.</span><span class="ru">Kafka <strong>перемещает и хранит</strong> потоки; Flink <strong>вычисляет</strong> по ним (суммы, окна, джоины). Flink обычно читает из Kafka и пишет обратно.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Apache Kafka — Beginner · part of the DE interview cheatsheets · built for Amal Imangulov · next: <a href="kafka.html">Advanced →</a> · <a href="apache-flink-beginner.html">Flink (Beginner) →</a></span>
+  <span class="ru">Apache Kafka — Новичок · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · далее: <a href="kafka.html">Advanced →</a> · <a href="apache-flink-beginner.html">Flink (Новичок) →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>

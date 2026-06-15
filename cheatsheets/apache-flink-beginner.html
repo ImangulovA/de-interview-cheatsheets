@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Flink (Beginner) — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:185px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13.5px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🌊 Flink · <span class="en">Beginner</span><span class="ru">Новичок</span></span>
+  <a href="#what"><span class="en">What is it</span><span class="ru">Что это</span></a>
+  <a href="#vs"><span class="en">vs Kafka</span><span class="ru">vs Kafka</span></a>
+  <a href="#time"><span class="en">Event time</span><span class="ru">Время события</span></a>
+  <a href="#windows"><span class="en">Windows</span><span class="ru">Окна</span></a>
+  <a href="#watermark"><span class="en">Watermarks</span><span class="ru">Watermarks</span></a>
+  <a href="#state"><span class="en">State</span><span class="ru">Состояние</span></a>
+  <a href="#why"><span class="en">Why Flink</span><span class="ru">Зачем Flink</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Apache Flink — the friendly intro</span><span class="ru">Apache Flink — дружелюбное введение</span></h1>
+  <div class="sub">
+    <span class="en">What stream processing is, in plain words. Read Kafka first if you haven't — Flink usually sits on top of it. When comfortable, switch to Advanced.</span>
+    <span class="ru">Что такое потоковая обработка — простыми словами. Сначала прочитай Kafka, если ещё нет — Flink обычно стоит поверх неё. Когда станет комфортно, переключайся на Advanced.</span>
+  </div>
+  <div class="levels">
+    <a class="level active" href="apache-flink-beginner.html">🟢 <span class="en">Beginner</span><span class="ru">Новичок</span></a>
+    <a class="level" href="apache-flink.html">🔴 <span class="en">Advanced</span><span class="ru">Продвинутый</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. What is Flink?</span><span class="ru">1. Что такое Flink?</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Flink</strong> is a tool that <strong>computes over data as it flows</strong>, continuously, in real time. Instead of waiting for all the data and then crunching it (batch), Flink reacts to each event the moment it arrives and keeps results up to date.</p>
+    <p class="ru"><strong>Flink</strong> — инструмент, который <strong>вычисляет по данным прямо в потоке</strong>, непрерывно, в реальном времени. Вместо того чтобы ждать все данные и потом считать (батч), Flink реагирует на каждое событие в момент прихода и держит результаты свежими.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">If Kafka is the <strong>conveyor belt</strong> carrying items, Flink is the <strong>worker standing at the belt</strong> who inspects, counts, and combines items as they pass — keeping a live running tally on a whiteboard.</span>
+      <span class="ru">Если Kafka — это <strong>конвейерная лента</strong>, везущая предметы, то Flink — <strong>работник у ленты</strong>, который осматривает, считает и комбинирует предметы по мере их проезда, ведя живой счёт на доске.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">One line</span><span class="ru">Одной строкой</span></span>
+      <span class="en">Flink is a <strong>stream-processing engine</strong>: ongoing computation (counts, sums, windows, joins) over never-ending streams of events.</span>
+      <span class="ru">Flink — это <strong>движок потоковой обработки</strong>: непрерывные вычисления (счёт, суммы, окна, джоины) над бесконечными потоками событий.</span>
+    </div>
+  </div>
+</section>
+
+<section id="vs">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Kafka vs Flink (and batch vs streaming)</span><span class="ru">2. Kafka vs Flink (и батч vs стриминг)</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th></th><th>Kafka</th><th>Flink</th></tr>
+      <tr><td>Job</td><td>Move &amp; store the stream</td><td>Compute over the stream</td></tr>
+      <tr><td>Think of it as</td><td>The pipe / the log</td><td>The calculator on the pipe</td></tr>
+      <tr><td>Typical role</td><td>Source and destination</td><td>Reads from Kafka, writes back to Kafka or a DB</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th></th><th>Kafka</th><th>Flink</th></tr>
+      <tr><td>Задача</td><td>Перемещать и хранить поток</td><td>Вычислять по потоку</td></tr>
+      <tr><td>Как думать</td><td>Труба / лог</td><td>Калькулятор на трубе</td></tr>
+      <tr><td>Типичная роль</td><td>Источник и приёмник</td><td>Читает из Kafka, пишет обратно в Kafka или БД</td></tr>
+    </table>
+    <p class="en"><strong>Batch vs streaming:</strong> batch processing waits for a complete chunk (e.g. "all of yesterday") and computes it once — simple and accurate. Streaming computes continuously on data that never stops — fast and live, but you must handle data that's incomplete or out of order. Flink is built for the streaming case.</p>
+    <p class="ru"><strong>Батч vs стриминг:</strong> батч ждёт целый кусок (например «весь вчерашний день») и считает его один раз — просто и точно. Стриминг считает непрерывно по данным, которые не заканчиваются — быстро и «вживую», но надо уметь работать с неполными или неупорядоченными данными. Flink создан как раз для стриминга.</p>
+  </div>
+</section>
+
+<section id="time">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">3. Event time vs processing time</span><span class="ru">3. Время события vs время обработки</span></h2>
+  <div class="card reveal">
+    <p class="en">Two different clocks matter:</p>
+    <p class="ru">Важны двое разных «часов»:</p>
+    <ul class="en">
+      <li><strong>Event time</strong> = when the thing actually happened (stamped on the event).</li>
+      <li><strong>Processing time</strong> = when Flink happened to see it.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Event time</strong> = когда событие реально произошло (отметка на самом событии).</li>
+      <li><strong>Processing time</strong> = когда Flink его увидел.</li>
+    </ul>
+    <p class="en">They differ because events get delayed: a phone goes offline, the network lags, a retry happens. For correct results you almost always want to group by <strong>event time</strong>, not by when you received it.</p>
+    <p class="ru">Они расходятся, потому что события задерживаются: телефон ушёл в офлайн, сеть тормозит, случился ретрай. Для корректных результатов почти всегда нужно группировать по <strong>event time</strong>, а не по моменту получения.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">A letter is written on the 1st (event time) but arrives on the 5th (processing time). To count "letters written in January" correctly, you use the <em>postmark date</em>, not the delivery date.</span>
+      <span class="ru">Письмо написано 1-го (event time), но пришло 5-го (processing time). Чтобы верно посчитать «письма, написанные в январе», берёшь <em>дату на штемпеле</em>, а не дату доставки.</span>
+    </div>
+  </div>
+</section>
+
+<section id="windows">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">4. Windows: chopping a stream into buckets</span><span class="ru">4. Окна: режем поток на корзины</span></h2>
+  <div class="card reveal">
+    <p class="en">A stream never ends, so "count everything" never finishes. Instead you compute over <strong>windows</strong> — time buckets like "every 5 minutes".</p>
+    <p class="ru">Поток не кончается, поэтому «посчитать всё» никогда не завершится. Вместо этого считают по <strong>окнам</strong> — временны́м корзинам вроде «каждые 5 минут».</p>
+    <ul class="en">
+      <li><strong>Tumbling</strong> windows: fixed, non-overlapping (00:00–00:05, 00:05–00:10, …). Each event in exactly one.</li>
+      <li><strong>Sliding</strong> windows: overlapping (a 5-min window every 1 min) → smoother "last 5 minutes" metric.</li>
+      <li><strong>Session</strong> windows: grouped by activity with gaps (a user's burst of clicks = one session).</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Tumbling</strong> (кувыркающиеся) окна: фиксированные, без нахлёста (00:00–00:05, 00:05–00:10, …). Каждое событие ровно в одном.</li>
+      <li><strong>Sliding</strong> (скользящие) окна: с нахлёстом (5-мин окно каждую 1 мин) → более плавная метрика «за последние 5 минут».</li>
+      <li><strong>Session</strong> (сессионные) окна: группируют по активности с паузами (всплеск кликов пользователя = одна сессия).</li>
+    </ul>
+    <div class="ascii">events:  • • •  • •    • • • •     •
+tumbling: [ 0–5 ][ 5–10 ][ 10–15 ]   ← each event lands in exactly one bucket</div>
+  </div>
+</section>
+
+<section id="watermark">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">5. Watermarks: "I've seen enough to close this window"</span><span class="ru">5. Watermarks: «я видел достаточно, чтобы закрыть окно»</span></h2>
+  <div class="card reveal">
+    <p class="en">Since events can arrive late, how does Flink know a 10:00–10:05 window is done and can be totalled? It uses a <strong>watermark</strong> — a moving marker that says "I believe I've now seen all events up to time X." When the watermark passes 10:05, that window fires.</p>
+    <p class="ru">Раз события могут опаздывать, как Flink понимает, что окно 10:00–10:05 завершено и можно подбить итог? Он использует <strong>watermark</strong> — движущийся маркер, говорящий «кажется, я уже видел все события до момента X». Когда watermark проходит 10:05, окно срабатывает.</p>
+    <div class="key">
+      <span class="lbl"><span class="en">It's a trade-off dial</span><span class="ru">Это «ручка» компромисса</span></span>
+      <span class="en"><strong>Wait longer</strong> (looser watermark) → catch more late events, but results are slower. <strong>Wait less</strong> (tighter) → faster results, but you might drop some latecomers. You tune it to your data's real lateness.</span>
+      <span class="ru"><strong>Ждать дольше</strong> (свободнее watermark) → поймаешь больше опоздавших, но результат медленнее. <strong>Ждать меньше</strong> (туже) → быстрее результат, но можешь отбросить опоздавших. Настраиваешь под реальную «опоздалость» данных.</span>
+    </div>
+    <p class="en">Very-late events (after the watermark) can be dropped, sent to a side channel, or used to correct the number later.</p>
+    <p class="ru">Сильно опоздавшие события (после watermark) можно отбросить, отправить в отдельный канал или позже поправить ими число.</p>
+  </div>
+</section>
+
+<section id="state">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">6. State &amp; checkpoints: Flink remembers</span><span class="ru">6. Состояние и чекпоинты: Flink помнит</span></h2>
+  <div class="card reveal">
+    <p class="en">To keep a running count or join two streams, Flink must <strong>remember things between events</strong> — that memory is called <strong>state</strong> (e.g. "current total per user"). Flink manages this state for you, even when it's huge.</p>
+    <p class="ru">Чтобы вести бегущий счёт или джойнить два потока, Flink должен <strong>помнить вещи между событиями</strong> — эта память называется <strong>состояние (state)</strong> (например «текущая сумма по пользователю»). Flink управляет этим состоянием за тебя, даже когда оно огромное.</p>
+    <p class="en">Periodically Flink saves a snapshot of all its state — a <strong>checkpoint</strong>. If a machine crashes, it restarts from the last checkpoint and continues as if nothing happened. No lost progress.</p>
+    <p class="ru">Периодически Flink сохраняет снимок всего своего состояния — <strong>checkpoint</strong>. Если машина падает, он рестартует с последнего чекпоинта и продолжает, будто ничего не случилось. Прогресс не теряется.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">Checkpoints are like <strong>save points in a video game</strong>: if you die, you reload the last save and keep going instead of starting over.</span>
+      <span class="ru">Чекпоинты — как <strong>точки сохранения в видеоигре</strong>: если умер, грузишь последнее сохранение и продолжаешь, а не начинаешь сначала.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Exactly-once, simply</span><span class="ru">Exactly-once, просто</span></span>
+      <span class="en">Checkpoints + a destination that can accept updates safely (idempotent sink) let Flink give <strong>exactly-once results</strong>: even after a crash and replay, nothing is counted twice.</span>
+      <span class="ru">Чекпоинты + приёмник, который умеет безопасно принимать обновления (идемпотентный sink), позволяют Flink давать <strong>exactly-once результат</strong>: даже после падения и перечитки ничто не посчитается дважды.</span>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">7. When to use Flink</span><span class="ru">7. Когда использовать Flink</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li>You need answers <strong>now</strong>, not tomorrow: live dashboards, fraud/abuse detection, alerting.</li>
+      <li>You need <strong>windowed</strong> metrics over event time (per-minute counts, sessionization).</li>
+      <li>You need to <strong>join or enrich</strong> streams on the fly (e.g. add user info to each click).</li>
+      <li>If you only need daily/hourly aggregates and can wait, plain <strong>batch</strong> (e.g. Spark) is simpler and cheaper — don't reach for streaming unless latency matters.</li>
+    </ul>
+    <ul class="ru">
+      <li>Ответы нужны <strong>сейчас</strong>, а не завтра: живые дашборды, детекция фрода/абьюза, алертинг.</li>
+      <li>Нужны <strong>оконные</strong> метрики по event time (поминутный счёт, сессионизация).</li>
+      <li>Нужно <strong>джойнить или обогащать</strong> потоки на лету (например, добавлять инфу о пользователе к каждому клику).</li>
+      <li>Если нужны только дневные/часовые агрегаты и можно подождать, обычный <strong>батч</strong> (например Spark) проще и дешевле — не берись за стриминг, если задержка не критична.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">Honest note</span><span class="ru">Честно</span></span>
+      <span class="en">Flink is powerful but operationally heavier (always-on, stateful). Many teams do streaming only where it's truly needed and keep everything else in batch.</span>
+      <span class="ru">Flink мощный, но операционно тяжелее (всегда включён, stateful). Многие команды делают стриминг только там, где он реально нужен, а остальное держат в батче.</span>
+    </div>
+  </div>
+</section>
+
+<section id="glossary">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">8. Mini-glossary</span><span class="ru">8. Мини-словарь</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Word</th><th>Plain meaning</th></tr>
+      <tr><td>Stream processing</td><td>Computing continuously on data as it flows.</td></tr>
+      <tr><td>Event time</td><td>When the event actually happened.</td></tr>
+      <tr><td>Processing time</td><td>When the system saw the event.</td></tr>
+      <tr><td>Window</td><td>A time bucket you compute over (e.g. every 5 min).</td></tr>
+      <tr><td>Watermark</td><td>"I've seen all events up to here" — when to close a window.</td></tr>
+      <tr><td>State</td><td>What Flink remembers between events (running totals, etc.).</td></tr>
+      <tr><td>Checkpoint</td><td>A saved snapshot of state for crash recovery.</td></tr>
+      <tr><td>Exactly-once</td><td>Each event affects the result once, even after a crash.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Слово</th><th>Простой смысл</th></tr>
+      <tr><td>Потоковая обработка</td><td>Непрерывные вычисления по данным в потоке.</td></tr>
+      <tr><td>Event time</td><td>Когда событие реально произошло.</td></tr>
+      <tr><td>Processing time</td><td>Когда система увидела событие.</td></tr>
+      <tr><td>Окно (window)</td><td>Временна́я корзина, по которой считаешь (например, каждые 5 мин).</td></tr>
+      <tr><td>Watermark</td><td>«Я видел все события до этого момента» — когда закрывать окно.</td></tr>
+      <tr><td>Состояние (state)</td><td>Что Flink помнит между событиями (бегущие суммы и т.п.).</td></tr>
+      <tr><td>Checkpoint</td><td>Сохранённый снимок состояния для восстановления после сбоя.</td></tr>
+      <tr><td>Exactly-once</td><td>Каждое событие влияет на результат один раз, даже после сбоя.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">9. Quick self-check</span><span class="ru">9. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Kafka vs Flink in one line?</span><span class="ru">Kafka vs Flink одной строкой?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Kafka <strong>moves &amp; stores</strong> the stream; Flink <strong>computes</strong> over it. Flink usually reads from Kafka and writes back.</span><span class="ru">Kafka <strong>перемещает и хранит</strong> поток; Flink <strong>вычисляет</strong> по нему. Flink обычно читает из Kafka и пишет обратно.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why prefer event time over processing time?</span><span class="ru">Почему event time лучше processing time?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Because events arrive late/out of order. Grouping by when it <em>happened</em> (postmark) gives correct results; grouping by when you <em>saw</em> it does not.</span><span class="ru">Потому что события приходят с опозданием/не по порядку. Группировка по тому, когда <em>произошло</em> (штемпель), даёт верный результат; по тому, когда <em>увидел</em> — нет.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What is a window?</span><span class="ru">Что такое окно?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A time bucket to compute over (e.g. every 5 min), because an endless stream can't be "summed all at once." Tumbling / sliding / session.</span><span class="ru">Временна́я корзина для вычислений (например, каждые 5 мин), потому что бесконечный поток нельзя «просуммировать разом». Tumbling / sliding / session.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What does a watermark decide?</span><span class="ru">Что решает watermark?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">When a window is "complete enough" to fire. Looser = catch more late data but slower; tighter = faster but may drop latecomers.</span><span class="ru">Когда окно «достаточно полно», чтобы сработать. Свободнее = ловишь больше опоздавших, но медленнее; туже = быстрее, но можешь отбросить опоздавших.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What are checkpoints for?</span><span class="ru">Зачем нужны чекпоинты?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Saved snapshots of Flink's state (its memory). After a crash it reloads the last checkpoint and continues — like a video-game save point. Enables exactly-once.</span><span class="ru">Сохранённые снимки состояния Flink (его памяти). После сбоя он грузит последний чекпоинт и продолжает — как точка сохранения в игре. Даёт exactly-once.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">When NOT to use Flink?</span><span class="ru">Когда НЕ брать Flink?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">When you only need daily/hourly aggregates and can wait — plain batch (Spark) is simpler and cheaper. Use streaming only when latency truly matters.</span><span class="ru">Когда нужны только дневные/часовые агрегаты и можно подождать — обычный батч (Spark) проще и дешевле. Стриминг — только когда задержка реально важна.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Apache Flink — Beginner · part of the DE interview cheatsheets · built for Amal Imangulov · next: <a href="apache-flink.html">Advanced →</a> · <a href="kafka-beginner.html">← Kafka (Beginner)</a></span>
+  <span class="ru">Apache Flink — Новичок · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · далее: <a href="apache-flink.html">Advanced →</a> · <a href="kafka-beginner.html">← Kafka (Новичок)</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
