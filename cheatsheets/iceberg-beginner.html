@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apache Iceberg (Beginner) — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0; }
+  pre .c { color:var(--muted); } pre .k { color:var(--purple); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:185px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13.5px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🧊 Iceberg · <span class="en">Beginner</span><span class="ru">Новичок</span></span>
+  <a href="#what"><span class="en">What is it</span><span class="ru">Что это</span></a>
+  <a href="#vs"><span class="en">vs Parquet</span><span class="ru">vs Parquet</span></a>
+  <a href="#problems"><span class="en">Problems solved</span><span class="ru">Какие проблемы</span></a>
+  <a href="#features"><span class="en">Key features</span><span class="ru">Возможности</span></a>
+  <a href="#how"><span class="en">How it works</span><span class="ru">Как устроен</span></a>
+  <a href="#why"><span class="en">Why DE cares</span><span class="ru">Зачем DE</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Apache Iceberg — the friendly intro</span><span class="ru">Apache Iceberg — дружелюбное введение</span></h1>
+  <div class="sub">
+    <span class="en">What a "table format" is and why it turns a pile of files into a real table. Plain words, no anchors. When comfortable, switch to Advanced.</span>
+    <span class="ru">Что такое «табличный формат» и почему он превращает кучу файлов в настоящую таблицу. Простыми словами. Когда станет комфортно, переключайся на Advanced.</span>
+  </div>
+  <div class="levels">
+    <a class="level active" href="iceberg-beginner.html">🟢 <span class="en">Beginner</span><span class="ru">Новичок</span></a>
+    <a class="level" href="iceberg-warehousing.html">🔴 <span class="en">Advanced</span><span class="ru">Продвинутый</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. What is Iceberg?</span><span class="ru">1. Что такое Iceberg?</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Apache Iceberg</strong> is a <strong>table format</strong> for data lakes. You have lots of data files (usually Parquet) sitting in cloud storage like S3. On their own, those are just files. Iceberg adds a layer of <strong>metadata</strong> on top that makes the whole pile behave like one proper <strong>table</strong> — one you can safely query, update, and change over time.</p>
+    <p class="ru"><strong>Apache Iceberg</strong> — это <strong>табличный формат</strong> для озёр данных. У тебя в облачном хранилище (например S3) лежит много файлов с данными (обычно Parquet). Сами по себе это просто файлы. Iceberg добавляет сверху слой <strong>метаданных</strong>, который заставляет всю кучу вести себя как одна нормальная <strong>таблица</strong> — которую можно безопасно запрашивать, обновлять и менять со временем.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">A folder full of spreadsheet files is not a database. Iceberg is like a <strong>smart index card catalog</strong> placed over that folder: it tracks exactly which files belong to the table right now, what the columns are, and what the table looked like yesterday — so tools can treat it as one clean table.</span>
+      <span class="ru">Папка с кучей файлов-таблиц — это ещё не база данных. Iceberg — как <strong>умный каталог-картотека</strong> поверх этой папки: он отслеживает, какие именно файлы сейчас входят в таблицу, какие колонки, и как таблица выглядела вчера — чтобы инструменты видели одну чистую таблицу.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">One line</span><span class="ru">Одной строкой</span></span>
+      <span class="en">Iceberg = <strong>metadata that turns a folder of files into a reliable, versioned table</strong> with transactions, time travel, and safe schema changes.</span>
+      <span class="ru">Iceberg = <strong>метаданные, превращающие папку файлов в надёжную версионируемую таблицу</strong> с транзакциями, time travel и безопасными изменениями схемы.</span>
+    </div>
+  </div>
+</section>
+
+<section id="vs">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Table format vs file format</span><span class="ru">2. Табличный формат vs формат файла</span></h2>
+  <div class="card reveal">
+    <p class="en">These are easy to confuse but very different:</p>
+    <p class="ru">Их легко перепутать, но они очень разные:</p>
+    <table class="en">
+      <tr><th></th><th>File format (Parquet, ORC)</th><th>Table format (Iceberg)</th></tr>
+      <tr><td>Describes</td><td>How <em>one file</em> stores rows &amp; columns</td><td>How <em>many files</em> form one table</td></tr>
+      <tr><td>Knows about</td><td>Columns, compression inside the file</td><td>Which files are in the table, schema history, snapshots, partitions</td></tr>
+      <tr><td>Think of it as</td><td>One page</td><td>The book + its table of contents</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th></th><th>Формат файла (Parquet, ORC)</th><th>Табличный формат (Iceberg)</th></tr>
+      <tr><td>Описывает</td><td>Как <em>один файл</em> хранит строки и колонки</td><td>Как <em>много файлов</em> образуют одну таблицу</td></tr>
+      <tr><td>Знает про</td><td>Колонки, сжатие внутри файла</td><td>Какие файлы входят в таблицу, историю схемы, снапшоты, партиции</td></tr>
+      <tr><td>Как думать</td><td>Одна страница</td><td>Книга + её оглавление</td></tr>
+    </table>
+    <div class="key">
+      <span class="lbl"><span class="en">They work together</span><span class="ru">Они работают вместе</span></span>
+      <span class="en">Iceberg doesn't replace Parquet — it <em>organizes</em> Parquet files into a table. Your data still lives in Parquet; Iceberg manages the table around it.</span>
+      <span class="ru">Iceberg не заменяет Parquet — он <em>организует</em> Parquet-файлы в таблицу. Данные по-прежнему в Parquet; Iceberg управляет таблицей вокруг них.</span>
+    </div>
+  </div>
+</section>
+
+<section id="problems">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">3. The problems it solves</span><span class="ru">3. Какие проблемы он решает</span></h2>
+  <div class="card reveal">
+    <p class="en">Before table formats, a "table" in a data lake was just a folder of files (the old Hive way). That caused real pain:</p>
+    <p class="ru">До табличных форматов «таблица» в озере данных была просто папкой файлов (старый подход Hive). Это давало реальную боль:</p>
+    <ul class="en">
+      <li><strong>No safe updates.</strong> A reader could see half-written data while a job was still writing.</li>
+      <li><strong>Listing files was slow.</strong> Finding the right files meant scanning the whole directory.</li>
+      <li><strong>Schema changes were scary.</strong> Renaming or reordering a column could silently corrupt reads.</li>
+      <li><strong>No history.</strong> Once you overwrote data, the old version was gone — hard to debug or roll back.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Нет безопасных обновлений.</strong> Читатель мог увидеть полузаписанные данные, пока джоб ещё пишет.</li>
+      <li><strong>Перечисление файлов медленное.</strong> Найти нужные файлы — значит просканировать всю директорию.</li>
+      <li><strong>Изменения схемы пугали.</strong> Переименование или перестановка колонки могли тихо испортить чтение.</li>
+      <li><strong>Нет истории.</strong> Перезаписал данные — старая версия исчезла; трудно отлаживать и откатывать.</li>
+    </ul>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Iceberg's promise</span><span class="ru">Обещание Iceberg</span></span>
+      <span class="en">Make a data-lake table behave like a real database table: reliable, versioned, changeable — while keeping data as cheap open files in your own storage.</span>
+      <span class="ru">Сделать таблицу в озере данных как настоящую таблицу в БД: надёжной, версионируемой, изменяемой — оставляя данные дешёвыми открытыми файлами в твоём хранилище.</span>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">4. The key features (what to remember)</span><span class="ru">4. Ключевые возможности (что запомнить)</span></h2>
+  <div class="card reveal">
+    <h3><span class="en">① ACID transactions (atomic commits)</span><span class="ru">① ACID-транзакции (атомарные коммиты)</span></h3>
+    <p class="en">A write either fully appears or not at all. Readers always see a complete, consistent version — never a half-written mess. Multiple jobs can write without corrupting each other.</p>
+    <p class="ru">Запись либо появляется целиком, либо никак. Читатели всегда видят полную согласованную версию — никогда полузаписанный хаос. Несколько джобов могут писать, не портя друг друга.</p>
+
+    <h3><span class="en">② Snapshots &amp; time travel</span><span class="ru">② Снапшоты и time travel</span></h3>
+    <p class="en">Every change creates a new <strong>snapshot</strong> (a version of the table). You can query the table <em>as of</em> a past snapshot or timestamp, and <strong>roll back</strong> if a bad job wrote garbage.</p>
+    <p class="ru">Каждое изменение создаёт новый <strong>снапшот</strong> (версию таблицы). Можно запросить таблицу <em>на момент</em> прошлого снапшота или времени и <strong>откатиться</strong>, если плохой джоб записал мусор.</p>
+
+    <h3><span class="en">③ Schema evolution</span><span class="ru">③ Эволюция схемы</span></h3>
+    <p class="en">Add, drop, rename, or reorder columns safely. Iceberg tracks columns by a hidden <strong>id</strong>, not by position or name, so old data still reads correctly after a change.</p>
+    <p class="ru">Безопасно добавлять, удалять, переименовывать, переставлять колонки. Iceberg отслеживает колонки по скрытому <strong>id</strong>, а не по позиции или имени, поэтому старые данные читаются верно после изменения.</p>
+
+    <h3><span class="en">④ Hidden partitioning</span><span class="ru">④ Скрытое партиционирование</span></h3>
+    <p class="en">Iceberg remembers how the table is partitioned (e.g. by day) and applies it automatically. You query <code class="inline">WHERE event_time &gt; ...</code> and it skips irrelevant files — you don't have to add a manual <code class="inline">WHERE partition_day = ...</code> and you can't forget it.</p>
+    <p class="ru">Iceberg помнит, как таблица партиционирована (например по дню), и применяет это автоматически. Ты пишешь <code class="inline">WHERE event_time &gt; ...</code>, а он пропускает ненужные файлы — не нужно вручную добавлять <code class="inline">WHERE partition_day = ...</code> и нельзя про это забыть.</p>
+
+    <h3><span class="en">⑤ Engine-agnostic &amp; open</span><span class="ru">⑤ Не привязан к движку, открытый</span></h3>
+    <p class="en">Spark, Flink, Trino and others can all read and write the <em>same</em> Iceberg table. Your data isn't locked into one vendor's product.</p>
+    <p class="ru">Spark, Flink, Trino и другие могут читать и писать <em>одну и ту же</em> таблицу Iceberg. Твои данные не заперты в продукте одного вендора.</p>
+  </div>
+</section>
+
+<section id="how">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">5. How it works (high level)</span><span class="ru">5. Как он устроен (в целом)</span></h2>
+  <div class="card reveal">
+    <p class="en">Iceberg keeps a small tree of metadata files that point down to your data files. A query reads the metadata first to figure out exactly which data files it needs — and skips the rest.</p>
+    <p class="ru">Iceberg держит небольшое дерево метаданных, указывающее вниз на твои файлы данных. Запрос сначала читает метаданные, чтобы понять, какие именно файлы данных нужны — а остальные пропускает.</p>
+    <div class="ascii">  catalog ──▶ metadata file (current snapshot, schema)
+                  └──▶ manifest list (which manifests are in this snapshot)
+                          └──▶ manifest (lists data files + stats: min/max, row counts)
+                                  └──▶ data files (Parquet)  ◀── your actual rows</div>
+    <div class="key">
+      <span class="lbl"><span class="en">A commit = a new snapshot</span><span class="ru">Коммит = новый снапшот</span></span>
+      <span class="en">Writing data creates new data files, then writes new metadata pointing to a new snapshot, then atomically swaps the "current" pointer. Readers in flight keep using the old snapshot; new readers see the new one. That swap is what makes it safe.</span>
+      <span class="ru">Запись создаёт новые файлы данных, затем пишет новые метаданные с новым снапшотом и атомарно переключает указатель «текущий». Уже работающие читатели продолжают со старым снапшотом; новые видят новый. Именно это переключение и делает всё безопасным.</span>
+    </div>
+    <p class="en">The min/max stats in manifests let Iceberg <strong>skip whole files</strong> that can't match your filter — fast queries without scanning everything.</p>
+    <p class="ru">Статистика min/max в манифестах позволяет Iceberg <strong>пропускать целые файлы</strong>, которые не могут попасть под фильтр — быстрые запросы без сканирования всего.</p>
+  </div>
+</section>
+
+<section id="why">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">6. Why a data engineer cares</span><span class="ru">6. Почему это важно дата-инженеру</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><strong>Reliable updates &amp; deletes.</strong> Real <code class="inline">MERGE</code>/upsert and row-level deletes on a data lake (e.g. for GDPR or fixing bad rows).</li>
+      <li><strong>Safe reprocessing.</strong> Time travel + snapshots let you debug "what did the table look like then?" and roll back a bad load.</li>
+      <li><strong>Cheap schema changes.</strong> Add a column without rewriting the whole table.</li>
+      <li><strong>Fewer small-file headaches.</strong> Iceberg supports compaction to merge tiny files into big ones for speed.</li>
+      <li><strong>No vendor lock-in.</strong> Open format, many engines — pick the best tool per job.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Надёжные обновления и удаления.</strong> Настоящий <code class="inline">MERGE</code>/upsert и удаление по строкам в озере данных (например для GDPR или фикса плохих строк).</li>
+      <li><strong>Безопасная переобработка.</strong> Time travel + снапшоты позволяют отладить «как таблица выглядела тогда?» и откатить плохую загрузку.</li>
+      <li><strong>Дешёвые изменения схемы.</strong> Добавить колонку без перезаписи всей таблицы.</li>
+      <li><strong>Меньше боли с мелкими файлами.</strong> Iceberg поддерживает компакцию — слияние крошечных файлов в крупные ради скорости.</li>
+      <li><strong>Нет привязки к вендору.</strong> Открытый формат, много движков — выбираешь лучший инструмент под задачу.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">Iceberg vs Delta vs Hudi</span><span class="ru">Iceberg vs Delta vs Hudi</span></span>
+      <span class="en">All three are table formats solving the same problem (ACID + versioning over lake files). <strong>Delta Lake</strong> comes from Databricks, <strong>Hudi</strong> from the Uber world, <strong>Iceberg</strong> is fully open and the most engine-neutral. For interviews: know they're alternatives and that Iceberg's selling points are openness and clean hidden partitioning + schema evolution.</span>
+      <span class="ru">Все трое — табличные форматы, решающие одну задачу (ACID + версионирование поверх файлов озера). <strong>Delta Lake</strong> — из Databricks, <strong>Hudi</strong> — из мира Uber, <strong>Iceberg</strong> — полностью открытый и самый нейтральный к движкам. Для интервью: знай, что это альтернативы, а сильные стороны Iceberg — открытость и аккуратные скрытое партиционирование + эволюция схемы.</span>
+    </div>
+  </div>
+</section>
+
+<section id="glossary">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">7. Mini-glossary</span><span class="ru">7. Мини-словарь</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Word</th><th>Plain meaning</th></tr>
+      <tr><td>Table format</td><td>Metadata that makes many files act as one table (Iceberg).</td></tr>
+      <tr><td>File format</td><td>How one file stores data (Parquet, ORC).</td></tr>
+      <tr><td>Snapshot</td><td>A version of the table at a point in time.</td></tr>
+      <tr><td>Time travel</td><td>Querying the table as of an older snapshot.</td></tr>
+      <tr><td>Schema evolution</td><td>Safely changing columns over time (tracked by id).</td></tr>
+      <tr><td>Hidden partitioning</td><td>Iceberg applies partitioning automatically from your filters.</td></tr>
+      <tr><td>Manifest</td><td>A metadata file listing data files + their stats.</td></tr>
+      <tr><td>Compaction</td><td>Merging many small files into fewer big ones.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Слово</th><th>Простой смысл</th></tr>
+      <tr><td>Табличный формат</td><td>Метаданные, делающие много файлов одной таблицей (Iceberg).</td></tr>
+      <tr><td>Формат файла</td><td>Как один файл хранит данные (Parquet, ORC).</td></tr>
+      <tr><td>Снапшот</td><td>Версия таблицы на момент времени.</td></tr>
+      <tr><td>Time travel</td><td>Запрос таблицы на момент старого снапшота.</td></tr>
+      <tr><td>Эволюция схемы</td><td>Безопасное изменение колонок со временем (по id).</td></tr>
+      <tr><td>Скрытое партиционирование</td><td>Iceberg применяет партиционирование автоматически из твоих фильтров.</td></tr>
+      <tr><td>Манифест</td><td>Файл метаданных со списком файлов данных и их статистикой.</td></tr>
+      <tr><td>Компакция</td><td>Слияние многих мелких файлов в меньшее число крупных.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">8. Quick self-check</span><span class="ru">8. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Iceberg vs Parquet — what's the difference?</span><span class="ru">Iceberg vs Parquet — в чём разница?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Parquet is a <strong>file format</strong> (how one file stores data). Iceberg is a <strong>table format</strong> (metadata making many Parquet files one reliable table). They work together.</span><span class="ru">Parquet — <strong>формат файла</strong> (как один файл хранит данные). Iceberg — <strong>табличный формат</strong> (метаданные, делающие много Parquet-файлов одной надёжной таблицей). Работают вместе.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What is time travel and why is it useful?</span><span class="ru">Что такое time travel и чем полезен?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Querying the table as of a past <strong>snapshot</strong>. Useful for debugging ("what did it look like then?"), reproducibility, and rolling back a bad load.</span><span class="ru">Запрос таблицы на момент прошлого <strong>снапшота</strong>. Полезно для отладки («как было тогда?»), воспроизводимости и отката плохой загрузки.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why are Iceberg schema changes safe?</span><span class="ru">Почему изменения схемы в Iceberg безопасны?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Columns are tracked by a hidden <strong>id</strong>, not by name or position. So renaming/reordering/adding/dropping doesn't break reads of old data.</span><span class="ru">Колонки отслеживаются по скрытому <strong>id</strong>, а не по имени или позиции. Поэтому переименование/перестановка/добавление/удаление не ломают чтение старых данных.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What does "atomic commit" give readers?</span><span class="ru">Что даёт читателям «атомарный коммит»?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">They always see a complete, consistent snapshot — never half-written data. A commit swaps the "current" pointer all-or-nothing; in-flight readers keep the old snapshot.</span><span class="ru">Они всегда видят полный согласованный снапшот — никогда полузаписанные данные. Коммит переключает указатель «текущий» по принципу всё-или-ничего; уже работающие читатели остаются на старом снапшоте.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What is hidden partitioning?</span><span class="ru">Что такое скрытое партиционирование?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Iceberg remembers the partition scheme and applies it from your normal filter (e.g. on a timestamp). No manual partition column in every query, and you can't forget it → fewer mistakes, faster scans.</span><span class="ru">Iceberg помнит схему партиционирования и применяет её из обычного фильтра (например по времени). Не нужно вручную указывать партиционную колонку в каждом запросе, и нельзя про неё забыть → меньше ошибок, быстрее сканы.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Iceberg vs Delta vs Hudi?</span><span class="ru">Iceberg vs Delta vs Hudi?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">All are table formats (ACID + versioning over lake files). Delta = Databricks, Hudi = Uber-origin, Iceberg = fully open and most engine-neutral. Same problem, different ecosystems.</span><span class="ru">Все — табличные форматы (ACID + версионирование поверх файлов озера). Delta = Databricks, Hudi = из Uber, Iceberg = полностью открытый и самый нейтральный к движкам. Одна задача, разные экосистемы.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Apache Iceberg — Beginner · part of the DE interview cheatsheets · built for Amal Imangulov · next: <a href="iceberg-warehousing.html">Advanced →</a></span>
+  <span class="ru">Apache Iceberg — Новичок · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · далее: <a href="iceberg-warehousing.html">Advanced →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>

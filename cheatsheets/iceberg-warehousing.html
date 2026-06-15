@@ -30,6 +30,12 @@ code,pre,.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mon
 [data-lang="en"] .ru { display: none !important; }
 [data-lang="ru"] .en { display: none !important; }
 
+/* level switcher */
+.levels{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+.level{padding:6px 13px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:12.5px;font-weight:600;text-decoration:none}
+.level:hover{border-color:var(--accent);color:var(--text)}
+.level.active{border-color:var(--accent);color:var(--text)}
+
 /* nav */
 nav{
   position:sticky; top:0; z-index:50; background:rgba(10,14,26,.85);
@@ -189,6 +195,10 @@ hr{border:none; border-top:1px solid var(--border); margin:18px 0;}
   <div class="muted" style="margin-top:12px; font-size:13px;">
     <span class="en">Honesty line to lead with: <span class="green">"I've run Hive, Snowflake and BigQuery as the table/warehouse layer in production — not Iceberg itself — but I understand its design and the exact problems it solves."</span> Then show the depth below so the gap reads as "new tool, same fundamentals."</span>
     <span class="ru">Честно начинать с: <span class="green">«Я работал с Hive, Snowflake и BigQuery как с табличным слоем/хранилищем в проде — сам Iceberg не использовал — но понимаю его устройство и какие именно проблемы он решает.»</span> Потом показать глубину ниже, чтобы пробел читался как «новый инструмент, те же основы».</span>
+  </div>
+  <div class="levels">
+    <a class="level" href="iceberg-beginner.html">🟢 <span class="en">Beginner</span><span class="ru">Новичок</span></a>
+    <a class="level active" href="iceberg-warehousing.html">🔴 <span class="en">Advanced</span><span class="ru">Продвинутый</span></a>
   </div>
 </header>
 
