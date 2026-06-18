@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PySpark Essentials — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0; }
+  pre .c { color:var(--muted); } pre .k { color:var(--purple); } pre .s { color:var(--green); } pre .f { color:var(--accent); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway,.warn { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .warn { border-color:var(--orange); background:color-mix(in srgb,var(--orange) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); } .warn .lbl { color:var(--orange); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:200px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">⚡ PySpark · <span class="en">Essentials</span><span class="ru">Основы</span></span>
+  <a href="#what"><span class="en">What &amp; why</span><span class="ru">Что и зачем</span></a>
+  <a href="#model"><span class="en">Lazy model</span><span class="ru">Ленивая модель</span></a>
+  <a href="#start"><span class="en">Get going</span><span class="ru">Старт</span></a>
+  <a href="#ops"><span class="en">Core ops</span><span class="ru">Операции</span></a>
+  <a href="#agg"><span class="en">Group &amp; join</span><span class="ru">Группировка/join</span></a>
+  <a href="#io"><span class="en">Read/write</span><span class="ru">Чтение/запись</span></a>
+  <a href="#sql"><span class="en">SQL</span><span class="ru">SQL</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">PySpark Essentials</span><span class="ru">PySpark: основы</span></h1>
+  <div class="sub">
+    <span class="en">The DataFrame API you actually write at work: lazy evaluation, transformations vs actions, select/filter/join/groupBy, schemas, read/write. Code-first. When comfortable, switch to Performance.</span>
+    <span class="ru">DataFrame API, который реально пишешь на работе: ленивые вычисления, трансформации vs действия, select/filter/join/groupBy, схемы, чтение/запись. Сначала код. Когда станет комфортно, переключайся на Performance.</span>
+  </div>
+  <div class="levels">
+    <a class="level active" href="pyspark-essentials.html">🟢 <span class="en">Essentials</span><span class="ru">Основы</span></a>
+    <a class="level" href="pyspark-performance.html">🔴 <span class="en">Performance</span><span class="ru">Производительность</span></a>
+    <a class="level" href="apache-spark.html">📘 <span class="en">Spark theory</span><span class="ru">Теория Spark</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. What is PySpark?</span><span class="ru">1. Что такое PySpark?</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>PySpark</strong> is the Python API for <strong>Apache Spark</strong>, a distributed engine for processing data that's too big for one machine. You write Python; Spark splits the work across many machines (a <strong>cluster</strong>) and runs it in parallel. The main thing you touch is the <strong>DataFrame</strong>: a distributed table with named, typed columns — like a pandas DataFrame, but spread over the cluster and computed lazily.</p>
+    <p class="ru"><strong>PySpark</strong> — это Python-API для <strong>Apache Spark</strong>, движка распределённой обработки данных, которые не помещаются на одной машине. Ты пишешь Python; Spark разбивает работу по множеству машин (<strong>кластер</strong>) и выполняет параллельно. Главное, с чем работаешь — <strong>DataFrame</strong>: распределённая таблица с именованными типизированными колонками — как pandas DataFrame, но размазанная по кластеру и вычисляемая лениво.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">Pandas is one cook in one kitchen. PySpark is a head chef writing a recipe, then handing copies to 100 cooks who each prep a slice of the ingredients at the same time. You describe <em>what</em> you want; Spark figures out <em>how</em> to divide and run it.</span>
+      <span class="ru">Pandas — один повар на одной кухне. PySpark — шеф, пишущий рецепт, и раздающий копии 100 поварам, каждый из которых одновременно готовит свою часть продуктов. Ты описываешь <em>что</em> хочешь; Spark решает, <em>как</em> разбить и выполнить.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">One line</span><span class="ru">Одной строкой</span></span>
+      <span class="en">PySpark = Python + DataFrames over a cluster. You write declarative transformations; Spark plans and runs them in parallel.</span>
+      <span class="ru">PySpark = Python + DataFrame поверх кластера. Ты пишешь декларативные трансформации; Spark планирует и выполняет их параллельно.</span>
+    </div>
+    <div class="warn">
+      <span class="lbl"><span class="en">DataFrame vs RDD</span><span class="ru">DataFrame vs RDD</span></span>
+      <span class="en">RDD is the old low-level API (rows are opaque objects). Almost always use <strong>DataFrame</strong> / Spark SQL: it goes through the <strong>Catalyst optimizer</strong>, so it's faster and shorter. Only drop to RDD for rare custom logic.</span>
+      <span class="ru">RDD — старый низкоуровневый API (строки — непрозрачные объекты). Почти всегда используй <strong>DataFrame</strong> / Spark SQL: он проходит через <strong>оптимизатор Catalyst</strong>, поэтому быстрее и короче. Спускайся к RDD только для редкой кастомной логики.</span>
+    </div>
+  </div>
+</section>
+
+<section id="model">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Lazy evaluation: transformations vs actions</span><span class="ru">2. Ленивые вычисления: трансформации vs действия</span></h2>
+  <div class="card reveal">
+    <p class="en">This is the single most important PySpark idea, and a near-guaranteed interview question. Operations come in two kinds:</p>
+    <p class="ru">Это самая важная идея PySpark и почти гарантированный вопрос на интервью. Операции бывают двух видов:</p>
+    <table class="en">
+      <tr><th>Transformations (lazy)</th><th>Actions (eager)</th></tr>
+      <tr><td>Describe a new DataFrame; nothing runs yet</td><td>Trigger actual computation</td></tr>
+      <tr><td><code class="inline">select</code>, <code class="inline">filter</code>, <code class="inline">withColumn</code>, <code class="inline">join</code>, <code class="inline">groupBy</code>, <code class="inline">orderBy</code></td><td><code class="inline">show</code>, <code class="inline">collect</code>, <code class="inline">count</code>, <code class="inline">write</code>, <code class="inline">take</code></td></tr>
+      <tr><td>Just builds a <strong>logical plan</strong> (a DAG)</td><td>Submits a <strong>job</strong>, Spark runs the plan</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Трансформации (ленивые)</th><th>Действия (немедленные)</th></tr>
+      <tr><td>Описывают новый DataFrame; пока ничего не выполняется</td><td>Запускают реальное вычисление</td></tr>
+      <tr><td><code class="inline">select</code>, <code class="inline">filter</code>, <code class="inline">withColumn</code>, <code class="inline">join</code>, <code class="inline">groupBy</code>, <code class="inline">orderBy</code></td><td><code class="inline">show</code>, <code class="inline">collect</code>, <code class="inline">count</code>, <code class="inline">write</code>, <code class="inline">take</code></td></tr>
+      <tr><td>Просто строит <strong>логический план</strong> (DAG)</td><td>Отправляет <strong>job</strong>, Spark выполняет план</td></tr>
+    </table>
+    <pre><span class="c"># nothing runs here — just building a plan</span>
+df2 = (df
+    .<span class="f">filter</span>(df.country == <span class="s">"DE"</span>)
+    .<span class="f">withColumn</span>(<span class="s">"amount_eur"</span>, df.amount * <span class="s">1.0</span>)
+    .<span class="f">select</span>(<span class="s">"user_id"</span>, <span class="s">"amount_eur"</span>))
+
+df2.<span class="f">show</span>()   <span class="c"># ACTION → now Spark optimizes &amp; executes the whole chain</span></pre>
+    <div class="key">
+      <span class="lbl"><span class="en">Why lazy is good</span><span class="ru">Почему лень — это хорошо</span></span>
+      <span class="en">Because Spark sees the whole chain before running, Catalyst can optimize it: push your <code class="inline">filter</code> down to the data source, prune unused columns, and reorder steps. Eager execution couldn't do that.</span>
+      <span class="ru">Поскольку Spark видит всю цепочку до запуска, Catalyst может её оптимизировать: протолкнуть <code class="inline">filter</code> к источнику, отбросить неиспользуемые колонки, переставить шаги. При немедленном выполнении это было бы невозможно.</span>
+    </div>
+    <div class="warn">
+      <span class="lbl"><span class="en">Interview trap</span><span class="ru">Ловушка на интервью</span></span>
+      <span class="en"><code class="inline">collect()</code> pulls ALL rows to the driver's memory — fine for small results, an OOM crash on big data. Prefer <code class="inline">show(20)</code>, <code class="inline">take(n)</code>, or write to storage. Same for <code class="inline">toPandas()</code>.</span>
+      <span class="ru"><code class="inline">collect()</code> тянет ВСЕ строки в память драйвера — норм для маленьких результатов, OOM-крах на больших данных. Лучше <code class="inline">show(20)</code>, <code class="inline">take(n)</code> или запись в хранилище. То же про <code class="inline">toPandas()</code>.</span>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">3. Getting going: SparkSession &amp; schemas</span><span class="ru">3. Старт: SparkSession и схемы</span></h2>
+  <div class="card reveal">
+    <p class="en">The <strong>SparkSession</strong> is your entry point — the handle to the cluster. Everything starts from <code class="inline">spark</code>.</p>
+    <p class="ru"><strong>SparkSession</strong> — твоя точка входа, ручка к кластеру. Всё начинается с <code class="inline">spark</code>.</p>
+    <pre><span class="k">from</span> pyspark.sql <span class="k">import</span> SparkSession
+<span class="k">from</span> pyspark.sql <span class="k">import</span> functions <span class="k">as</span> F
+<span class="k">from</span> pyspark.sql.types <span class="k">import</span> StructType, StructField, StringType, IntegerType
+
+spark = (SparkSession.builder
+    .<span class="f">appName</span>(<span class="s">"demo"</span>)
+    .<span class="f">getOrCreate</span>())
+
+<span class="c"># create from Python data (handy for tests)</span>
+df = spark.<span class="f">createDataFrame</span>(
+    [(<span class="s">1</span>, <span class="s">"Amal"</span>, <span class="s">"DE"</span>), (<span class="s">2</span>, <span class="s">"Tanya"</span>, <span class="s">"UK"</span>)],
+    [<span class="s">"id"</span>, <span class="s">"name"</span>, <span class="s">"country"</span>])
+
+df.<span class="f">printSchema</span>()   <span class="c"># inspect column names &amp; types</span>
+df.<span class="f">show</span>()          <span class="c"># pretty-print first 20 rows</span></pre>
+    <div class="key">
+      <span class="lbl"><span class="en">Always declare a schema for production reads</span><span class="ru">В проде всегда задавай схему при чтении</span></span>
+      <span class="en"><code class="inline">inferSchema=True</code> makes Spark scan the data twice and can guess types wrong. Pass an explicit <code class="inline">StructType</code> — faster and safe.</span>
+      <span class="ru"><code class="inline">inferSchema=True</code> заставляет Spark сканировать данные дважды и может угадать типы неверно. Передавай явный <code class="inline">StructType</code> — быстрее и надёжнее.</span>
+    </div>
+    <pre>schema = <span class="f">StructType</span>([
+    <span class="f">StructField</span>(<span class="s">"id"</span>, IntegerType(), <span class="k">False</span>),
+    <span class="f">StructField</span>(<span class="s">"name"</span>, StringType(), <span class="k">True</span>),
+    <span class="f">StructField</span>(<span class="s">"country"</span>, StringType(), <span class="k">True</span>),
+])
+df = spark.<span class="f">read</span>.<span class="f">schema</span>(schema).<span class="f">csv</span>(<span class="s">"s3://bucket/users.csv"</span>, header=<span class="k">True</span>)</pre>
+  </div>
+</section>
+
+<section id="ops">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">4. Core operations (the daily 80%)</span><span class="ru">4. Основные операции (ежедневные 80%)</span></h2>
+  <div class="card reveal">
+    <p class="en">Three ways to reference a column: <code class="inline">"name"</code> (string), <code class="inline">df.name</code> (attribute), <code class="inline">F.col("name")</code> (function). Use <code class="inline">F.col</code> when you need expressions.</p>
+    <p class="ru">Три способа сослаться на колонку: <code class="inline">"name"</code> (строка), <code class="inline">df.name</code> (атрибут), <code class="inline">F.col("name")</code> (функция). Используй <code class="inline">F.col</code>, когда нужны выражения.</p>
+    <pre><span class="c"># select &amp; rename</span>
+df.<span class="f">select</span>(<span class="s">"id"</span>, F.col(<span class="s">"name"</span>).<span class="f">alias</span>(<span class="s">"user_name"</span>))
+
+<span class="c"># filter (where == filter)</span>
+df.<span class="f">filter</span>((F.col(<span class="s">"country"</span>) == <span class="s">"DE"</span>) &amp; (F.col(<span class="s">"id"</span>) &gt; <span class="s">0</span>))
+
+<span class="c"># add / replace a column</span>
+df.<span class="f">withColumn</span>(<span class="s">"is_de"</span>, F.col(<span class="s">"country"</span>) == <span class="s">"DE"</span>)
+
+<span class="c"># conditional logic</span>
+df.<span class="f">withColumn</span>(<span class="s">"tier"</span>,
+    F.<span class="f">when</span>(F.col(<span class="s">"amount"</span>) &gt; <span class="s">100</span>, <span class="s">"hi"</span>)
+     .<span class="f">when</span>(F.col(<span class="s">"amount"</span>) &gt; <span class="s">10</span>, <span class="s">"mid"</span>)
+     .<span class="f">otherwise</span>(<span class="s">"lo"</span>))
+
+<span class="c"># drop, distinct, dedup, sort, limit</span>
+df.<span class="f">drop</span>(<span class="s">"tmp"</span>).<span class="f">dropDuplicates</span>([<span class="s">"id"</span>]).<span class="f">orderBy</span>(F.col(<span class="s">"amount"</span>).<span class="f">desc</span>()).<span class="f">limit</span>(<span class="s">100</span>)
+
+<span class="c"># nulls</span>
+df.<span class="f">na</span>.<span class="f">fill</span>({<span class="s">"amount"</span>: <span class="s">0</span>}).<span class="f">na</span>.<span class="f">drop</span>(subset=[<span class="s">"id"</span>])</pre>
+    <div class="warn">
+      <span class="lbl"><span class="en">Use F functions, not Python loops</span><span class="ru">Используй функции F, а не циклы Python</span></span>
+      <span class="en">Built-in <code class="inline">pyspark.sql.functions</code> run inside the JVM engine and are optimized. Iterating rows in Python (or a plain UDF) is far slower. Reach for <code class="inline">F.*</code> first.</span>
+      <span class="ru">Встроенные <code class="inline">pyspark.sql.functions</code> выполняются внутри JVM-движка и оптимизированы. Перебор строк в Python (или обычный UDF) намного медленнее. Сначала тянись к <code class="inline">F.*</code>.</span>
+    </div>
+  </div>
+</section>
+
+<section id="agg">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">5. Group by, aggregate &amp; join</span><span class="ru">5. Группировка, агрегация и join</span></h2>
+  <div class="card reveal">
+    <pre><span class="c"># aggregation</span>
+(df.<span class="f">groupBy</span>(<span class="s">"country"</span>)
+   .<span class="f">agg</span>(
+       F.<span class="f">count</span>(<span class="s">"*"</span>).<span class="f">alias</span>(<span class="s">"n"</span>),
+       F.<span class="f">sum</span>(<span class="s">"amount"</span>).<span class="f">alias</span>(<span class="s">"total"</span>),
+       F.<span class="f">avg</span>(<span class="s">"amount"</span>).<span class="f">alias</span>(<span class="s">"avg_amt"</span>),
+       F.<span class="f">countDistinct</span>(<span class="s">"user_id"</span>).<span class="f">alias</span>(<span class="s">"users"</span>),
+   ))</pre>
+    <p class="en"><strong>Joins</strong> — know the <code class="inline">how</code> values and the duplicate-column gotcha:</p>
+    <p class="ru"><strong>Join</strong> — знай значения <code class="inline">how</code> и подвох с дублирующимися колонками:</p>
+    <pre><span class="c"># join on a shared column name → no duplicate "country" column</span>
+orders.<span class="f">join</span>(users, on=<span class="s">"user_id"</span>, how=<span class="s">"left"</span>)
+
+<span class="c"># join on a condition → both id columns survive (ambiguous!)</span>
+orders.<span class="f">join</span>(users, orders.user_id == users.id, <span class="s">"inner"</span>)
+
+<span class="c"># how: inner | left | right | outer | left_semi | left_anti</span>
+<span class="c"># left_anti = rows in orders with NO match in users (great for "missing")</span></pre>
+    <div class="warn">
+      <span class="lbl"><span class="en">Window functions ≠ groupBy</span><span class="ru">Оконные функции ≠ groupBy</span></span>
+      <span class="en"><code class="inline">groupBy</code> collapses rows; a <strong>window</strong> keeps every row and adds a computed column (running total, rank, row_number). Classic "dedup keeping latest":</span>
+      <span class="ru"><code class="inline">groupBy</code> схлопывает строки; <strong>окно</strong> сохраняет каждую строку и добавляет вычисленную колонку (накопит. сумма, ранг, row_number). Классика «дедуп с сохранением последней»:</span>
+    </div>
+    <pre><span class="k">from</span> pyspark.sql.window <span class="k">import</span> Window
+w = Window.<span class="f">partitionBy</span>(<span class="s">"user_id"</span>).<span class="f">orderBy</span>(F.col(<span class="s">"ts"</span>).<span class="f">desc</span>())
+latest = (df
+    .<span class="f">withColumn</span>(<span class="s">"rn"</span>, F.<span class="f">row_number</span>().<span class="f">over</span>(w))
+    .<span class="f">filter</span>(<span class="s">"rn = 1"</span>)
+    .<span class="f">drop</span>(<span class="s">"rn"</span>))</pre>
+  </div>
+</section>
+
+<section id="io">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">6. Reading &amp; writing</span><span class="ru">6. Чтение и запись</span></h2>
+  <div class="card reveal">
+    <pre><span class="c"># read</span>
+df = spark.<span class="f">read</span>.<span class="f">parquet</span>(<span class="s">"s3://bucket/events/"</span>)
+df = spark.<span class="f">read</span>.<span class="f">option</span>(<span class="s">"header"</span>, <span class="k">True</span>).<span class="f">csv</span>(<span class="s">"path.csv"</span>)
+df = spark.<span class="f">read</span>.<span class="f">json</span>(<span class="s">"path.json"</span>)
+
+<span class="c"># write — note mode &amp; partitioning</span>
+(df.<span class="f">write</span>
+   .<span class="f">mode</span>(<span class="s">"overwrite"</span>)            <span class="c"># overwrite | append | ignore | error</span>
+   .<span class="f">partitionBy</span>(<span class="s">"ds"</span>)            <span class="c"># physical folder per partition value</span>
+   .<span class="f">parquet</span>(<span class="s">"s3://bucket/out/"</span>))</pre>
+    <div class="key">
+      <span class="lbl"><span class="en">Prefer columnar formats</span><span class="ru">Предпочитай колоночные форматы</span></span>
+      <span class="en"><strong>Parquet</strong> (or ORC) over CSV/JSON: compressed, typed, and supports <em>column pruning</em> + <em>predicate pushdown</em> — Spark reads only the columns and row-groups it needs. CSV reads everything.</span>
+      <span class="ru"><strong>Parquet</strong> (или ORC) вместо CSV/JSON: сжатый, типизированный, поддерживает <em>отсечение колонок</em> + <em>проталкивание предикатов</em> — Spark читает только нужные колонки и row-group'ы. CSV читает всё.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">partitionBy is for layout, not speed-everywhere</span><span class="ru">partitionBy — про раскладку, не «ускоряет всё»</span></span>
+      <span class="en">Partition by a low-cardinality column you filter on often (e.g. date <code class="inline">ds</code>). Partitioning by a high-cardinality column (user_id) creates millions of tiny files — the "small files problem".</span>
+      <span class="ru">Партиционируй по колонке с низкой кардинальностью, по которой часто фильтруешь (например дата <code class="inline">ds</code>). Партиционирование по высококардинальной колонке (user_id) создаёт миллионы крошечных файлов — «проблема мелких файлов».</span>
+    </div>
+  </div>
+</section>
+
+<section id="sql">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">7. DataFrame API vs Spark SQL</span><span class="ru">7. DataFrame API vs Spark SQL</span></h2>
+  <div class="card reveal">
+    <p class="en">They're the same engine — pick whichever reads cleaner. Both go through Catalyst, so <strong>performance is identical</strong>.</p>
+    <p class="ru">Это один движок — выбирай, что читается чище. Оба идут через Catalyst, поэтому <strong>производительность одинакова</strong>.</p>
+    <pre><span class="c"># register a temp view, then write plain SQL</span>
+df.<span class="f">createOrReplaceTempView</span>(<span class="s">"orders"</span>)
+top = spark.<span class="f">sql</span>(<span class="s">"""</span>
+<span class="s">    SELECT country, SUM(amount) AS total</span>
+<span class="s">    FROM orders</span>
+<span class="s">    WHERE amount &gt; 0</span>
+<span class="s">    GROUP BY country</span>
+<span class="s">    ORDER BY total DESC</span>
+<span class="s">"""</span>)</pre>
+    <div class="key">
+      <span class="lbl"><span class="en">Rule of thumb</span><span class="ru">Эмпирическое правило</span></span>
+      <span class="en">Long, set-based logic → SQL reads better. Programmatic / parameterized / chained pipelines → DataFrame API. Mix freely.</span>
+      <span class="ru">Длинная логика над множествами → SQL читается лучше. Программные / параметризованные / цепочечные пайплайны → DataFrame API. Смешивай свободно.</span>
+    </div>
+  </div>
+</section>
+
+<section id="glossary">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">8. Mini-glossary</span><span class="ru">8. Мини-словарь</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Term</th><th>Plain meaning</th></tr>
+      <tr><td>SparkSession</td><td>Entry point / handle to the cluster (<code class="inline">spark</code>).</td></tr>
+      <tr><td>DataFrame</td><td>Distributed table with named, typed columns.</td></tr>
+      <tr><td>Transformation</td><td>Lazy op that builds a plan (select, filter, join).</td></tr>
+      <tr><td>Action</td><td>Eager op that runs the plan (show, count, write).</td></tr>
+      <tr><td>Catalyst</td><td>Spark's query optimizer (plans, pushdowns, reorders).</td></tr>
+      <tr><td>Partition</td><td>A chunk of the data processed by one task.</td></tr>
+      <tr><td>Driver</td><td>Coordinator process running your code &amp; the plan.</td></tr>
+      <tr><td>Executor</td><td>Worker process that runs tasks on partitions.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Термин</th><th>Простой смысл</th></tr>
+      <tr><td>SparkSession</td><td>Точка входа / ручка к кластеру (<code class="inline">spark</code>).</td></tr>
+      <tr><td>DataFrame</td><td>Распределённая таблица с именованными типизированными колонками.</td></tr>
+      <tr><td>Трансформация</td><td>Ленивая операция, строящая план (select, filter, join).</td></tr>
+      <tr><td>Действие (action)</td><td>Немедленная операция, запускающая план (show, count, write).</td></tr>
+      <tr><td>Catalyst</td><td>Оптимизатор запросов Spark (планы, pushdown, перестановки).</td></tr>
+      <tr><td>Партиция</td><td>Кусок данных, обрабатываемый одной задачей (task).</td></tr>
+      <tr><td>Driver</td><td>Процесс-координатор, выполняющий твой код и план.</td></tr>
+      <tr><td>Executor</td><td>Рабочий процесс, выполняющий задачи на партициях.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">9. Quick self-check</span><span class="ru">9. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Transformation vs action?</span><span class="ru">Трансформация vs действие?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Transformations (select/filter/join) are <strong>lazy</strong> — they only build a plan. Actions (show/count/write/collect) are <strong>eager</strong> — they trigger execution of the whole chain.</span><span class="ru">Трансформации (select/filter/join) <strong>ленивые</strong> — лишь строят план. Действия (show/count/write/collect) <strong>немедленные</strong> — запускают выполнение всей цепочки.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why avoid collect() on big data?</span><span class="ru">Почему collect() опасен на больших данных?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">It pulls every row to the <strong>driver's</strong> single-machine memory → OOM. Use show/take/limit or write to storage instead.</span><span class="ru">Он тянет все строки в одномашинную память <strong>драйвера</strong> → OOM. Используй show/take/limit или запись в хранилище.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">DataFrame vs RDD — which &amp; why?</span><span class="ru">DataFrame vs RDD — что и почему?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Use <strong>DataFrame</strong>: it has a schema and goes through Catalyst, so it's optimized and shorter. RDD is low-level/opaque — only for rare custom logic.</span><span class="ru">Используй <strong>DataFrame</strong>: у него есть схема и он идёт через Catalyst, поэтому оптимизирован и короче. RDD низкоуровневый/непрозрачный — только для редкой кастомной логики.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Keep the latest row per user — how?</span><span class="ru">Оставить последнюю строку на пользователя — как?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Window: <code class="inline">row_number().over(partitionBy(user).orderBy(ts.desc()))</code>, then filter <code class="inline">rn == 1</code>. Window keeps rows; groupBy would collapse them.</span><span class="ru">Окно: <code class="inline">row_number().over(partitionBy(user).orderBy(ts.desc()))</code>, потом filter <code class="inline">rn == 1</code>. Окно сохраняет строки; groupBy бы их схлопнул.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why Parquet over CSV?</span><span class="ru">Почему Parquet вместо CSV?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Columnar + compressed + typed; supports column pruning and predicate pushdown so Spark reads only needed columns/row-groups. CSV reads everything and has no types.</span><span class="ru">Колоночный + сжатый + типизированный; поддерживает отсечение колонок и pushdown предикатов, поэтому Spark читает только нужное. CSV читает всё и без типов.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Is Spark SQL slower than the DataFrame API?</span><span class="ru">Spark SQL медленнее DataFrame API?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">No — same engine, both compile through Catalyst to the same plan. Pick by readability.</span><span class="ru">Нет — один движок, оба компилируются через Catalyst в один план. Выбирай по читаемости.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">PySpark — Essentials · part of the DE interview cheatsheets · built for Amal Imangulov · next: <a href="pyspark-performance.html">Performance →</a></span>
+  <span class="ru">PySpark — Основы · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · далее: <a href="pyspark-performance.html">Performance →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PySpark Performance — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0; }
+  pre .c { color:var(--muted); } pre .k { color:var(--purple); } pre .s { color:var(--green); } pre .f { color:var(--accent); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway,.warn { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .warn { border-color:var(--orange); background:color-mix(in srgb,var(--orange) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); } .warn .lbl { color:var(--orange); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:210px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🔥 PySpark · <span class="en">Performance</span><span class="ru">Производительность</span></span>
+  <a href="#model"><span class="en">Execution model</span><span class="ru">Модель выполнения</span></a>
+  <a href="#shuffle"><span class="en">Shuffle</span><span class="ru">Shuffle</span></a>
+  <a href="#joins"><span class="en">Joins</span><span class="ru">Join'ы</span></a>
+  <a href="#skew"><span class="en">Skew</span><span class="ru">Перекос</span></a>
+  <a href="#parts"><span class="en">Partitions</span><span class="ru">Партиции</span></a>
+  <a href="#cache"><span class="en">Cache</span><span class="ru">Кэш</span></a>
+  <a href="#udf"><span class="en">UDFs</span><span class="ru">UDF</span></a>
+  <a href="#debug"><span class="en">Debug</span><span class="ru">Отладка</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">PySpark Performance &amp; Tuning</span><span class="ru">PySpark: производительность и тюнинг</span></h1>
+  <div class="sub">
+    <span class="en">Where interviews get serious: the execution model, shuffles, join strategies, skew, partitioning, caching, UDFs, and reading a query plan. The "why is my job slow?" toolkit.</span>
+    <span class="ru">Где интервью становится серьёзным: модель выполнения, shuffle, стратегии join, перекос, партиционирование, кэширование, UDF и чтение плана запроса. Набор «почему мой джоб тормозит?».</span>
+  </div>
+  <div class="levels">
+    <a class="level" href="pyspark-essentials.html">🟢 <span class="en">Essentials</span><span class="ru">Основы</span></a>
+    <a class="level active" href="pyspark-performance.html">🔴 <span class="en">Performance</span><span class="ru">Производительность</span></a>
+    <a class="level" href="apache-spark.html">📘 <span class="en">Spark theory</span><span class="ru">Теория Spark</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="model">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. Execution model: where time goes</span><span class="ru">1. Модель выполнения: куда уходит время</span></h2>
+  <div class="card reveal">
+    <p class="en">To reason about speed you need the runtime hierarchy. One <strong>action</strong> → a <strong>job</strong> → split into <strong>stages</strong> at shuffle boundaries → each stage is many <strong>tasks</strong>, one per <strong>partition</strong>, run by <strong>executors</strong>. The <strong>driver</strong> coordinates.</p>
+    <p class="ru">Чтобы рассуждать о скорости, нужна иерархия выполнения. Одно <strong>действие</strong> → <strong>job</strong> → делится на <strong>stage</strong>'ы на границах shuffle → каждый stage — это много <strong>task</strong>'ов, по одному на <strong>партицию</strong>, выполняемых <strong>executor</strong>'ами. <strong>Driver</strong> координирует.</p>
+    <div class="ascii">  action (e.g. write)
+    └─ JOB
+        ├─ STAGE 0  (narrow ops)   ──┐ shuffle boundary
+        │    └─ task per partition   │
+        └─ STAGE 1  (after shuffle) ◀┘
+             └─ task per partition  ──▶ run on EXECUTORS (cores)</div>
+    <div class="key">
+      <span class="lbl"><span class="en">Narrow vs wide transformations</span><span class="ru">Узкие vs широкие трансформации</span></span>
+      <span class="en"><strong>Narrow</strong> (map, filter, withColumn): each output partition depends on one input partition — no data movement, cheap. <strong>Wide</strong> (groupBy, join, distinct, repartition, orderBy): output partitions pull from many inputs → a <strong>shuffle</strong> across the network. Wide ops are where time goes.</span>
+      <span class="ru"><strong>Узкие</strong> (map, filter, withColumn): каждая выходная партиция зависит от одной входной — нет движения данных, дёшево. <strong>Широкие</strong> (groupBy, join, distinct, repartition, orderBy): выходные партиции тянут из многих входных → <strong>shuffle</strong> по сети. Широкие операции — там, где уходит время.</span>
+    </div>
+  </div>
+</section>
+
+<section id="shuffle">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">2. The shuffle (the #1 cost)</span><span class="ru">2. Shuffle (главная цена)</span></h2>
+  <div class="card reveal">
+    <p class="en">A <strong>shuffle</strong> redistributes rows across the cluster so that rows with the same key land on the same partition (needed for join/groupBy). It writes intermediate files to disk and sends them over the network — slow, and the most common reason a job drags.</p>
+    <p class="ru"><strong>Shuffle</strong> перераспределяет строки по кластеру так, чтобы строки с одинаковым ключом попали в одну партицию (нужно для join/groupBy). Он пишет промежуточные файлы на диск и шлёт их по сети — медленно, и это самая частая причина тормозов.</p>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">How to cut shuffle</span><span class="ru">Как сократить shuffle</span></span>
+      <span class="en">Filter early (less data to move) · broadcast small joins · avoid needless <code class="inline">distinct</code>/<code class="inline">orderBy</code> · pre-aggregate before a join · reuse the same partitioning so a later join is shuffle-free · tune <code class="inline">spark.sql.shuffle.partitions</code> (default 200 is often too high for small data, too low for huge).</span>
+      <span class="ru">Фильтруй рано (меньше данных двигать) · broadcast'и маленькие join'ы · избегай лишних <code class="inline">distinct</code>/<code class="inline">orderBy</code> · агрегируй до join · переиспользуй то же партиционирование, чтобы последующий join был без shuffle · настрой <code class="inline">spark.sql.shuffle.partitions</code> (дефолт 200 часто велик для малых данных и мал для огромных).</span>
+    </div>
+    <div class="warn">
+      <span class="lbl"><span class="en">groupByKey vs reduceByKey (RDD era, still asked)</span><span class="ru">groupByKey vs reduceByKey (эпоха RDD, всё ещё спрашивают)</span></span>
+      <span class="en"><code class="inline">reduceByKey</code> aggregates locally (map-side combine) <em>before</em> the shuffle, moving far less data than <code class="inline">groupByKey</code>. DataFrame <code class="inline">groupBy().agg()</code> already does map-side partial aggregation for you.</span>
+      <span class="ru"><code class="inline">reduceByKey</code> агрегирует локально (map-side combine) <em>до</em> shuffle, перемещая намного меньше данных, чем <code class="inline">groupByKey</code>. DataFrame <code class="inline">groupBy().agg()</code> уже делает частичную агрегацию на map-стороне за тебя.</span>
+    </div>
+  </div>
+</section>
+
+<section id="joins">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">3. Join strategies</span><span class="ru">3. Стратегии join</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Strategy</th><th>When Spark picks it</th><th>Cost</th></tr>
+      <tr><td><strong>Broadcast hash join</strong></td><td>One side is small (&lt; <code class="inline">autoBroadcastJoinThreshold</code>, default 10MB)</td><td>No shuffle — small side copied to every executor. Fastest.</td></tr>
+      <tr><td><strong>Sort-merge join</strong></td><td>Both sides large</td><td>Shuffles &amp; sorts both sides by key. Default for big joins.</td></tr>
+      <tr><td><strong>Shuffle hash join</strong></td><td>One side medium, no sort needed</td><td>Shuffles, builds a hash table. Less common.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Стратегия</th><th>Когда Spark её выбирает</th><th>Цена</th></tr>
+      <tr><td><strong>Broadcast hash join</strong></td><td>Одна сторона маленькая (&lt; <code class="inline">autoBroadcastJoinThreshold</code>, дефолт 10MB)</td><td>Без shuffle — малая сторона копируется на каждый executor. Самый быстрый.</td></tr>
+      <tr><td><strong>Sort-merge join</strong></td><td>Обе стороны большие</td><td>Shuffle и сортировка обеих сторон по ключу. Дефолт для больших join.</td></tr>
+      <tr><td><strong>Shuffle hash join</strong></td><td>Одна сторона средняя, сортировка не нужна</td><td>Shuffle, строит хеш-таблицу. Реже.</td></tr>
+    </table>
+    <pre><span class="k">from</span> pyspark.sql.functions <span class="k">import</span> broadcast
+<span class="c"># force a broadcast when you KNOW one side is small</span>
+big.<span class="f">join</span>(<span class="f">broadcast</span>(small_dim), on=<span class="s">"dim_id"</span>, how=<span class="s">"left"</span>)</pre>
+    <div class="key">
+      <span class="lbl"><span class="en">The go-to fix for slow joins</span><span class="ru">Главный фикс медленных join</span></span>
+      <span class="en">Joining a huge fact to a small dimension and it's slow? <strong>Broadcast the dimension.</strong> It turns a shuffle-heavy sort-merge join into a shuffle-free broadcast join.</span>
+      <span class="ru">Джойнишь огромный факт с маленькой размерностью и тормозит? <strong>Broadcast'ни размерность.</strong> Это превращает тяжёлый по shuffle sort-merge join в broadcast join без shuffle.</span>
+    </div>
+  </div>
+</section>
+
+<section id="skew">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">4. Data skew</span><span class="ru">4. Перекос данных (skew)</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Skew</strong> = one key has vastly more rows than others (e.g. <code class="inline">null</code> user_id, or a mega-customer). After a shuffle, one task gets a giant partition while the rest finish — that one straggler holds up the whole stage. Classic symptom: 199 tasks done in seconds, 1 task runs for an hour.</p>
+    <p class="ru"><strong>Перекос</strong> = у одного ключа сильно больше строк, чем у других (например <code class="inline">null</code> user_id или мега-клиент). После shuffle одной task достаётся огромная партиция, пока остальные закончили — этот «отстающий» держит весь stage. Классический симптом: 199 task за секунды, 1 task час.</p>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Fixes</span><span class="ru">Решения</span></span>
+      <span class="en"><strong>AQE skew join</strong> (on by default in Spark 3+): <code class="inline">spark.sql.adaptive.enabled=true</code> auto-splits skewed partitions. · <strong>Salting</strong>: add a random suffix to the hot key on both sides to spread it across tasks, then aggregate. · Filter/handle <code class="inline">null</code> keys separately. · Broadcast the small side to skip the shuffle entirely.</span>
+      <span class="ru"><strong>AQE skew join</strong> (вкл. по умолчанию в Spark 3+): <code class="inline">spark.sql.adaptive.enabled=true</code> авто-дробит перекошенные партиции. · <strong>Соление (salting)</strong>: добавь случайный суффикс к «горячему» ключу с обеих сторон, чтобы разнести по task'ам, потом агрегируй. · Обрабатывай <code class="inline">null</code>-ключи отдельно. · Broadcast'ни малую сторону, чтобы вообще убрать shuffle.</span>
+    </div>
+    <pre><span class="c"># salting sketch: spread a hot key over N buckets</span>
+N = <span class="s">16</span>
+big_salted   = big.<span class="f">withColumn</span>(<span class="s">"salt"</span>, (F.<span class="f">rand</span>() * N).<span class="f">cast</span>(<span class="s">"int"</span>))
+small_salted = small.<span class="f">withColumn</span>(<span class="s">"salt"</span>, F.<span class="f">explode</span>(F.<span class="f">array</span>(*[F.<span class="f">lit</span>(i) <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(N)])))
+big_salted.<span class="f">join</span>(small_salted, on=[<span class="s">"key"</span>, <span class="s">"salt"</span>])</pre>
+  </div>
+</section>
+
+<section id="parts">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">5. Partitions: repartition vs coalesce</span><span class="ru">5. Партиции: repartition vs coalesce</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th></th><th><code class="inline">repartition(n)</code></th><th><code class="inline">coalesce(n)</code></th></tr>
+      <tr><td>Direction</td><td>Up or down</td><td>Down only</td></tr>
+      <tr><td>Shuffle?</td><td>Yes (full)</td><td>No (merges adjacent)</td></tr>
+      <tr><td>Result balance</td><td>Even partitions</td><td>Can be uneven</td></tr>
+      <tr><td>Use for</td><td>Increase parallelism / re-key</td><td>Reduce file count before write</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th></th><th><code class="inline">repartition(n)</code></th><th><code class="inline">coalesce(n)</code></th></tr>
+      <tr><td>Направление</td><td>Вверх или вниз</td><td>Только вниз</td></tr>
+      <tr><td>Shuffle?</td><td>Да (полный)</td><td>Нет (сливает соседние)</td></tr>
+      <tr><td>Баланс результата</td><td>Ровные партиции</td><td>Может быть неровным</td></tr>
+      <tr><td>Когда</td><td>Поднять параллелизм / сменить ключ</td><td>Сократить число файлов перед записью</td></tr>
+    </table>
+    <div class="warn">
+      <span class="lbl"><span class="en">Two partition counts people confuse</span><span class="ru">Два числа партиций, которые путают</span></span>
+      <span class="en"><strong>Input partitions</strong> come from file/block sizes. <strong>Shuffle partitions</strong> = <code class="inline">spark.sql.shuffle.partitions</code> (default 200) control parallelism after a wide op. Too few → giant tasks/OOM; too many → tiny tasks + scheduler overhead. AQE coalesces these automatically.</span>
+      <span class="ru"><strong>Входные партиции</strong> идут от размеров файлов/блоков. <strong>Shuffle-партиции</strong> = <code class="inline">spark.sql.shuffle.partitions</code> (дефолт 200) задают параллелизм после широкой операции. Слишком мало → огромные task/OOM; слишком много → крошечные task + накладные расходы планировщика. AQE сливает их автоматически.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Small files problem</span><span class="ru">Проблема мелких файлов</span></span>
+      <span class="en">Writing thousands of tiny files kills downstream read performance. Before <code class="inline">write</code>, <code class="inline">coalesce</code> (or repartition by the partition column) so each output file is a healthy ~128MB–1GB.</span>
+      <span class="ru">Запись тысяч крошечных файлов убивает скорость последующего чтения. Перед <code class="inline">write</code> делай <code class="inline">coalesce</code> (или repartition по колонке партиционирования), чтобы каждый файл был здоровым ~128MB–1GB.</span>
+    </div>
+  </div>
+</section>
+
+<section id="cache">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">6. Caching &amp; persistence</span><span class="ru">6. Кэширование и persist</span></h2>
+  <div class="card reveal">
+    <p class="en">Because evaluation is lazy, a DataFrame is <strong>recomputed from scratch every action</strong>. If you reuse one across multiple actions, cache it.</p>
+    <p class="ru">Поскольку вычисления ленивые, DataFrame <strong>пересчитывается с нуля при каждом действии</strong>. Если переиспользуешь его в нескольких действиях — кэшируй.</p>
+    <pre>clean = expensive_pipeline(df).<span class="f">cache</span>()   <span class="c"># = persist(MEMORY_AND_DISK)</span>
+clean.<span class="f">count</span>()        <span class="c"># materializes the cache</span>
+a = clean.<span class="f">filter</span>(...).<span class="f">count</span>()
+b = clean.<span class="f">groupBy</span>(...).<span class="f">agg</span>(...)   <span class="c"># reuses cache, no recompute</span>
+clean.<span class="f">unpersist</span>()    <span class="c"># free it when done</span></pre>
+    <div class="warn">
+      <span class="lbl"><span class="en">Don't over-cache</span><span class="ru">Не злоупотребляй кэшем</span></span>
+      <span class="en">Cache only DataFrames reused ≥2 times. Caching everything fills executor memory and triggers spills/evictions that make things <em>slower</em>. Cache used once = pure overhead.</span>
+      <span class="ru">Кэшируй только DataFrame, переиспользуемые ≥2 раз. Кэширование всего забивает память executor'ов и вызывает spill/вытеснение, что делает <em>медленнее</em>. Кэш при одном использовании = чистый оверхед.</span>
+    </div>
+  </div>
+</section>
+
+<section id="udf">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">7. UDFs: avoid, or use pandas_udf</span><span class="ru">7. UDF: избегай или используй pandas_udf</span></h2>
+  <div class="card reveal">
+    <p class="en">A plain Python <strong>UDF</strong> is a black box to Catalyst: it can't optimize through it, and every row is serialized from JVM → Python and back (slow, no pushdown). Order of preference:</p>
+    <p class="ru">Обычный Python-<strong>UDF</strong> — чёрный ящик для Catalyst: он не может оптимизировать сквозь него, и каждая строка сериализуется JVM → Python и обратно (медленно, без pushdown). Порядок предпочтения:</p>
+    <ul class="en">
+      <li><strong>1. Built-in <code class="inline">F.*</code> functions</strong> — always try first; fully optimized.</li>
+      <li><strong>2. <code class="inline">pandas_udf</code> (vectorized)</strong> — uses Apache Arrow to process batches of rows; 10–100× faster than a row UDF.</li>
+      <li><strong>3. Plain <code class="inline">udf</code></strong> — last resort, for logic with no built-in equivalent.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>1. Встроенные <code class="inline">F.*</code></strong> — всегда пробуй первыми; полностью оптимизированы.</li>
+      <li><strong>2. <code class="inline">pandas_udf</code> (векторизованный)</strong> — через Apache Arrow обрабатывает пачки строк; в 10–100× быстрее построчного UDF.</li>
+      <li><strong>3. Обычный <code class="inline">udf</code></strong> — последнее средство, для логики без встроенного аналога.</li>
+    </ul>
+    <pre><span class="k">from</span> pyspark.sql.functions <span class="k">import</span> pandas_udf
+<span class="k">import</span> pandas <span class="k">as</span> pd
+
+<span class="f">@pandas_udf</span>(<span class="s">"double"</span>)
+<span class="k">def</span> <span class="f">norm</span>(x: pd.Series) -&gt; pd.Series:
+    <span class="k">return</span> (x - x.mean()) / x.std()   <span class="c"># vectorized, Arrow-backed</span>
+
+df.<span class="f">withColumn</span>(<span class="s">"z"</span>, <span class="f">norm</span>(<span class="s">"amount"</span>))</pre>
+  </div>
+</section>
+
+<section id="debug">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">8. Reading the plan &amp; "why is it slow?"</span><span class="ru">8. Чтение плана и «почему тормозит?»</span></h2>
+  <div class="card reveal">
+    <pre>df.<span class="f">explain</span>(<span class="k">True</span>)   <span class="c"># parsed → analyzed → optimized → physical plan</span></pre>
+    <p class="en">Look for these in the physical plan and the Spark UI:</p>
+    <p class="ru">Ищи это в физическом плане и в Spark UI:</p>
+    <ul class="en">
+      <li><code class="inline">Exchange</code> = a shuffle. Count them; each is expensive.</li>
+      <li><code class="inline">BroadcastHashJoin</code> vs <code class="inline">SortMergeJoin</code> — did broadcast actually kick in?</li>
+      <li><code class="inline">PushedFilters</code> / partition pruning — is your filter reaching the source?</li>
+      <li>Spark UI: one task far slower than the rest → <strong>skew</strong>. Heavy spill → memory pressure / repartition needed.</li>
+    </ul>
+    <ul class="ru">
+      <li><code class="inline">Exchange</code> = shuffle. Считай их; каждый дорогой.</li>
+      <li><code class="inline">BroadcastHashJoin</code> vs <code class="inline">SortMergeJoin</code> — broadcast реально сработал?</li>
+      <li><code class="inline">PushedFilters</code> / отсечение партиций — твой фильтр доходит до источника?</li>
+      <li>Spark UI: одна task сильно медленнее остальных → <strong>перекос</strong>. Сильный spill → нехватка памяти / нужен repartition.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">AQE — your free win in Spark 3+</span><span class="ru">AQE — бесплатная победа в Spark 3+</span></span>
+      <span class="en"><strong>Adaptive Query Execution</strong> re-optimizes the plan at runtime using real stats: coalesces shuffle partitions, switches sort-merge → broadcast when a side turns out small, and splits skewed partitions. Keep <code class="inline">spark.sql.adaptive.enabled=true</code>.</span>
+      <span class="ru"><strong>Adaptive Query Execution</strong> переоптимизирует план во время выполнения по реальной статистике: сливает shuffle-партиции, меняет sort-merge → broadcast, когда сторона оказалась маленькой, и дробит перекошенные партиции. Держи <code class="inline">spark.sql.adaptive.enabled=true</code>.</span>
+    </div>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">9. Quick self-check</span><span class="ru">9. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Narrow vs wide transformation?</span><span class="ru">Узкая vs широкая трансформация?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Narrow (map/filter): output partition ← one input partition, no movement. Wide (join/groupBy/distinct): pulls from many partitions → <strong>shuffle</strong> over the network. Wide = a stage boundary.</span><span class="ru">Узкая (map/filter): выходная партиция ← одна входная, без движения. Широкая (join/groupBy/distinct): тянет из многих → <strong>shuffle</strong> по сети. Широкая = граница stage.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Huge fact ⋈ small dim is slow. Fix?</span><span class="ru">Огромный факт ⋈ маленькая размерность тормозит. Что делать?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en"><code class="inline">broadcast(small_dim)</code> → broadcast hash join, no shuffle. The small side is copied to every executor.</span><span class="ru"><code class="inline">broadcast(small_dim)</code> → broadcast hash join, без shuffle. Малая сторона копируется на каждый executor.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">199 tasks finish fast, 1 runs forever. Why?</span><span class="ru">199 task быстро, 1 бесконечно. Почему?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en"><strong>Skew</strong>: one key has most of the rows, so one partition is huge. Fix with AQE skew join, salting, separating null keys, or broadcast.</span><span class="ru"><strong>Перекос</strong>: у одного ключа большинство строк, поэтому одна партиция огромна. Решение: AQE skew join, соление, отдельная обработка null, или broadcast.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">repartition vs coalesce?</span><span class="ru">repartition vs coalesce?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">repartition = full shuffle, up or down, even partitions. coalesce = no shuffle, down only, merges existing partitions (may be uneven). Use coalesce before write to cut file count.</span><span class="ru">repartition = полный shuffle, вверх/вниз, ровные партиции. coalesce = без shuffle, только вниз, сливает существующие (может быть неровно). coalesce перед write — сократить число файлов.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why is a Python UDF slow? Alternative?</span><span class="ru">Почему Python-UDF медленный? Альтернатива?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">It's opaque to Catalyst and serializes each row JVM↔Python. Prefer built-in <code class="inline">F.*</code>; if you must, use a vectorized <code class="inline">pandas_udf</code> (Arrow batches, 10–100× faster).</span><span class="ru">Он непрозрачен для Catalyst и сериализует каждую строку JVM↔Python. Предпочитай встроенные <code class="inline">F.*</code>; если нужно — векторизованный <code class="inline">pandas_udf</code> (пачки Arrow, в 10–100× быстрее).</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">When should you cache?</span><span class="ru">Когда кэшировать?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">When the same DataFrame feeds ≥2 actions (it's recomputed each action otherwise). Don't cache single-use data — it just wastes executor memory.</span><span class="ru">Когда один DataFrame питает ≥2 действия (иначе пересчитывается каждый раз). Не кэшируй одноразовые данные — это лишь тратит память executor'ов.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What does AQE do?</span><span class="ru">Что делает AQE?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Adaptive Query Execution re-optimizes at runtime with real stats: coalesces shuffle partitions, flips to broadcast join, and splits skewed partitions. On by default in Spark 3+.</span><span class="ru">Adaptive Query Execution переоптимизирует на лету по реальной статистике: сливает shuffle-партиции, переключается на broadcast join, дробит перекошенные партиции. Вкл. по умолчанию в Spark 3+.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What does Exchange mean in a plan?</span><span class="ru">Что значит Exchange в плане?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">It's a <strong>shuffle</strong>. Each Exchange means data is redistributed across the network — count them in <code class="inline">explain()</code> and try to reduce them.</span><span class="ru">Это <strong>shuffle</strong>. Каждый Exchange — перераспределение данных по сети; считай их в <code class="inline">explain()</code> и старайся сократить.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">PySpark — Performance · part of the DE interview cheatsheets · built for Amal Imangulov · back: <a href="pyspark-essentials.html">← Essentials</a></span>
+  <span class="ru">PySpark — Производительность · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · назад: <a href="pyspark-essentials.html">← Основы</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
