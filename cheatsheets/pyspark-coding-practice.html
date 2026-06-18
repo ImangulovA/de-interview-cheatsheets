@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PySpark Coding Practice</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --card:#151d30; --card2:#1b2540; --text:#e6ecf5; --muted:#8a97b0;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --gold:#ffd33d;
+    --red:#fb6f78; --border:#25304d; --code-bg:#0d1426; --shadow:0 6px 24px rgba(0,0,0,.4);
+  }
+  [data-theme="light"]{
+    --bg:#f3f5fa; --card:#fff; --card2:#eef1f8; --text:#11161f; --muted:#5a6580;
+    --accent:#1877F2; --green:#058a6c; --orange:#b5730a; --purple:#7c3aed; --gold:#a87b00;
+    --red:#d23b46; --border:#d6dced; --code-bg:#f0f2f8; --shadow:0 6px 24px rgba(20,40,90,.10);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:74px}
+  body{margin:0;background:var(--bg);color:var(--text);line-height:1.55;font-size:15px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;transition:background .25s,color .25s}
+  code,pre,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  a{color:var(--accent);text-decoration:none}
+
+  nav{position:sticky;top:0;z-index:100;background:color-mix(in srgb,var(--bg) 92%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;
+    gap:10px;padding:10px 16px;flex-wrap:wrap}
+  nav .brand{font-weight:800;color:var(--accent);white-space:nowrap;letter-spacing:.3px}
+  nav .spacer{flex:1}
+  .chip{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:20px;
+    padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+  .chip:hover{border-color:var(--accent);color:var(--text)}
+  .chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn{background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:9px;
+    padding:6px 12px;font-weight:600;cursor:pointer;font-size:13px;transition:.15s}
+  .btn:hover{border-color:var(--accent)}
+
+  .wrap{max-width:1000px;margin:0 auto;padding:0 18px}
+  .hero{padding:40px 0 14px}
+  .hero h1{font-size:30px;margin:0 0 8px}
+  .hero h1 span{color:var(--accent)}
+  .hero p{color:var(--muted);max-width:680px;margin:0}
+  .imports{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;
+    margin:16px 0;font-size:13px;overflow:auto}
+
+  h2.sec{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+    margin:34px 0 14px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+  /* concept diagrams */
+  .concepts{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  @media(max-width:760px){.concepts{grid-template-columns:1fr}}
+  .concept{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+  .concept h3{margin:0 0 4px;font-size:15px}
+  .concept .sub{color:var(--muted);font-size:12.5px;margin-bottom:12px}
+  .row{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+  .cellbox{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card2);color:var(--muted)}
+  .cellbox.part{background:color-mix(in srgb,var(--accent) 22%,transparent);border-color:var(--accent);color:var(--text)}
+  .cellbox.frame{background:color-mix(in srgb,var(--green) 26%,transparent);border-color:var(--green);color:var(--text)}
+  .cellbox.cur{background:var(--gold);color:#3a2c00;border-color:var(--gold)}
+  .lbl{font-size:11px;color:var(--muted);margin:8px 0 3px}
+  .bar{height:16px;border-radius:5px;background:var(--accent);display:inline-block;vertical-align:middle}
+  .bar.hot{background:var(--red)}
+  .bar.sm{background:var(--green)}
+  .tline{position:relative;height:46px;margin-top:6px}
+  .ev{position:absolute;top:14px;width:14px;height:14px;border-radius:50%;background:var(--accent);transform:translateX(-50%)}
+  .ev.s2{background:var(--orange)} .ev.s3{background:var(--purple)}
+  .tline .axis{position:absolute;left:0;right:0;top:20px;height:2px;background:var(--border)}
+  .tag-sess{position:absolute;top:-2px;font-size:10px;color:var(--muted);transform:translateX(-50%)}
+
+  /* question cards */
+  .q{background:var(--card);border:1px solid var(--border);border-radius:14px;margin:14px 0;
+    box-shadow:var(--shadow);overflow:hidden}
+  .q.hidden{display:none}
+  .qhead{display:flex;align-items:center;gap:10px;padding:15px 18px;cursor:pointer}
+  .qhead:hover{background:var(--card2)}
+  .qnum{font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;min-width:26px}
+  .qtitle{font-weight:700;flex:1}
+  .badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+  .b-warm{background:color-mix(in srgb,var(--green) 16%,transparent);color:var(--green)}
+  .b-win{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+  .b-scn{background:color-mix(in srgb,var(--purple) 16%,transparent);color:var(--purple)}
+  .b-typ{background:color-mix(in srgb,var(--orange) 16%,transparent);color:var(--orange)}
+  .b-perf{background:color-mix(in srgb,var(--gold) 18%,transparent);color:var(--gold)}
+  .qbody{padding:0 18px 16px;border-top:1px solid var(--border)}
+  .qbody .prompt{margin:14px 0 10px;color:var(--text)}
+  .reveal{background:transparent;border:1px dashed var(--border);color:var(--muted);border-radius:8px;
+    padding:7px 12px;font-weight:600;cursor:pointer;font-size:13px}
+  .reveal:hover{border-color:var(--green);color:var(--green)}
+  pre.code{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:14px;
+    overflow:auto;font-size:13px;margin:12px 0 6px;line-height:1.5}
+  .sol{display:none}
+  .sol.open{display:block}
+  .gotcha{font-size:13.5px;color:var(--muted);background:var(--card2);border-left:3px solid var(--orange);
+    border-radius:0 8px 8px 0;padding:9px 12px;margin-top:8px}
+  .gotcha b{color:var(--orange)}
+
+  /* python highlighting */
+  .tok-kw{color:var(--purple);font-weight:600}
+  .tok-bi{color:var(--accent)}
+  .tok-str{color:var(--green)}
+  .tok-num{color:var(--orange)}
+  .tok-com{color:var(--muted);font-style:italic}
+  [data-theme="light"] .tok-str{color:#0a8a5f}
+
+  footer{color:var(--muted);font-size:13px;text-align:center;padding:34px 0 50px}
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">PySpark · drills</span>
+  <span class="chip active" data-filter="all">All</span>
+  <span class="chip" data-filter="warm">Warm-up</span>
+  <span class="chip" data-filter="win">Windows</span>
+  <span class="chip" data-filter="scn">Scenario</span>
+  <span class="chip" data-filter="typ">Complex types</span>
+  <span class="chip" data-filter="perf">Performance</span>
+  <span class="spacer"></span>
+  <button class="btn" id="revealAll">Reveal all</button>
+  <button class="btn" id="theme">◐</button>
+</nav>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>PySpark <span>coding practice</span></h1>
+    <p>Hands-on DataFrame problems that come up in data-engineering interviews — windows, joins,
+    skew, sessionization, complex types, performance. Each card has the task; click
+    <i>Show solution</i> to reveal idiomatic code and the gotcha interviewers probe.</p>
+    <pre class="imports code" id="imports"></pre>
+  </div>
+
+  <h2 class="sec">Concepts at a glance</h2>
+  <div class="concepts">
+    <div class="concept">
+      <h3>Window: partition → order → frame</h3>
+      <div class="sub">A window picks a partition, sorts it, then a moving frame feeds the aggregate.</div>
+      <div class="lbl">partitionBy("dept") · orderBy("ts") · rows unboundedPreceding → currentRow</div>
+      <div class="row" id="winRow"></div>
+      <div class="lbl" style="margin-top:10px">blue = partition · <span style="color:var(--green)">green = frame</span> · <span style="color:var(--gold)">gold = current row</span></div>
+    </div>
+
+    <div class="concept">
+      <h3>Data skew → salting</h3>
+      <div class="sub">One hot key overloads a task. Split it into N salted sub-keys so work spreads.</div>
+      <div class="lbl">before — one task does everything</div>
+      <div class="row"><span class="bar hot" style="width:220px"></span><span style="font-size:11px;color:var(--muted)">key="US"</span></div>
+      <div class="lbl" style="margin-top:10px">after — salt = rand()%N, join on (key, salt)</div>
+      <div class="row" id="saltRow"></div>
+    </div>
+
+    <div class="concept">
+      <h3>Sessionization (30-min gap)</h3>
+      <div class="sub">New session starts when the gap from the previous event exceeds the threshold.</div>
+      <div class="tline" id="sessLine">
+        <div class="axis"></div>
+      </div>
+      <div class="lbl">a gap &gt; 30 min flips <code>new_session=1</code>; a running sum of those flips = session id</div>
+    </div>
+
+    <div class="concept">
+      <h3>Narrow vs wide (shuffle)</h3>
+      <div class="sub">Narrow = data stays on its partition. Wide = data crosses the network (shuffle).</div>
+      <div class="lbl" style="color:var(--green)">narrow — map, filter, withColumn, union</div>
+      <div class="row"><span class="cellbox part">P0</span><span style="color:var(--green)">→</span><span class="cellbox part">P0</span>
+        <span style="width:14px"></span><span class="cellbox part">P1</span><span style="color:var(--green)">→</span><span class="cellbox part">P1</span></div>
+      <div class="lbl" style="color:var(--orange);margin-top:10px">wide — groupBy, join, distinct, repartition, orderBy</div>
+      <div class="row"><span class="cellbox part">P0</span><span class="cellbox part">P1</span>
+        <span style="color:var(--orange)">⇄ shuffle ⇄</span><span class="cellbox frame">P0'</span><span class="cellbox frame">P1'</span></div>
+    </div>
+  </div>
+
+  <div id="list"></div>
+
+  <footer>Personal PySpark drill set · self-contained · dark/light toggle saved locally.</footer>
+</div>
+
+<script>
+/* ---------------- content ---------------- */
+const IMPORTS = `from pyspark.sql import Window
+from pyspark.sql import functions as F`;
+
+const Q = [
+/* ---- warm-up ---- */
+{cat:"warm", badge:"Warm-up", b:"b-warm", title:"Word count",
+ prompt:"Given a DataFrame with a text column <code>line</code>, return each word and its frequency, most frequent first.",
+ code:`(df.select(F.explode(F.split(F.col("line"), r"\\s+")).alias("word"))
+   .groupBy("word").count()
+   .orderBy(F.desc("count")))`,
+ gotcha:"<b>Gotcha:</b> split on a regex (\\s+), not a single space, or empty tokens sneak in. Filter out '' if the text has leading/trailing spaces."},
+
+{cat:"warm", badge:"Warm-up", b:"b-warm", title:"Deduplicate — keep the latest record per key",
+ prompt:"Each <code>user_id</code> appears many times; keep only the row with the most recent <code>updated_at</code>.",
+ code:`window_latest = Window.partitionBy("user_id").orderBy(F.col("updated_at").desc())
+
+latest = (df.withColumn("rn", F.row_number().over(window_latest))
+            .filter("rn = 1")
+            .drop("rn"))`,
+ gotcha:"<b>Gotcha:</b> use <code>row_number</code> (exactly one row) not <code>rank</code> (ties keep duplicates). <code>dropDuplicates([\"user_id\"])</code> keeps an <i>arbitrary</i> row, not the latest."},
+
+{cat:"warm", badge:"Warm-up", b:"b-warm", title:"Count nulls in every column",
+ prompt:"Produce a one-row DataFrame with the count of NULLs for each column (data-quality check).",
+ code:`df.select([
+    F.sum(F.col(c).isNull().cast("int")).alias(c)
+    for c in df.columns
+])`,
+ gotcha:"<b>Gotcha:</b> <code>count()</code> ignores nulls, so cast <code>isNull()</code> to int and sum. For NaN in doubles add <code>| F.isnan(c)</code>."},
+
+/* ---- windows ---- */
+{cat:"win", badge:"Windows", b:"b-win", title:"Top-N per group",
+ prompt:"Return the 2 highest-paid employees in each <code>dept</code>.",
+ code:`window_dept = Window.partitionBy("dept").orderBy(F.col("salary").desc())
+
+top2 = (df.withColumn("rn", F.row_number().over(window_dept))
+          .filter(F.col("rn") <= 2)
+          .drop("rn"))`,
+ gotcha:"<b>Gotcha:</b> know the difference — <code>row_number</code> (1,2,3,4), <code>rank</code> (1,2,2,4), <code>dense_rank</code> (1,2,2,3). 'Top 2 including ties' → dense_rank."},
+
+{cat:"win", badge:"Windows", b:"b-win", title:"Second-highest value per group",
+ prompt:"Find the second-highest salary within each department (with ties counted once).",
+ code:`window_dept = Window.partitionBy("dept").orderBy(F.col("salary").desc())
+
+df.withColumn("rnk", F.dense_rank().over(window_dept)).filter("rnk = 2")`,
+ gotcha:"<b>Gotcha:</b> dense_rank handles duplicate top salaries correctly; row_number would skip the real 2nd-highest if the top is tied."},
+
+{cat:"win", badge:"Windows", b:"b-win", title:"Running / cumulative total",
+ prompt:"For each account, compute a running total of <code>amount</code> ordered by <code>txn_date</code>.",
+ code:`window_cum = (Window.partitionBy("account").orderBy("txn_date")
+                    .rowsBetween(Window.unboundedPreceding, Window.currentRow))
+
+df.withColumn("running_total", F.sum("amount").over(window_cum))`,
+ gotcha:"<b>Gotcha:</b> without an explicit frame, an ordered window defaults to <code>rangeBetween(unboundedPreceding, currentRow)</code> — fine for sums, but <code>rows</code> vs <code>range</code> differ when dates tie. State the frame explicitly."},
+
+{cat:"win", badge:"Windows", b:"b-win", title:"Month-over-month growth (lag)",
+ prompt:"For each product, compute the % change in revenue vs the previous month.",
+ code:`window_mom = Window.partitionBy("product").orderBy("month")
+
+(df.withColumn("prev", F.lag("revenue").over(window_mom))
+   .withColumn("mom_pct",
+       (F.col("revenue") - F.col("prev")) / F.col("prev") * 100))`,
+ gotcha:"<b>Gotcha:</b> first month has <code>prev = NULL</code> → result is NULL (don't divide-by-zero guard unless prev can be 0). Use <code>lag(col, 2)</code> for two periods back."},
+
+{cat:"win", badge:"Windows", b:"b-win", title:"Forward-fill last non-null",
+ prompt:"Carry the last observed non-null <code>value</code> forward within each <code>id</code>, ordered by time.",
+ code:`window_ff = (Window.partitionBy("id").orderBy("ts")
+                   .rowsBetween(Window.unboundedPreceding, Window.currentRow))
+
+df.withColumn("filled", F.last("value", ignorenulls=True).over(window_ff))`,
+ gotcha:"<b>Gotcha:</b> the <code>ignorenulls=True</code> flag is the whole trick. For backward-fill use <code>first(... ignorenulls=True)</code> over a forward-looking frame."},
+
+/* ---- scenario ---- */
+{cat:"scn", badge:"Scenario", b:"b-scn", title:"Sessionization with a 30-minute inactivity gap",
+ prompt:"Assign a <code>session_id</code> per user: a new session begins whenever &gt; 30 min pass since the previous event.",
+ code:`window_user = Window.partitionBy("user_id").orderBy("event_ts")
+
+sessions = (df
+    .withColumn("prev_ts", F.lag("event_ts").over(window_user))
+    .withColumn("gap_min",
+        (F.col("event_ts").cast("long") - F.col("prev_ts").cast("long")) / 60)
+    .withColumn("new_session",
+        ((F.col("gap_min") > 30) | F.col("prev_ts").isNull()).cast("int"))
+    .withColumn("session_id", F.sum("new_session").over(window_user)))`,
+ gotcha:"<b>Gotcha:</b> the running <code>sum</code> of the new_session flag over the same ordered window is what numbers the sessions. The first event must count as a new session (prev_ts is null)."},
+
+{cat:"scn", badge:"Scenario", b:"b-scn", title:"Gaps & islands — consecutive-day streaks",
+ prompt:"For each user, find runs of consecutive login days: streak length, start and end date.",
+ code:`window_login = Window.partitionBy("user_id").orderBy("login_date")
+
+streaks = (df
+    .withColumn("rn", F.row_number().over(window_login))
+    # for consecutive dates, (date - rn) is constant inside one run
+    .withColumn("grp", F.date_sub(F.col("login_date"), F.col("rn")))
+    .groupBy("user_id", "grp")
+    .agg(F.count("*").alias("streak_len"),
+         F.min("login_date").alias("start_date"),
+         F.max("login_date").alias("end_date"))
+    .drop("grp"))`,
+ gotcha:"<b>Gotcha:</b> the classic 'subtract row_number from the ordered value' trick. Dedupe dates first, or repeated logins on one day break the invariant."},
+
+{cat:"scn", badge:"Scenario", b:"b-scn", title:"Customers who bought A but not B",
+ prompt:"From an <code>orders</code> table, return customers who purchased product A but never product B.",
+ code:`buyers_a = orders.filter("product = 'A'").select("customer_id").distinct()
+buyers_b = orders.filter("product = 'B'").select("customer_id").distinct()
+
+result = buyers_a.join(buyers_b, "customer_id", "left_anti")`,
+ gotcha:"<b>Gotcha:</b> <code>left_anti</code> = rows in left with no match in right (no columns from right added). Don't do a left join + <code>filter(b.id.isNull())</code> unless you handle nulls carefully."},
+
+{cat:"scn", badge:"Scenario", b:"b-scn", title:"Median / percentile per group",
+ prompt:"Compute the median salary per department.",
+ code:`df.groupBy("dept").agg(
+    F.percentile_approx("salary", 0.5).alias("median_salary")
+)`,
+ gotcha:"<b>Gotcha:</b> <code>percentile_approx</code> is scalable; add an accuracy arg for tighter bounds. Exact median needs a window + row_number split, which is far more expensive."},
+
+/* ---- complex types ---- */
+{cat:"typ", badge:"Complex types", b:"b-typ", title:"Explode an array column and aggregate",
+ prompt:"Each row has a <code>tags</code> array. Count how often each tag appears across all rows.",
+ code:`df.withColumn("tag", F.explode("tags")).groupBy("tag").count()`,
+ gotcha:"<b>Gotcha:</b> <code>explode</code> drops rows with empty/null arrays. Use <code>explode_outer</code> to keep them (tag = null)."},
+
+{cat:"typ", badge:"Complex types", b:"b-typ", title:"Parse a JSON string column",
+ prompt:"Column <code>json_col</code> holds JSON strings like {\"name\":..,\"age\":..}. Flatten into typed columns.",
+ code:`from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+
+schema = StructType([
+    StructField("name", StringType()),
+    StructField("age", IntegerType()),
+])
+
+df.withColumn("parsed", F.from_json("json_col", schema)).select("parsed.*")`,
+ gotcha:"<b>Gotcha:</b> <code>from_json</code> needs a schema; bad/missing fields become null (not an error). Don't reach for a UDF + <code>json.loads</code> — it's slower and skips Catalyst."},
+
+{cat:"typ", badge:"Complex types", b:"b-typ", title:"Pivot and unpivot",
+ prompt:"Pivot revenue by year into columns; then unpivot quarterly columns back into rows.",
+ code:`# pivot: rows -> columns
+df.groupBy("product").pivot("year").agg(F.sum("revenue"))
+
+# unpivot: columns -> rows (stack)
+df.selectExpr(
+    "id",
+    "stack(3, 'q1', q1, 'q2', q2, 'q3', q3) as (quarter, value)"
+)`,
+ gotcha:"<b>Gotcha:</b> pass the value list to <code>pivot(\"year\", [2023, 2024])</code> when you know it — Spark then skips a distinct-scan and runs faster."},
+
+/* ---- performance ---- */
+{cat:"perf", badge:"Performance", b:"b-perf", title:"Broadcast join for a small dimension",
+ prompt:"Join a huge fact table to a small dimension without a full shuffle.",
+ code:`from pyspark.sql.functions import broadcast
+
+df_big.join(broadcast(df_small), "key")`,
+ gotcha:"<b>Gotcha:</b> only broadcast tables that fit in executor memory (roughly &lt; a few hundred MB). AQE can auto-broadcast under <code>spark.sql.autoBroadcastJoinThreshold</code>; the hint forces it."},
+
+{cat:"perf", badge:"Performance", b:"b-perf", title:"Skewed join → key salting",
+ prompt:"One key (e.g. country='US') dominates and one task runs forever. Spread it with salting.",
+ code:`N = 16
+
+# salt the big/skewed side with a random bucket
+big = df_big.withColumn("salt", (F.rand() * N).cast("int"))
+
+# replicate the small side across every bucket
+small = df_small.withColumn(
+    "salt", F.explode(F.array([F.lit(i) for i in range(N)]))
+)
+
+joined = big.join(small, on=["key", "salt"], how="inner").drop("salt")`,
+ gotcha:"<b>Gotcha:</b> only the small side gets replicated N×. With AQE skew-join enabled (<code>spark.sql.adaptive.skewJoin.enabled</code>) you often don't need manual salting — mention both."},
+
+{cat:"perf", badge:"Performance", b:"b-perf", title:"Diff two DataFrames",
+ prompt:"Find rows present in <code>df1</code> but not in <code>df2</code> (e.g. compare two pipeline runs).",
+ code:`# rows in df1 not in df2 (keeps duplicates)
+df1.exceptAll(df2)
+
+# symmetric diff: which side each differing row came from
+(df1.withColumn("src", F.lit("df1"))
+    .unionByName(df2.withColumn("src", F.lit("df2")))
+    .groupBy(*df1.columns)
+    .agg(F.collect_set("src").alias("present_in"))
+    .filter(F.size("present_in") == 1))`,
+ gotcha:"<b>Gotcha:</b> <code>except</code> dedupes; <code>exceptAll</code> preserves duplicate multiplicity. Both are wide (shuffle). Align columns with <code>unionByName</code>, not positional <code>union</code>."},
+
+{cat:"perf", badge:"Performance", b:"b-perf", title:"SCD Type 2 upsert (outline)",
+ prompt:"Maintain history: close the current row and insert a new version when a tracked attribute changes.",
+ code:`# 1. hash tracked attributes on both sides
+src = staging.withColumn("h", F.hash("name", "city", "tier"))
+tgt = target.filter("is_current = true").withColumn("h", F.hash("name", "city", "tier"))
+
+# 2. find business keys whose hash changed
+changed = (src.join(tgt, "biz_key", "left")
+              .filter((tgt.h.isNull()) | (src.h != tgt.h))
+              .select(src["*"]))
+
+# 3a. expire old current rows for changed keys
+expired = (tgt.join(changed.select("biz_key"), "biz_key", "left_semi")
+              .withColumn("is_current", F.lit(False))
+              .withColumn("end_date", F.current_date()))
+
+# 3b. insert new versions
+new_rows = (changed.withColumn("is_current", F.lit(True))
+                   .withColumn("start_date", F.current_date())
+                   .withColumn("end_date", F.lit(None).cast("date")))
+
+# 4. union unchanged + expired + new  (or MERGE INTO with Delta/Iceberg)`,
+ gotcha:"<b>Gotcha:</b> in production use a <code>MERGE INTO</code> on Delta/Iceberg instead of hand-rolled union — it's atomic. Interviewers want to hear: hash-compare, expire, insert, and idempotency."},
+];
+
+/* ---------------- tiny python highlighter ---------------- */
+const KW = new Set("and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield True False None".split(" "));
+const BI = new Set("F Window print len range int str float list dict set sum min max range hash".split(" "));
+const esc = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function hl(src){
+  const re = /(#[^\n]*)|((?:rf|fr|r|f)?"(?:\\.|[^"\\])*"|(?:rf|fr|r|f)?'(?:\\.|[^'\\])*')|(\b\d[\d_.]*\b)|([A-Za-z_]\w*)|([\s\S])/g;
+  let out = "", m;
+  while((m = re.exec(src)) !== null){
+    if(m[1]) out += `<span class="tok-com">${esc(m[1])}</span>`;
+    else if(m[2]) out += `<span class="tok-str">${esc(m[2])}</span>`;
+    else if(m[3]) out += `<span class="tok-num">${esc(m[3])}</span>`;
+    else if(m[4]){
+      const w = m[4];
+      if(KW.has(w)) out += `<span class="tok-kw">${w}</span>`;
+      else if(BI.has(w)) out += `<span class="tok-bi">${w}</span>`;
+      else out += esc(w);
+    }
+    else out += esc(m[5]);
+  }
+  return out;
+}
+
+/* ---------------- render ---------------- */
+const $ = s => document.querySelector(s);
+$("#imports").innerHTML = hl(IMPORTS);
+
+const list = $("#list");
+const SEC = [["warm","Warm-up"],["win","Window functions"],["scn","Scenario problems"],["typ","Complex types"],["perf","Performance & joins"]];
+let html = "";
+let n = 0;
+SEC.forEach(([cat,label])=>{
+  html += `<h2 class="sec" data-sec="${cat}">${label}</h2>`;
+  Q.filter(q=>q.cat===cat).forEach(q=>{
+    n++;
+    html += `<div class="q" data-cat="${q.cat}">
+      <div class="qhead">
+        <span class="qnum">${n}</span>
+        <span class="qtitle">${q.title}</span>
+        <span class="badge ${q.b}">${q.badge}</span>
+      </div>
+      <div class="qbody">
+        <div class="prompt">${q.prompt}</div>
+        <button class="reveal">▸ Show solution</button>
+        <div class="sol">
+          <pre class="code">${hl(q.code)}</pre>
+          <div class="gotcha">${q.gotcha}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+});
+list.innerHTML = html;
+
+/* reveal per card */
+document.querySelectorAll(".q").forEach(card=>{
+  const sol = card.querySelector(".sol");
+  const btn = card.querySelector(".reveal");
+  const toggle = ()=>{
+    sol.classList.toggle("open");
+    btn.textContent = sol.classList.contains("open") ? "▾ Hide solution" : "▸ Show solution";
+  };
+  btn.onclick = toggle;
+  card.querySelector(".qhead").onclick = toggle;
+});
+
+/* reveal all */
+let allOpen = false;
+$("#revealAll").onclick = ()=>{
+  allOpen = !allOpen;
+  document.querySelectorAll(".q").forEach(card=>{
+    const sol = card.querySelector(".sol"), btn = card.querySelector(".reveal");
+    sol.classList.toggle("open", allOpen);
+    btn.textContent = allOpen ? "▾ Hide solution" : "▸ Show solution";
+  });
+  $("#revealAll").textContent = allOpen ? "Hide all" : "Reveal all";
+};
+
+/* filter */
+document.querySelectorAll(".chip").forEach(chip=>{
+  chip.onclick = ()=>{
+    document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+    chip.classList.add("active");
+    const f = chip.dataset.filter;
+    document.querySelectorAll(".q").forEach(card=>{
+      card.classList.toggle("hidden", f!=="all" && card.dataset.cat!==f);
+    });
+    document.querySelectorAll("[data-sec]").forEach(h=>{
+      h.style.display = (f==="all" || h.dataset.sec===f) ? "" : "none";
+    });
+  };
+});
+
+/* concept diagrams */
+(function(){
+  // window row: 7 cells, partition all, frame first 4, current = 4th
+  const wr = $("#winRow");
+  for(let i=0;i<7;i++){
+    const d=document.createElement("div");
+    let cls="cellbox part";
+    if(i<4) cls="cellbox frame";
+    if(i===3) cls="cellbox cur";
+    d.className=cls; d.textContent=i+1; wr.appendChild(d);
+  }
+  // salt row: 6 small green bars
+  const sr=$("#saltRow");
+  [60,52,58,50,54,56].forEach(w=>{
+    const b=document.createElement("span"); b.className="bar sm";
+    b.style.width=w+"px"; b.style.marginRight="6px"; sr.appendChild(b);
+  });
+  // sessionization timeline: events at %, gap before 60% and 88% start new sessions
+  const sl=$("#sessLine");
+  const evs=[[6,1],[14,1],[22,1],[60,2],[70,2],[88,3]];
+  const starts={6:"S1",60:"S2",88:"S3"};
+  evs.forEach(([p,s])=>{
+    const e=document.createElement("div"); e.className="ev s"+s; e.style.left=p+"%"; sl.appendChild(e);
+    if(starts[p]){ const t=document.createElement("div"); t.className="tag-sess"; t.style.left=p+"%"; t.textContent=starts[p]; sl.appendChild(t);}
+  });
+})();
+
+/* theme */
+$("#theme").onclick=()=>{
+  const t=document.documentElement.dataset.theme==="dark"?"light":"dark";
+  document.documentElement.dataset.theme=t; localStorage.de_cheat_theme=t;
+};
+if(localStorage.de_cheat_theme) document.documentElement.dataset.theme=localStorage.de_cheat_theme;
+</script>
+</body>
+</html>
