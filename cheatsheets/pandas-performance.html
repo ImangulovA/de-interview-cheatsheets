@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pandas Performance — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0; }
+  pre .c { color:var(--muted); } pre .k { color:var(--purple); } pre .s { color:var(--green); } pre .f { color:var(--accent); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway,.warn { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .warn { border-color:var(--orange); background:color-mix(in srgb,var(--orange) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); } .warn .lbl { color:var(--orange); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:210px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🔥 Pandas · <span class="en">Performance</span><span class="ru">Производительность</span></span>
+  <a href="#vector"><span class="en">Vectorize</span><span class="ru">Векторизация</span></a>
+  <a href="#memory"><span class="en">Memory/dtypes</span><span class="ru">Память/типы</span></a>
+  <a href="#copy"><span class="en">Copy vs view</span><span class="ru">Copy vs view</span></a>
+  <a href="#bigdata"><span class="en">Bigger data</span><span class="ru">Больше данных</span></a>
+  <a href="#merge"><span class="en">Fast merge/group</span><span class="ru">Быстрый merge/group</span></a>
+  <a href="#beyond"><span class="en">Beyond pandas</span><span class="ru">За пределами</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Pandas Performance &amp; Scale</span><span class="ru">Pandas: производительность и масштаб</span></h1>
+  <div class="sub">
+    <span class="en">Make pandas fast and memory-lean: vectorization vs loops, dtypes &amp; categoricals, copy-vs-view, chunking, fast joins, and when to graduate to Polars / DuckDB / PySpark.</span>
+    <span class="ru">Делаем pandas быстрым и экономным по памяти: векторизация vs циклы, dtypes и категории, copy-vs-view, чтение по чанкам, быстрые join'ы, и когда переходить на Polars / DuckDB / PySpark.</span>
+  </div>
+  <div class="levels">
+    <a class="level" href="pandas-essentials.html">🟢 <span class="en">Essentials</span><span class="ru">Основы</span></a>
+    <a class="level active" href="pandas-performance.html">🔴 <span class="en">Performance</span><span class="ru">Производительность</span></a>
+    <a class="level" href="pyspark-performance.html">⚡ <span class="en">Scale out: PySpark</span><span class="ru">Масштаб: PySpark</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="vector">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. Vectorize — never loop rows</span><span class="ru">1. Векторизуй — не перебирай строки</span></h2>
+  <div class="card reveal">
+    <p class="en">The #1 pandas performance rule, and the most common interview answer. Pandas is fast because operations run on whole columns in compiled C/NumPy. A Python-level loop throws that away.</p>
+    <p class="ru">Правило производительности №1 и самый частый ответ на интервью. Pandas быстр, потому что операции идут над целыми колонками в скомпилированном C/NumPy. Python-цикл это рушит.</p>
+    <table class="en">
+      <tr><th>Approach</th><th>Relative speed</th><th>Use</th></tr>
+      <tr><td>Vectorized (<code class="inline">df["a"]*2</code>, <code class="inline">np.where</code>)</td><td>⚡ fastest (1×)</td><td>Always try first</td></tr>
+      <tr><td>Built-in methods (<code class="inline">.str</code>, <code class="inline">.dt</code>, <code class="inline">groupby</code>)</td><td>⚡ fast</td><td>String/date/group work</td></tr>
+      <tr><td><code class="inline">.apply(axis=1)</code></td><td>🐢 ~10–100× slower</td><td>Only if no vectorized form</td></tr>
+      <tr><td><code class="inline">.iterrows()</code> / Python <code class="inline">for</code></td><td>🐌 slowest</td><td>Avoid</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Подход</th><th>Относит. скорость</th><th>Когда</th></tr>
+      <tr><td>Векторизация (<code class="inline">df["a"]*2</code>, <code class="inline">np.where</code>)</td><td>⚡ быстрее всего (1×)</td><td>Всегда пробуй первым</td></tr>
+      <tr><td>Встроенные методы (<code class="inline">.str</code>, <code class="inline">.dt</code>, <code class="inline">groupby</code>)</td><td>⚡ быстро</td><td>Строки/даты/группы</td></tr>
+      <tr><td><code class="inline">.apply(axis=1)</code></td><td>🐢 в ~10–100× медленнее</td><td>Только если нет векторной формы</td></tr>
+      <tr><td><code class="inline">.iterrows()</code> / Python <code class="inline">for</code></td><td>🐌 медленнее всего</td><td>Избегай</td></tr>
+    </table>
+    <pre><span class="c"># SLOW — Python loop per row</span>
+df[<span class="s">"net"</span>] = df.<span class="f">apply</span>(<span class="k">lambda</span> r: r[<span class="s">"amount"</span>] - r[<span class="s">"fee"</span>], axis=<span class="s">1</span>)
+
+<span class="c"># FAST — one vectorized C operation</span>
+df[<span class="s">"net"</span>] = df[<span class="s">"amount"</span>] - df[<span class="s">"fee"</span>]</pre>
+  </div>
+</section>
+
+<section id="memory">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Memory &amp; dtypes</span><span class="ru">2. Память и типы (dtypes)</span></h2>
+  <div class="card reveal">
+    <p class="en">Pandas often uses far more RAM than the file on disk. Right-sizing dtypes is the cheapest big win — and a great interview talking point.</p>
+    <p class="ru">Pandas часто ест намного больше RAM, чем файл на диске. Правильный подбор dtypes — самая дешёвая большая победа и отличная тема на интервью.</p>
+    <ul class="en">
+      <li><strong>Downcast numbers:</strong> <code class="inline">int64→int32/int16</code>, <code class="inline">float64→float32</code> when range allows.</li>
+      <li><strong><code class="inline">category</code> for repeated strings</strong> (country, status): stores codes once → often 10×+ smaller and faster groupby.</li>
+      <li><strong>Avoid <code class="inline">object</code> dtype</strong> for strings where you can; it's pointers to Python objects. Use <code class="inline">category</code> or the newer <code class="inline">string[pyarrow]</code> dtype.</li>
+      <li><strong>Measure:</strong> <code class="inline">df.memory_usage(deep=True)</code> shows true per-column bytes.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Понижай числа:</strong> <code class="inline">int64→int32/int16</code>, <code class="inline">float64→float32</code>, если диапазон позволяет.</li>
+      <li><strong><code class="inline">category</code> для повторяющихся строк</strong> (country, status): хранит коды один раз → часто в 10×+ меньше и быстрее groupby.</li>
+      <li><strong>Избегай <code class="inline">object</code></strong> для строк, где можно; это указатели на Python-объекты. Используй <code class="inline">category</code> или новый <code class="inline">string[pyarrow]</code>.</li>
+      <li><strong>Измеряй:</strong> <code class="inline">df.memory_usage(deep=True)</code> показывает реальные байты по колонкам.</li>
+    </ul>
+    <pre>df[<span class="s">"country"</span>] = df[<span class="s">"country"</span>].<span class="f">astype</span>(<span class="s">"category"</span>)
+df[<span class="s">"qty"</span>]     = pd.<span class="f">to_numeric</span>(df[<span class="s">"qty"</span>], downcast=<span class="s">"integer"</span>)
+df.<span class="f">memory_usage</span>(deep=<span class="k">True</span>).<span class="f">sum</span>() / <span class="s">1e6</span>   <span class="c"># MB</span></pre>
+  </div>
+</section>
+
+<section id="copy">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">3. Copy vs view &amp; SettingWithCopyWarning</span><span class="ru">3. Copy vs view и SettingWithCopyWarning</span></h2>
+  <div class="card reveal">
+    <p class="en">A near-universal interview/debug topic. Some slices return a <strong>view</strong> (shares memory), others a <strong>copy</strong>. Assigning into a chained slice may silently hit a temporary copy and not change your data — that's what the warning means.</p>
+    <p class="ru">Почти универсальная тема интервью/отладки. Одни срезы возвращают <strong>view</strong> (общая память), другие <strong>copy</strong>. Присвоение в цепочечный срез может тихо попасть во временную копию и не изменить твои данные — об этом и предупреждение.</p>
+    <pre><span class="c"># RISKY — chained indexing, may not write back</span>
+df[df.amount &gt; <span class="s">0</span>][<span class="s">"flag"</span>] = <span class="s">1</span>          <span class="c"># SettingWithCopyWarning</span>
+
+<span class="c"># CORRECT — single .loc call does the assignment</span>
+df.<span class="f">loc</span>[df.amount &gt; <span class="s">0</span>, <span class="s">"flag"</span>] = <span class="s">1</span>
+
+<span class="c"># Want an independent frame? be explicit:</span>
+sub = df[df.amount &gt; <span class="s">0</span>].<span class="f">copy</span>()</pre>
+    <div class="key">
+      <span class="lbl"><span class="en">The fix</span><span class="ru">Решение</span></span>
+      <span class="en">Never chain <code class="inline">[]</code> twice for assignment. Use one <code class="inline">.loc[rows, cols] = value</code>. If you subset then modify, add <code class="inline">.copy()</code>. (Pandas 3.0 / Copy-on-Write makes this stricter and clearer.)</span>
+      <span class="ru">Никогда не цепляй <code class="inline">[]</code> дважды для присваивания. Используй один <code class="inline">.loc[строки, колонки] = значение</code>. Если делаешь подвыборку и потом меняешь — добавь <code class="inline">.copy()</code>. (Pandas 3.0 / Copy-on-Write делает это строже и яснее.)</span>
+    </div>
+  </div>
+</section>
+
+<section id="bigdata">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">4. Data bigger than comfort</span><span class="ru">4. Данные больше комфортного</span></h2>
+  <div class="card reveal">
+    <p class="en">Still want pandas but it's straining memory? Reduce what you load and process in pieces:</p>
+    <p class="ru">Всё ещё хочешь pandas, но память на пределе? Сократи объём загрузки и обрабатывай по частям:</p>
+    <ul class="en">
+      <li><strong>Load less:</strong> <code class="inline">usecols=</code>, <code class="inline">dtype=</code>, <code class="inline">parse_dates=</code> at read time; filter rows ASAP.</li>
+      <li><strong>Columnar source:</strong> Parquet reads only needed columns &amp; is pre-typed — much lighter than CSV.</li>
+      <li><strong>Chunking:</strong> <code class="inline">read_csv(..., chunksize=N)</code> yields frames; aggregate incrementally.</li>
+      <li><strong>Drop intermediates:</strong> reassign / <code class="inline">del</code> big temporaries; avoid keeping every step.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Грузи меньше:</strong> <code class="inline">usecols=</code>, <code class="inline">dtype=</code>, <code class="inline">parse_dates=</code> при чтении; фильтруй строки как можно раньше.</li>
+      <li><strong>Колоночный источник:</strong> Parquet читает только нужные колонки и уже типизирован — намного легче CSV.</li>
+      <li><strong>Чанкинг:</strong> <code class="inline">read_csv(..., chunksize=N)</code> отдаёт фреймы; агрегируй инкрементально.</li>
+      <li><strong>Убирай промежуточное:</strong> переприсваивай / <code class="inline">del</code> больших временных; не держи каждый шаг.</li>
+    </ul>
+    <pre>total = <span class="s">0</span>
+<span class="k">for</span> chunk <span class="k">in</span> pd.<span class="f">read_csv</span>(<span class="s">"big.csv"</span>, chunksize=<span class="s">1_000_000</span>, usecols=[<span class="s">"amount"</span>]):
+    total += chunk[<span class="s">"amount"</span>].<span class="f">sum</span>()</pre>
+  </div>
+</section>
+
+<section id="merge">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">5. Faster joins &amp; groupby</span><span class="ru">5. Быстрее join и groupby</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><strong>Watch the row count after a merge.</strong> Duplicate keys fan out rows (a many-to-many blow-up). Use <code class="inline">validate="one_to_many"</code> to assert your assumption.</li>
+      <li><strong>Join on an index</strong> when repeating joins on the same key: <code class="inline">set_index</code> once, then <code class="inline">df.join</code> is faster than re-merging on a column.</li>
+      <li><strong>category keys</strong> make groupby and merges faster and lighter.</li>
+      <li><strong>Pick the right agg:</strong> built-in named aggregations (<code class="inline">("amount","sum")</code>) beat <code class="inline">groupby().apply(custom)</code>.</li>
+      <li><strong>Sort once</strong> if you do many ordered ops; avoid repeated implicit sorts.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Следи за числом строк после merge.</strong> Дубли ключей размножают строки (взрыв many-to-many). Используй <code class="inline">validate="one_to_many"</code>, чтобы зафиксировать допущение.</li>
+      <li><strong>Join по индексу</strong>, если повторяешь join по тому же ключу: один раз <code class="inline">set_index</code>, потом <code class="inline">df.join</code> быстрее повторного merge по колонке.</li>
+      <li><strong>category-ключи</strong> делают groupby и merge быстрее и легче.</li>
+      <li><strong>Бери правильную агрегацию:</strong> встроенные именованные агрегации (<code class="inline">("amount","sum")</code>) быстрее <code class="inline">groupby().apply(custom)</code>.</li>
+      <li><strong>Сортируй один раз</strong>, если много упорядоченных операций; избегай повторных неявных сортировок.</li>
+    </ul>
+    <div class="warn">
+      <span class="lbl"><span class="en">The silent row explosion</span><span class="ru">Тихий взрыв строк</span></span>
+      <span class="en">A "wrong numbers after join" bug is almost always duplicate keys on the side you assumed was unique. Check <code class="inline">df["key"].is_unique</code> and use <code class="inline">validate=</code>.</span>
+      <span class="ru">Баг «неверные числа после join» почти всегда — дубли ключей на стороне, которую ты считал уникальной. Проверь <code class="inline">df["key"].is_unique</code> и используй <code class="inline">validate=</code>.</span>
+    </div>
+  </div>
+</section>
+
+<section id="beyond">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">6. When to leave pandas</span><span class="ru">6. Когда уходить из pandas</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Tool</th><th>Reach for it when</th></tr>
+      <tr><td><strong>Polars</strong></td><td>Want pandas-like single-node but much faster: Rust, multi-threaded, lazy, Arrow-native.</td></tr>
+      <tr><td><strong>DuckDB</strong></td><td>You'd rather write SQL over Parquet/larger-than-RAM on one machine; great with pandas.</td></tr>
+      <tr><td><strong>PySpark / Dask</strong></td><td>Data truly exceeds one machine; need a cluster &amp; distributed shuffle.</td></tr>
+      <tr><td><strong>pandas API on Spark</strong></td><td>Keep pandas syntax but run it on Spark (<code class="inline">pyspark.pandas</code>).</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Инструмент</th><th>Брать, когда</th></tr>
+      <tr><td><strong>Polars</strong></td><td>Хочешь как pandas на одном узле, но намного быстрее: Rust, многопоточность, ленивость, Arrow.</td></tr>
+      <tr><td><strong>DuckDB</strong></td><td>Удобнее писать SQL поверх Parquet / больше-чем-RAM на одной машине; дружит с pandas.</td></tr>
+      <tr><td><strong>PySpark / Dask</strong></td><td>Данные реально превышают одну машину; нужен кластер и распределённый shuffle.</td></tr>
+      <tr><td><strong>pandas API на Spark</strong></td><td>Сохранить синтаксис pandas, но выполнять на Spark (<code class="inline">pyspark.pandas</code>).</td></tr>
+    </table>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Interview framing</span><span class="ru">Формулировка на интервью</span></span>
+      <span class="en">"I start in pandas for single-node work; if memory or speed bites, I first cut dtypes/vectorize, then reach for Polars or DuckDB on one box, and only move to PySpark when the data genuinely needs a cluster." That sequence shows judgment, not just tool knowledge.</span>
+      <span class="ru">«Начинаю в pandas для одного узла; если упираюсь в память/скорость — сперва правлю dtypes/векторизую, затем беру Polars или DuckDB на одной машине, и перехожу на PySpark, только когда данным реально нужен кластер.» Эта последовательность показывает суждение, а не просто знание инструментов.</span>
+    </div>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">7. Quick self-check</span><span class="ru">7. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why avoid apply/iterrows?</span><span class="ru">Почему избегать apply/iterrows?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">They loop in Python, losing pandas' compiled C/NumPy speed (often 10–100× slower). Prefer vectorized column ops and built-in <code class="inline">.str</code>/<code class="inline">.dt</code>/<code class="inline">groupby</code> methods.</span><span class="ru">Они идут циклом в Python, теряя скорость скомпилированного C/NumPy (часто в 10–100× медленнее). Предпочитай векторные операции и встроенные <code class="inline">.str</code>/<code class="inline">.dt</code>/<code class="inline">groupby</code>.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Biggest memory win for repeated strings?</span><span class="ru">Главная экономия памяти для повторяющихся строк?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Convert to <code class="inline">category</code> dtype: stores each distinct value once + integer codes. Often 10×+ smaller and speeds up groupby/merge. Plus downcast numeric dtypes.</span><span class="ru">Перевести в <code class="inline">category</code>: хранит каждое уникальное значение один раз + целые коды. Часто в 10×+ меньше и ускоряет groupby/merge. Плюс понижай числовые типы.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What is SettingWithCopyWarning?</span><span class="ru">Что такое SettingWithCopyWarning?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">You assigned into a chained slice that may be a temporary copy, so the write might not stick. Fix: one <code class="inline">df.loc[rows, cols] = val</code>, or <code class="inline">.copy()</code> when intentionally subsetting.</span><span class="ru">Ты присвоил в цепочечный срез, который может быть временной копией, поэтому запись может не примениться. Решение: один <code class="inline">df.loc[строки, колонки] = знач</code> или <code class="inline">.copy()</code> при намеренной подвыборке.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Counts wrong after a merge — why?</span><span class="ru">Неверные числа после merge — почему?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Duplicate keys on the "lookup" side fan out rows (many-to-many). Check <code class="inline">.is_unique</code> and pass <code class="inline">validate="many_to_one"</code> to fail loudly.</span><span class="ru">Дубли ключей на «справочной» стороне размножают строки (many-to-many). Проверь <code class="inline">.is_unique</code> и передай <code class="inline">validate="many_to_one"</code>, чтобы падало явно.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">CSV won't fit in RAM but you want pandas. Options?</span><span class="ru">CSV не влезает в RAM, но хочешь pandas. Варианты?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en"><code class="inline">usecols</code>+<code class="inline">dtype</code> to load less, switch to Parquet, or stream with <code class="inline">chunksize</code> and aggregate incrementally. Or move to DuckDB/Polars/PySpark.</span><span class="ru"><code class="inline">usecols</code>+<code class="inline">dtype</code> чтобы грузить меньше, перейти на Parquet, или читать с <code class="inline">chunksize</code> и агрегировать инкрементально. Либо DuckDB/Polars/PySpark.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Pandas → when Polars/DuckDB vs PySpark?</span><span class="ru">Pandas → когда Polars/DuckDB vs PySpark?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Polars/DuckDB = still one machine but much faster / SQL over large files. PySpark/Dask = data genuinely exceeds one machine and needs a distributed cluster.</span><span class="ru">Polars/DuckDB = всё ещё одна машина, но намного быстрее / SQL над большими файлами. PySpark/Dask = данные реально превышают одну машину и нужен распределённый кластер.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Pandas — Performance · part of the DE interview cheatsheets · built for Amal Imangulov · back: <a href="pandas-essentials.html">← Essentials</a></span>
+  <span class="ru">Pandas — Производительность · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · назад: <a href="pandas-essentials.html">← Основы</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>

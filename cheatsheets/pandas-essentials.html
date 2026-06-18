@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pandas Essentials — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0; }
+  pre .c { color:var(--muted); } pre .k { color:var(--purple); } pre .s { color:var(--green); } pre .f { color:var(--accent); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway,.warn { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .warn { border-color:var(--orange); background:color-mix(in srgb,var(--orange) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); } .warn .lbl { color:var(--orange); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:205px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🐼 Pandas · <span class="en">Essentials</span><span class="ru">Основы</span></span>
+  <a href="#what"><span class="en">What &amp; why</span><span class="ru">Что и зачем</span></a>
+  <a href="#struct"><span class="en">Series/DataFrame</span><span class="ru">Series/DataFrame</span></a>
+  <a href="#select"><span class="en">Select/filter</span><span class="ru">Выбор/фильтр</span></a>
+  <a href="#transform"><span class="en">Transform</span><span class="ru">Преобразования</span></a>
+  <a href="#group"><span class="en">Group &amp; merge</span><span class="ru">Группировка/merge</span></a>
+  <a href="#nulls"><span class="en">Nulls &amp; types</span><span class="ru">Пропуски/типы</span></a>
+  <a href="#io"><span class="en">Read/write</span><span class="ru">Чтение/запись</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Pandas Essentials</span><span class="ru">Pandas: основы</span></h1>
+  <div class="sub">
+    <span class="en">The single-machine workhorse for tabular data: Series/DataFrame, loc vs iloc, boolean filtering, groupby, merge, missing values, dtypes, read/write. Code-first. When comfortable, switch to Performance.</span>
+    <span class="ru">Рабочая лошадка для табличных данных на одной машине: Series/DataFrame, loc vs iloc, булева фильтрация, groupby, merge, пропуски, dtypes, чтение/запись. Сначала код. Когда станет комфортно, переключайся на Performance.</span>
+  </div>
+  <div class="levels">
+    <a class="level active" href="pandas-essentials.html">🟢 <span class="en">Essentials</span><span class="ru">Основы</span></a>
+    <a class="level" href="pandas-performance.html">🔴 <span class="en">Performance</span><span class="ru">Производительность</span></a>
+    <a class="level" href="pyspark-essentials.html">⚡ <span class="en">Scale out: PySpark</span><span class="ru">Масштаб: PySpark</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. What is Pandas (and when NOT to use it)?</span><span class="ru">1. Что такое Pandas (и когда его НЕ брать)?</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Pandas</strong> is the standard Python library for in-memory tabular data: load, clean, reshape, aggregate. It runs on <strong>one machine</strong> and holds everything in <strong>RAM</strong>, built on NumPy arrays.</p>
+    <p class="ru"><strong>Pandas</strong> — стандартная Python-библиотека для табличных данных в памяти: загрузка, очистка, преобразование, агрегация. Работает на <strong>одной машине</strong> и держит всё в <strong>RAM</strong>, поверх массивов NumPy.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">Pandas is a spreadsheet you drive with code — fast, scriptable, repeatable. But the whole sheet must fit on your desk (RAM). PySpark is the warehouse with 100 workers for when it doesn't.</span>
+      <span class="ru">Pandas — это таблица, которой управляешь кодом: быстро, скриптуемо, воспроизводимо. Но весь лист должен поместиться на твоём столе (RAM). PySpark — склад со 100 рабочими на случай, когда не помещается.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Rule of thumb (a classic interview question)</span><span class="ru">Эмпирика (классический вопрос на интервью)</span></span>
+      <span class="en">Data fits comfortably in RAM (rough guide: &lt; a few GB, since pandas needs several× the data size to work) → pandas. Bigger than memory / needs a cluster → PySpark, Polars, or DuckDB.</span>
+      <span class="ru">Данные комфортно влезают в RAM (грубо: &lt; нескольких GB, т.к. pandas нужно в несколько раз больше размера данных) → pandas. Больше памяти / нужен кластер → PySpark, Polars или DuckDB.</span>
+    </div>
+  </div>
+</section>
+
+<section id="struct">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Series &amp; DataFrame</span><span class="ru">2. Series и DataFrame</span></h2>
+  <div class="card reveal">
+    <p class="en">A <strong>Series</strong> is a 1-D labeled array (one column). A <strong>DataFrame</strong> is a 2-D table — a dict of Series sharing one <strong>index</strong> (the row labels). The index is what makes pandas special: alignment happens by label, not position.</p>
+    <p class="ru"><strong>Series</strong> — одномерный помеченный массив (одна колонка). <strong>DataFrame</strong> — двумерная таблица — словарь Series с общим <strong>индексом</strong> (метки строк). Индекс — то, что делает pandas особенным: выравнивание идёт по метке, а не по позиции.</p>
+    <pre><span class="k">import</span> pandas <span class="k">as</span> pd
+
+df = pd.<span class="f">DataFrame</span>({
+    <span class="s">"user_id"</span>: [<span class="s">1</span>, <span class="s">2</span>, <span class="s">3</span>],
+    <span class="s">"country"</span>: [<span class="s">"DE"</span>, <span class="s">"UK"</span>, <span class="s">"DE"</span>],
+    <span class="s">"amount"</span>: [<span class="s">10.0</span>, <span class="s">25.5</span>, <span class="s">7.0</span>],
+})
+
+df.<span class="f">head</span>()       <span class="c"># first rows</span>
+df.<span class="f">info</span>()       <span class="c"># dtypes + memory + non-null counts</span>
+df.<span class="f">describe</span>()   <span class="c"># summary stats of numeric cols</span>
+df.shape       <span class="c"># (rows, cols)</span>
+df.dtypes      <span class="c"># type per column</span></pre>
+    <div class="key">
+      <span class="lbl"><span class="en">Index alignment</span><span class="ru">Выравнивание по индексу</span></span>
+      <span class="en">Operations between two Series align on the index first. Add two Series with different labels and you get NaN where labels don't match — surprises beginners, but it's the core feature.</span>
+      <span class="ru">Операции между двумя Series сначала выравниваются по индексу. Сложи два Series с разными метками — получишь NaN там, где метки не совпали — удивляет новичков, но это ключевая фича.</span>
+    </div>
+  </div>
+</section>
+
+<section id="select">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">3. Selecting &amp; filtering: loc vs iloc</span><span class="ru">3. Выбор и фильтрация: loc vs iloc</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Goal</th><th>Code</th></tr>
+      <tr><td>One column → Series</td><td><code class="inline">df["amount"]</code></td></tr>
+      <tr><td>Several columns → DataFrame</td><td><code class="inline">df[["user_id","amount"]]</code></td></tr>
+      <tr><td>By <strong>label</strong> (rows, cols)</td><td><code class="inline">df.loc[row_label, "amount"]</code></td></tr>
+      <tr><td>By <strong>position</strong> (integer)</td><td><code class="inline">df.iloc[0, 2]</code></td></tr>
+      <tr><td>Boolean filter</td><td><code class="inline">df[df["amount"] &gt; 10]</code></td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Цель</th><th>Код</th></tr>
+      <tr><td>Одна колонка → Series</td><td><code class="inline">df["amount"]</code></td></tr>
+      <tr><td>Несколько колонок → DataFrame</td><td><code class="inline">df[["user_id","amount"]]</code></td></tr>
+      <tr><td>По <strong>метке</strong> (строки, колонки)</td><td><code class="inline">df.loc[row_label, "amount"]</code></td></tr>
+      <tr><td>По <strong>позиции</strong> (целое число)</td><td><code class="inline">df.iloc[0, 2]</code></td></tr>
+      <tr><td>Булев фильтр</td><td><code class="inline">df[df["amount"] &gt; 10]</code></td></tr>
+    </table>
+    <pre><span class="c"># combine conditions: &amp; | ~  and wrap each in parentheses!</span>
+df[(df[<span class="s">"country"</span>] == <span class="s">"DE"</span>) &amp; (df[<span class="s">"amount"</span>] &gt; <span class="s">5</span>)]
+
+<span class="c"># membership &amp; query syntax</span>
+df[df[<span class="s">"country"</span>].<span class="f">isin</span>([<span class="s">"DE"</span>, <span class="s">"UK"</span>])]
+df.<span class="f">query</span>(<span class="s">"country == 'DE' and amount &gt; 5"</span>)</pre>
+    <div class="warn">
+      <span class="lbl"><span class="en">Top beginner traps</span><span class="ru">Главные ловушки новичков</span></span>
+      <span class="en">1) Use <code class="inline">&amp;</code>/<code class="inline">|</code> (not <code class="inline">and</code>/<code class="inline">or</code>) for element-wise filters, and parenthesize each condition. 2) <code class="inline">loc</code> = labels, <code class="inline">iloc</code> = integer positions — mixing them is a frequent bug.</span>
+      <span class="ru">1) Используй <code class="inline">&amp;</code>/<code class="inline">|</code> (не <code class="inline">and</code>/<code class="inline">or</code>) для поэлементных фильтров и заключай каждое условие в скобки. 2) <code class="inline">loc</code> = метки, <code class="inline">iloc</code> = целочисленные позиции — их путаница частый баг.</span>
+    </div>
+  </div>
+</section>
+
+<section id="transform">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">4. Transforming columns</span><span class="ru">4. Преобразование колонок</span></h2>
+  <div class="card reveal">
+    <pre><span class="c"># vectorized math — fast, preferred</span>
+df[<span class="s">"amount_eur"</span>] = df[<span class="s">"amount"</span>] * <span class="s">1.08</span>
+
+<span class="c"># conditional column without a loop</span>
+<span class="k">import</span> numpy <span class="k">as</span> np
+df[<span class="s">"tier"</span>] = np.<span class="f">where</span>(df[<span class="s">"amount"</span>] &gt; <span class="s">20</span>, <span class="s">"hi"</span>, <span class="s">"lo"</span>)
+
+<span class="c"># map a Series through a dict</span>
+df[<span class="s">"region"</span>] = df[<span class="s">"country"</span>].<span class="f">map</span>({<span class="s">"DE"</span>: <span class="s">"EU"</span>, <span class="s">"UK"</span>: <span class="s">"non-EU"</span>})
+
+<span class="c"># string &amp; datetime accessors</span>
+df[<span class="s">"country"</span>].<span class="f">str</span>.<span class="f">lower</span>()
+pd.<span class="f">to_datetime</span>(df[<span class="s">"ts"</span>]).<span class="f">dt</span>.year
+
+<span class="c"># assign() for chaining (returns a new df)</span>
+df = df.<span class="f">assign</span>(net=<span class="k">lambda</span> d: d.amount - d.fee)</pre>
+    <div class="warn">
+      <span class="lbl"><span class="en">apply() is a fallback, not a default</span><span class="ru">apply() — запасной вариант, не дефолт</span></span>
+      <span class="en"><code class="inline">df.apply(func, axis=1)</code> loops row-by-row in Python — slow. Use it only when there's no vectorized form. <code class="inline">iterrows()</code> is even slower; avoid it. (More in Performance.)</span>
+      <span class="ru"><code class="inline">df.apply(func, axis=1)</code> идёт построчно в Python — медленно. Используй, только если нет векторизованной формы. <code class="inline">iterrows()</code> ещё медленнее; избегай. (Подробнее в Performance.)</span>
+    </div>
+  </div>
+</section>
+
+<section id="group">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">5. groupby &amp; merge</span><span class="ru">5. groupby и merge</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>groupby</strong> follows split → apply → combine: split rows by key, apply an aggregation, combine into a result.</p>
+    <p class="ru"><strong>groupby</strong> работает по схеме split → apply → combine: разбей строки по ключу, примени агрегацию, собери результат.</p>
+    <pre>(df.<span class="f">groupby</span>(<span class="s">"country"</span>)
+   .<span class="f">agg</span>(n=(<span class="s">"user_id"</span>, <span class="s">"count"</span>),
+        total=(<span class="s">"amount"</span>, <span class="s">"sum"</span>),
+        avg=(<span class="s">"amount"</span>, <span class="s">"mean"</span>))
+   .<span class="f">reset_index</span>())   <span class="c"># turn the group key back into a column</span>
+
+<span class="c"># transform keeps original shape (like a SQL window)</span>
+df[<span class="s">"grp_avg"</span>] = df.<span class="f">groupby</span>(<span class="s">"country"</span>)[<span class="s">"amount"</span>].<span class="f">transform</span>(<span class="s">"mean"</span>)</pre>
+    <p class="en"><strong>merge</strong> = SQL join. Know <code class="inline">how</code> and watch the row count after.</p>
+    <p class="ru"><strong>merge</strong> = SQL join. Знай <code class="inline">how</code> и следи за числом строк после.</p>
+    <pre>pd.<span class="f">merge</span>(orders, users, on=<span class="s">"user_id"</span>, how=<span class="s">"left"</span>)
+<span class="c"># how: inner | left | right | outer ;  validate guards dup keys:</span>
+pd.<span class="f">merge</span>(orders, users, on=<span class="s">"user_id"</span>, how=<span class="s">"left"</span>, validate=<span class="s">"many_to_one"</span>)
+
+<span class="c"># concat = stack rows (UNION) or columns</span>
+pd.<span class="f">concat</span>([jan, feb], axis=<span class="s">0</span>, ignore_index=<span class="k">True</span>)</pre>
+    <div class="key">
+      <span class="lbl"><span class="en">merge vs join vs concat</span><span class="ru">merge vs join vs concat</span></span>
+      <span class="en"><code class="inline">merge</code> joins on columns (most common). <code class="inline">df.join</code> joins on the index. <code class="inline">concat</code> stacks frames. <code class="inline">validate=</code> catches accidental fan-out from duplicate keys — a real interview-grade habit.</span>
+      <span class="ru"><code class="inline">merge</code> джойнит по колонкам (чаще всего). <code class="inline">df.join</code> — по индексу. <code class="inline">concat</code> складывает фреймы. <code class="inline">validate=</code> ловит случайное размножение строк из-за дублей ключей — привычка уровня интервью.</span>
+    </div>
+  </div>
+</section>
+
+<section id="nulls">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">6. Missing data &amp; dtypes</span><span class="ru">6. Пропуски и типы (dtypes)</span></h2>
+  <div class="card reveal">
+    <pre>df.<span class="f">isna</span>().<span class="f">sum</span>()                    <span class="c"># nulls per column</span>
+df.<span class="f">dropna</span>(subset=[<span class="s">"user_id"</span>])      <span class="c"># drop rows missing a key</span>
+df[<span class="s">"amount"</span>].<span class="f">fillna</span>(<span class="s">0</span>)              <span class="c"># fill</span>
+df.<span class="f">fillna</span>({<span class="s">"amount"</span>: <span class="s">0</span>, <span class="s">"country"</span>: <span class="s">"NA"</span>})
+
+<span class="c"># types: shrink memory &amp; fix parsing</span>
+df[<span class="s">"user_id"</span>] = df[<span class="s">"user_id"</span>].<span class="f">astype</span>(<span class="s">"int32"</span>)
+df[<span class="s">"country"</span>] = df[<span class="s">"country"</span>].<span class="f">astype</span>(<span class="s">"category"</span>)  <span class="c"># big win for repeats</span></pre>
+    <div class="warn">
+      <span class="lbl"><span class="en">NaN gotchas</span><span class="ru">Подвохи NaN</span></span>
+      <span class="en">Classic <code class="inline">NaN</code> is a float, so an int column with a null becomes <code class="inline">float64</code>. <code class="inline">NaN != NaN</code>, so never compare with <code class="inline">==</code> — use <code class="inline">.isna()</code>. Modern pandas has nullable <code class="inline">Int64</code>/<code class="inline">boolean</code> dtypes that keep ints int.</span>
+      <span class="ru">Классический <code class="inline">NaN</code> — это float, поэтому int-колонка с пропуском становится <code class="inline">float64</code>. <code class="inline">NaN != NaN</code>, поэтому никогда не сравнивай через <code class="inline">==</code> — используй <code class="inline">.isna()</code>. В современном pandas есть nullable-типы <code class="inline">Int64</code>/<code class="inline">boolean</code>, сохраняющие int.</span>
+    </div>
+  </div>
+</section>
+
+<section id="io">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">7. Reading &amp; writing</span><span class="ru">7. Чтение и запись</span></h2>
+  <div class="card reveal">
+    <pre>df = pd.<span class="f">read_csv</span>(<span class="s">"data.csv"</span>, dtype={<span class="s">"user_id"</span>: <span class="s">"int32"</span>},
+                 parse_dates=[<span class="s">"ts"</span>], usecols=[<span class="s">"user_id"</span>, <span class="s">"ts"</span>, <span class="s">"amount"</span>])
+df = pd.<span class="f">read_parquet</span>(<span class="s">"data.parquet"</span>)    <span class="c"># typed, compressed, fast</span>
+
+df.<span class="f">to_parquet</span>(<span class="s">"out.parquet"</span>, index=<span class="k">False</span>)
+df.<span class="f">to_csv</span>(<span class="s">"out.csv"</span>, index=<span class="k">False</span>)</pre>
+    <div class="key">
+      <span class="lbl"><span class="en">Read smart</span><span class="ru">Читай умно</span></span>
+      <span class="en">On <code class="inline">read_csv</code>, pass <code class="inline">usecols</code> (only needed columns), <code class="inline">dtype</code> (skip inference + save memory), and <code class="inline">parse_dates</code>. For big files, <code class="inline">chunksize=</code> streams it in pieces. Prefer Parquet when you control the format.</span>
+      <span class="ru">В <code class="inline">read_csv</code> передавай <code class="inline">usecols</code> (только нужные колонки), <code class="inline">dtype</code> (без вывода типов + экономия памяти) и <code class="inline">parse_dates</code>. Для больших файлов <code class="inline">chunksize=</code> читает по частям. Предпочитай Parquet, когда контролируешь формат.</span>
+    </div>
+  </div>
+</section>
+
+<section id="glossary">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">8. Mini-glossary</span><span class="ru">8. Мини-словарь</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th>Term</th><th>Plain meaning</th></tr>
+      <tr><td>Series</td><td>1-D labeled array (one column).</td></tr>
+      <tr><td>DataFrame</td><td>2-D table; dict of Series sharing an index.</td></tr>
+      <tr><td>Index</td><td>The row labels; drives alignment.</td></tr>
+      <tr><td>loc / iloc</td><td>Select by label / by integer position.</td></tr>
+      <tr><td>Vectorization</td><td>Whole-column ops in C, no Python loop.</td></tr>
+      <tr><td>groupby</td><td>split → apply → combine aggregation.</td></tr>
+      <tr><td>transform</td><td>group op that keeps the original row count.</td></tr>
+      <tr><td>category dtype</td><td>Compact type for repeated string values.</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Термин</th><th>Простой смысл</th></tr>
+      <tr><td>Series</td><td>Одномерный помеченный массив (одна колонка).</td></tr>
+      <tr><td>DataFrame</td><td>Двумерная таблица; словарь Series с общим индексом.</td></tr>
+      <tr><td>Index</td><td>Метки строк; управляет выравниванием.</td></tr>
+      <tr><td>loc / iloc</td><td>Выбор по метке / по целочисленной позиции.</td></tr>
+      <tr><td>Векторизация</td><td>Операции над всей колонкой в C, без Python-цикла.</td></tr>
+      <tr><td>groupby</td><td>Агрегация split → apply → combine.</td></tr>
+      <tr><td>transform</td><td>Групповая операция, сохраняющая число строк.</td></tr>
+      <tr><td>category dtype</td><td>Компактный тип для повторяющихся строк.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">9. Quick self-check</span><span class="ru">9. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Pandas vs PySpark — when each?</span><span class="ru">Pandas vs PySpark — когда что?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Pandas: data fits in one machine's RAM (single-node, NumPy-backed). PySpark: bigger-than-memory / needs a cluster. Pandas needs several× the data size in RAM to operate.</span><span class="ru">Pandas: данные влезают в RAM одной машины (один узел, на NumPy). PySpark: больше памяти / нужен кластер. Pandas требует в несколько раз больше размера данных в RAM.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">loc vs iloc?</span><span class="ru">loc vs iloc?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en"><code class="inline">loc</code> selects by <strong>label</strong> (index/column names); <code class="inline">iloc</code> by <strong>integer position</strong>. <code class="inline">loc</code> slices are inclusive of the end label; <code class="inline">iloc</code> is not.</span><span class="ru"><code class="inline">loc</code> выбирает по <strong>метке</strong> (имена индекса/колонок); <code class="inline">iloc</code> по <strong>целой позиции</strong>. У <code class="inline">loc</code> срез включает конечную метку; у <code class="inline">iloc</code> — нет.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why parenthesize filter conditions?</span><span class="ru">Зачем скобки в условиях фильтра?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Element-wise filters use <code class="inline">&amp;</code>/<code class="inline">|</code> (not <code class="inline">and</code>/<code class="inline">or</code>), and <code class="inline">&amp;</code> binds tighter than <code class="inline">==</code>, so each condition needs parentheses: <code class="inline">(a==1)&amp;(b&gt;2)</code>.</span><span class="ru">Поэлементные фильтры используют <code class="inline">&amp;</code>/<code class="inline">|</code> (не <code class="inline">and</code>/<code class="inline">or</code>), и <code class="inline">&amp;</code> связывает сильнее <code class="inline">==</code>, поэтому каждое условие в скобках: <code class="inline">(a==1)&amp;(b&gt;2)</code>.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">agg vs transform in groupby?</span><span class="ru">agg vs transform в groupby?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en"><code class="inline">agg</code> collapses each group to one row. <code class="inline">transform</code> returns a value per original row (broadcast back) — like a SQL window. Use transform to add a group stat as a new column.</span><span class="ru"><code class="inline">agg</code> схлопывает каждую группу в одну строку. <code class="inline">transform</code> возвращает значение на каждую исходную строку — как SQL-окно. Используй transform, чтобы добавить групповую статистику новой колонкой.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why does an int column become float?</span><span class="ru">Почему int-колонка стала float?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A null appeared. Classic <code class="inline">NaN</code> is a float, so pandas upcasts the column to <code class="inline">float64</code>. Use nullable <code class="inline">Int64</code> dtype to keep integers.</span><span class="ru">Появился пропуск. Классический <code class="inline">NaN</code> — это float, поэтому pandas повышает тип колонки до <code class="inline">float64</code>. Используй nullable-тип <code class="inline">Int64</code>, чтобы сохранить целые.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">How to check for nulls correctly?</span><span class="ru">Как правильно проверять пропуски?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Use <code class="inline">.isna()</code> / <code class="inline">.notna()</code>, never <code class="inline">== NaN</code> (NaN ≠ NaN). <code class="inline">df.isna().sum()</code> counts nulls per column.</span><span class="ru">Используй <code class="inline">.isna()</code> / <code class="inline">.notna()</code>, никогда <code class="inline">== NaN</code> (NaN ≠ NaN). <code class="inline">df.isna().sum()</code> считает пропуски по колонкам.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Pandas — Essentials · part of the DE interview cheatsheets · built for Amal Imangulov · next: <a href="pandas-performance.html">Performance →</a></span>
+  <span class="ru">Pandas — Основы · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · далее: <a href="pandas-performance.html">Performance →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
