@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kubernetes — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0; }
+  pre .c { color:var(--muted); } pre .k { color:var(--purple); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:185px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13.5px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">☸️ Kubernetes</span>
+  <a href="#what"><span class="en">What is it</span><span class="ru">Что это</span></a>
+  <a href="#why"><span class="en">Why it exists</span><span class="ru">Зачем</span></a>
+  <a href="#concepts"><span class="en">Core concepts</span><span class="ru">Концепции</span></a>
+  <a href="#arch"><span class="en">Architecture</span><span class="ru">Архитектура</span></a>
+  <a href="#example"><span class="en">Example</span><span class="ru">Пример</span></a>
+  <a href="#why-de"><span class="en">Why DE cares</span><span class="ru">Зачем DE</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Kubernetes — the friendly intro</span><span class="ru">Kubernetes — дружелюбное введение</span></h1>
+  <div class="sub">
+    <span class="en">The system that runs and manages thousands of containers across many machines: scheduling, scaling, healing, networking. Read Docker first.</span>
+    <span class="ru">Система, которая запускает и управляет тысячами контейнеров на множестве машин: планирование, масштабирование, самовосстановление, сеть. Сначала прочитай про Docker.</span>
+  </div>
+  <div class="levels">
+    <a class="level" href="docker-containers.html">🐳 Docker</a>
+    <a class="level active" href="kubernetes-orchestration.html">☸️ Kubernetes</a>
+    <a class="level" href="flyte-orchestration.html">🚀 Flyte</a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. What is Kubernetes?</span><span class="ru">1. Что такое Kubernetes?</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Kubernetes</strong> (often "K8s") is a <strong>container orchestrator</strong>: an open-source system that runs your containers across a fleet of machines and keeps them healthy. You tell it the <em>desired state</em> ("run 5 copies of this app"), and Kubernetes constantly works to make reality match — scheduling containers onto machines, restarting crashed ones, scaling up and down, and wiring up networking.</p>
+    <p class="ru"><strong>Kubernetes</strong> (часто «K8s») — это <strong>оркестратор контейнеров</strong>: опенсорсная система, которая запускает твои контейнеры по парку машин и поддерживает их в рабочем состоянии. Ты говоришь ей <em>желаемое состояние</em> («запусти 5 копий этого приложения»), и Kubernetes постоянно приводит реальность к нему — раскидывает контейнеры по машинам, перезапускает упавшие, масштабирует вверх и вниз, настраивает сеть.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">If a container is a shipping container, Kubernetes is the <strong>automated port</strong>: it decides which ship (machine) each container goes on, replaces any that fall overboard, adds more when traffic spikes, and routes trucks to the right dock. You declare the goal; the port logistics run themselves.</span>
+      <span class="ru">Если контейнер — это морской контейнер, то Kubernetes — <strong>автоматизированный порт</strong>: решает, на какой корабль (машину) поставить каждый контейнер, заменяет упавшие за борт, добавляет ещё при всплеске трафика и направляет грузовики к нужному причалу. Ты объявляешь цель; логистика порта работает сама.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">One line</span><span class="ru">Одной строкой</span></span>
+      <span class="en">Kubernetes = <strong>declarative autopilot for containers</strong>: you say what you want running; it places, heals, scales and connects it across many machines.</span>
+      <span class="ru">Kubernetes = <strong>декларативный автопилот для контейнеров</strong>: ты говоришь, что должно работать; он размещает, чинит, масштабирует и связывает это по множеству машин.</span>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Why does it exist?</span><span class="ru">2. Зачем он нужен?</span></h2>
+  <div class="card reveal">
+    <p class="en">Docker runs <em>one</em> container on <em>one</em> machine. Real systems need hundreds or thousands across a cluster — and doing that by hand is impossible. Kubernetes automates the hard parts:</p>
+    <p class="ru">Docker запускает <em>один</em> контейнер на <em>одной</em> машине. Реальным системам нужны сотни и тысячи по кластеру — и делать это вручную невозможно. Kubernetes автоматизирует сложное:</p>
+    <ul class="en">
+      <li><strong>Scheduling.</strong> Decides which machine has room (CPU/memory) to run each container.</li>
+      <li><strong>Self-healing.</strong> A container crashes or a machine dies → Kubernetes restarts/reschedules it automatically.</li>
+      <li><strong>Scaling.</strong> Add or remove replicas based on load (manually or auto-scaling).</li>
+      <li><strong>Rollouts &amp; rollbacks.</strong> Deploy a new version gradually; roll back instantly if it misbehaves.</li>
+      <li><strong>Service discovery &amp; networking.</strong> Containers find and talk to each other via stable names, with built-in load balancing.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Планирование.</strong> Решает, на какой машине есть место (CPU/память) для каждого контейнера.</li>
+      <li><strong>Самовосстановление.</strong> Контейнер упал или умерла машина → Kubernetes перезапускает/переразмещает автоматически.</li>
+      <li><strong>Масштабирование.</strong> Добавляет или убирает реплики по нагрузке (вручную или авто-скейлинг).</li>
+      <li><strong>Раскатки и откаты.</strong> Деплоит новую версию постепенно; мгновенно откатывает, если ведёт себя плохо.</li>
+      <li><strong>Service discovery и сеть.</strong> Контейнеры находят друг друга по стабильным именам, со встроенной балансировкой.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">The core idea: reconciliation</span><span class="ru">Главная идея: reconciliation</span></span>
+      <span class="en">Kubernetes runs a constant <strong>control loop</strong>: compare desired state vs actual state, then act to close the gap. That's why it self-heals — it never stops reconciling.</span>
+      <span class="ru">Kubernetes крутит постоянный <strong>control loop</strong>: сравнивает желаемое состояние с фактическим и действует, чтобы закрыть разницу. Поэтому он самовосстанавливается — он никогда не прекращает reconciliation.</span>
+    </div>
+  </div>
+</section>
+
+<section id="concepts">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">3. Core concepts</span><span class="ru">3. Ключевые понятия</span></h2>
+  <div class="card reveal">
+    <h3><span class="en">① Pod</span><span class="ru">① Pod</span></h3>
+    <p class="en">The smallest deployable unit — one (or a few tightly-coupled) containers that share network and storage. You rarely manage pods directly; higher objects manage them for you. Pods are disposable and can be killed and recreated anytime.</p>
+    <p class="ru">Наименьшая единица развёртывания — один (или несколько тесно связанных) контейнеров, делящих сеть и хранилище. Pod-ами редко управляют напрямую; за тебя это делают объекты выше. Pod-ы одноразовые: их могут убить и пересоздать в любой момент.</p>
+
+    <h3><span class="en">② Deployment</span><span class="ru">② Deployment</span></h3>
+    <p class="en">Declares "I want N replicas of this pod, from this image". It keeps that many running, handles rolling updates and rollbacks. The workhorse for stateless apps.</p>
+    <p class="ru">Объявляет «хочу N реплик этого pod из этого образа». Держит столько запущенными, делает постепенные обновления и откаты. Рабочая лошадка для stateless-приложений.</p>
+
+    <h3><span class="en">③ Service</span><span class="ru">③ Service</span></h3>
+    <p class="en">A stable network address + load balancer in front of a changing set of pods. Pods come and go with new IPs; the Service gives a constant name to reach them.</p>
+    <p class="ru">Стабильный сетевой адрес + балансировщик перед меняющимся набором pod-ов. Pod-ы появляются и исчезают с новыми IP; Service даёт постоянное имя для обращения к ним.</p>
+
+    <h3><span class="en">④ Namespace</span><span class="ru">④ Namespace</span></h3>
+    <p class="en">A virtual partition of the cluster to isolate teams/environments (e.g. <code class="inline">dev</code> vs <code class="inline">prod</code>) and scope names, quotas and access.</p>
+    <p class="ru">Виртуальное разделение кластера, чтобы изолировать команды/окружения (например <code class="inline">dev</code> vs <code class="inline">prod</code>) и ограничить имена, квоты и доступ.</p>
+
+    <h3><span class="en">⑤ ConfigMap &amp; Secret</span><span class="ru">⑤ ConfigMap и Secret</span></h3>
+    <p class="en">Inject configuration and credentials into pods without baking them into the image. <strong>ConfigMap</strong> = non-sensitive config; <strong>Secret</strong> = passwords/keys (base64, ideally encrypted).</p>
+    <p class="ru">Прокидывают конфигурацию и креды в pod-ы, не запекая их в образ. <strong>ConfigMap</strong> = несекретный конфиг; <strong>Secret</strong> = пароли/ключи (base64, в идеале шифрованные).</p>
+
+    <h3><span class="en">⑥ Job &amp; CronJob</span><span class="ru">⑥ Job и CronJob</span></h3>
+    <p class="en">For batch work: a <strong>Job</strong> runs a pod to completion (e.g. a data processing task), and a <strong>CronJob</strong> runs Jobs on a schedule — the closest K8s primitives to a data pipeline run.</p>
+    <p class="ru">Для батч-работы: <strong>Job</strong> запускает pod до завершения (например задача обработки данных), а <strong>CronJob</strong> запускает Job-ы по расписанию — ближайшие примитивы K8s к запуску дата-пайплайна.</p>
+  </div>
+</section>
+
+<section id="arch">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">4. Architecture (high level)</span><span class="ru">4. Архитектура (в целом)</span></h2>
+  <div class="card reveal">
+    <p class="en">A cluster has a <strong>control plane</strong> (the brain) and <strong>worker nodes</strong> (the muscle that runs your pods).</p>
+    <p class="ru">У кластера есть <strong>control plane</strong> (мозг) и <strong>worker nodes</strong> (мышцы, запускающие твои pod-ы).</p>
+    <div class="ascii">  CONTROL PLANE (the brain)
+    ├─ API server   ◀── you talk to this (kubectl, YAML)
+    ├─ etcd         ◀── key-value store: the cluster's desired + actual state
+    ├─ scheduler    ◀── picks which node each new pod runs on
+    └─ controllers  ◀── the reconciliation loops (keep N replicas, etc.)
+          │
+          ▼  schedules pods onto…
+  WORKER NODES (the muscle)
+    ├─ kubelet      ◀── agent on each node; starts/stops pods, reports health
+    ├─ container runtime (e.g. containerd)  ◀── actually runs containers
+    └─ kube-proxy   ◀── networking / routing to pods</div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Mental model</span><span class="ru">Модель в голове</span></span>
+      <span class="en">You declare desired state to the <strong>API server</strong>; it's stored in <strong>etcd</strong>; <strong>controllers</strong> reconcile it; the <strong>scheduler</strong> places pods; <strong>kubelets</strong> on nodes run them. Everything is a control loop chasing your declared goal.</span>
+      <span class="ru">Ты объявляешь желаемое состояние <strong>API server</strong>-у; оно хранится в <strong>etcd</strong>; <strong>контроллеры</strong> его reconcile-ят; <strong>scheduler</strong> размещает pod-ы; <strong>kubelet</strong>-ы на нодах их запускают. Всё — control loop, догоняющий объявленную цель.</span>
+    </div>
+  </div>
+</section>
+
+<section id="example">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">5. A minimal example</span><span class="ru">5. Минимальный пример</span></h2>
+  <div class="card reveal">
+    <p class="en">A Deployment asking for 3 replicas of an app, declared in YAML and applied with one command.</p>
+    <p class="ru">Deployment, запрашивающий 3 реплики приложения, описанный в YAML и применённый одной командой.</p>
+    <pre><span class="c"># deployment.yaml</span>
+<span class="k">apiVersion:</span> apps/v1
+<span class="k">kind:</span> Deployment
+<span class="k">metadata:</span>
+  <span class="k">name:</span> my-pipeline
+<span class="k">spec:</span>
+  <span class="k">replicas:</span> 3                <span class="c"># desired state: keep 3 pods alive</span>
+  <span class="k">selector:</span>
+    <span class="k">matchLabels:</span> { app: my-pipeline }
+  <span class="k">template:</span>
+    <span class="k">metadata:</span>
+      <span class="k">labels:</span> { app: my-pipeline }
+    <span class="k">spec:</span>
+      <span class="k">containers:</span>
+        - <span class="k">name:</span> worker
+          <span class="k">image:</span> my-pipeline:1.0   <span class="c"># the Docker image to run</span>
+          <span class="k">resources:</span>
+            <span class="k">requests:</span> { cpu: <span class="green">"500m"</span>, memory: <span class="green">"512Mi"</span> }</pre>
+    <pre><span class="c"># apply it (declarative) and watch</span>
+kubectl apply -f deployment.yaml
+kubectl get pods        <span class="c"># see your 3 pods; kill one → K8s recreates it</span></pre>
+    <div class="key">
+      <span class="lbl"><span class="en">The self-healing demo</span><span class="ru">Демо самовосстановления</span></span>
+      <span class="en">Delete a pod with <code class="inline">kubectl delete pod ...</code> and a new one appears within seconds. You asked for 3; the controller keeps reconciling back to 3. That loop is the whole essence of Kubernetes.</span>
+      <span class="ru">Удали pod через <code class="inline">kubectl delete pod ...</code> — и новый появится за секунды. Ты попросил 3; контроллер постоянно reconcile-ит обратно к 3. Этот цикл и есть вся суть Kubernetes.</span>
+    </div>
+  </div>
+</section>
+
+<section id="why-de">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">6. Why a data engineer cares</span><span class="ru">6. Почему это важно дата-инженеру</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><strong>Your orchestrators run on it.</strong> Flyte is Kubernetes-native; Airflow's KubernetesExecutor and Spark-on-K8s launch each task as a pod.</li>
+      <li><strong>Elastic compute.</strong> A heavy backfill spins up many pods, then scales back down — you pay for what you use.</li>
+      <li><strong>Resource isolation.</strong> Per-pod CPU/memory requests stop one greedy job from starving others.</li>
+      <li><strong>Reliability for free.</strong> Self-healing + rescheduling means a crashed task or dead node doesn't silently stall your pipeline.</li>
+      <li><strong>Provisioned by IaC.</strong> The cluster itself is usually created with <a href="terraform-iac.html">Terraform</a> (EKS/AKS/GKE), and you deploy onto it.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Твои оркестраторы работают на нём.</strong> Flyte — Kubernetes-native; KubernetesExecutor в Airflow и Spark-on-K8s запускают каждую таску как pod.</li>
+      <li><strong>Эластичные вычисления.</strong> Тяжёлый бэкфил поднимает много pod-ов, затем сворачивается — платишь за то, что используешь.</li>
+      <li><strong>Изоляция ресурсов.</strong> Запросы CPU/памяти на pod не дают одному жадному джобу голодоморить остальных.</li>
+      <li><strong>Надёжность «бесплатно».</strong> Самовосстановление + переразмещение означают, что упавшая таска или мёртвая нода не застопорят пайплайн тихо.</li>
+      <li><strong>Поднимается через IaC.</strong> Сам кластер обычно создаётся <a href="terraform-iac.html">Terraform</a> (EKS/AKS/GKE), а ты деплоишь на него.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">The stack, top to bottom</span><span class="ru">Стек сверху вниз</span></span>
+      <span class="en"><a href="terraform-iac.html">Terraform</a> provisions the K8s cluster → Kubernetes schedules containers → <a href="docker-containers.html">Docker</a> images are those containers → <a href="flyte-orchestration.html">Flyte</a>/Airflow turn your pipeline tasks into them. Five pieces, one pipeline.</span>
+      <span class="ru"><a href="terraform-iac.html">Terraform</a> поднимает кластер K8s → Kubernetes планирует контейнеры → образы <a href="docker-containers.html">Docker</a> и есть эти контейнеры → <a href="flyte-orchestration.html">Flyte</a>/Airflow превращают таски пайплайна в них. Пять кусочков, один пайплайн.</span>
+    </div>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">7. Quick self-check</span><span class="ru">7. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Docker vs Kubernetes?</span><span class="ru">Docker vs Kubernetes?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Docker builds/runs <em>one</em> container on <em>one</em> host. Kubernetes <em>orchestrates</em> many containers across a cluster: scheduling, scaling, healing, networking.</span><span class="ru">Docker собирает/запускает <em>один</em> контейнер на <em>одном</em> хосте. Kubernetes <em>оркеструет</em> много контейнеров по кластеру: планирование, масштабирование, самовосстановление, сеть.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What is a Pod?</span><span class="ru">Что такое Pod?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">The smallest deployable unit: one or a few tightly-coupled containers sharing network/storage. Disposable — killed and recreated freely.</span><span class="ru">Наименьшая единица развёртывания: один или несколько тесно связанных контейнеров с общей сетью/хранилищем. Одноразовый — свободно убивается и пересоздаётся.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">How does Kubernetes self-heal?</span><span class="ru">Как Kubernetes самовосстанавливается?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A control loop constantly compares desired vs actual state and acts to close the gap. Asked for 3 replicas, only 2 alive → it starts a 3rd.</span><span class="ru">Control loop постоянно сравнивает желаемое и фактическое состояние и действует, закрывая разницу. Просил 3 реплики, живы 2 → запускает 3-ю.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why do you need a Service?</span><span class="ru">Зачем нужен Service?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Pods are ephemeral with changing IPs. A Service gives a stable name + load balancer in front of them, so others can reliably reach the pods.</span><span class="ru">Pod-ы эфемерны и с меняющимися IP. Service даёт стабильное имя + балансировщик перед ними, чтобы к pod-ам можно было надёжно обращаться.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Control plane vs worker node?</span><span class="ru">Control plane vs worker node?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Control plane = the brain (API server, etcd, scheduler, controllers) deciding what should run. Worker nodes = the machines (kubelet + runtime) that actually run the pods.</span><span class="ru">Control plane = мозг (API server, etcd, scheduler, контроллеры), решающий, что должно работать. Worker nodes = машины (kubelet + рантайм), реально запускающие pod-ы.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Which K8s object fits a data pipeline run?</span><span class="ru">Какой объект K8s подходит для запуска дата-пайплайна?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A <strong>Job</strong> (runs a pod to completion) or a <strong>CronJob</strong> (Jobs on a schedule). Deployments are for long-running services, not batch tasks.</span><span class="ru"><strong>Job</strong> (запускает pod до завершения) или <strong>CronJob</strong> (Job-ы по расписанию). Deployment — для долгоживущих сервисов, не для батч-задач.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Kubernetes · part of the DE interview cheatsheets · built for Amal Imangulov · see also: <a href="docker-containers.html">Docker →</a> · <a href="flyte-orchestration.html">Flyte →</a> · <a href="terraform-iac.html">Terraform →</a></span>
+  <span class="ru">Kubernetes · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · см. также: <a href="docker-containers.html">Docker →</a> · <a href="flyte-orchestration.html">Flyte →</a> · <a href="terraform-iac.html">Terraform →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker &amp; Containers — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0; }
+  pre .c { color:var(--muted); } pre .k { color:var(--purple); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:185px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13.5px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🐳 Docker</span>
+  <a href="#what"><span class="en">What is it</span><span class="ru">Что это</span></a>
+  <a href="#why"><span class="en">Why it exists</span><span class="ru">Зачем</span></a>
+  <a href="#concepts"><span class="en">Core concepts</span><span class="ru">Концепции</span></a>
+  <a href="#example"><span class="en">Example</span><span class="ru">Пример</span></a>
+  <a href="#vm"><span class="en">vs VMs</span><span class="ru">vs ВМ</span></a>
+  <a href="#why-de"><span class="en">Why DE cares</span><span class="ru">Зачем DE</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Docker &amp; Containers — the friendly intro</span><span class="ru">Docker и контейнеры — дружелюбное введение</span></h1>
+  <div class="sub">
+    <span class="en">Package your code with everything it needs to run, so it behaves the same on your laptop, in CI, and in production. Plain words.</span>
+    <span class="ru">Упакуй код вместе со всем, что ему нужно для запуска, чтобы он вёл себя одинаково на ноутбуке, в CI и в проде. Простыми словами.</span>
+  </div>
+  <div class="levels">
+    <a class="level active" href="docker-containers.html">🐳 Docker</a>
+    <a class="level" href="kubernetes-orchestration.html">☸️ Kubernetes</a>
+    <a class="level" href="flyte-orchestration.html">🚀 Flyte</a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. What is Docker?</span><span class="ru">1. Что такое Docker?</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Docker</strong> is a tool for <strong>containers</strong>. A container packages your application together with everything it needs to run — code, runtime, libraries, system tools — into one isolated, portable unit. That unit runs the same way anywhere Docker is installed, regardless of what's on the host machine.</p>
+    <p class="ru"><strong>Docker</strong> — это инструмент для <strong>контейнеров</strong>. Контейнер упаковывает твоё приложение вместе со всем, что нужно для запуска — код, рантайм, библиотеки, системные утилиты — в один изолированный переносимый блок. Этот блок работает одинаково везде, где установлен Docker, независимо от того, что стоит на хост-машине.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">A container is a <strong>shipping container</strong> for software. Before standardized containers, loading a ship meant repacking every odd-shaped crate. Now everything goes in identical boxes that any crane, truck or ship can handle. Docker does that for code: one standard box that runs anywhere.</span>
+      <span class="ru">Контейнер — это <strong>морской контейнер</strong> для софта. До стандартных контейнеров загрузка корабля означала перепаковку каждого ящика странной формы. Теперь всё едет в одинаковых коробках, которые поднимет любой кран, грузовик или корабль. Docker делает то же для кода: одна стандартная коробка, запускающаяся где угодно.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">One line</span><span class="ru">Одной строкой</span></span>
+      <span class="en">Docker = <strong>"it works on my machine" → it works on every machine</strong>, by shipping the whole environment, not just the code.</span>
+      <span class="ru">Docker = <strong>«у меня же работает» → работает на любой машине</strong>, потому что отгружается всё окружение, а не только код.</span>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Why does it exist?</span><span class="ru">2. Зачем он нужен?</span></h2>
+  <div class="card reveal">
+    <p class="en">The classic problem: code runs on the developer's laptop but breaks in production because the Python version, a library, or a system package differs. Docker kills that whole class of bugs:</p>
+    <p class="ru">Классическая проблема: код работает на ноутбуке разработчика, но падает в проде, потому что отличается версия Python, библиотека или системный пакет. Docker убивает целый класс таких багов:</p>
+    <ul class="en">
+      <li><strong>Consistency.</strong> The exact same image runs in dev, CI, and prod. No "works on my machine".</li>
+      <li><strong>Isolation.</strong> Each container has its own dependencies; two apps needing different Python versions coexist peacefully.</li>
+      <li><strong>Portability.</strong> Build once, run on any host (laptop, server, any cloud) with Docker.</li>
+      <li><strong>Lightweight &amp; fast.</strong> Containers share the host OS kernel, so they start in seconds and use far less than a full virtual machine.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Консистентность.</strong> Один и тот же образ бежит в dev, CI и проде. Никаких «у меня работает».</li>
+      <li><strong>Изоляция.</strong> У каждого контейнера свои зависимости; два приложения с разными версиями Python мирно сосуществуют.</li>
+      <li><strong>Переносимость.</strong> Собери один раз, запускай на любом хосте (ноутбук, сервер, любое облако) с Docker.</li>
+      <li><strong>Легковесность и скорость.</strong> Контейнеры используют ядро ОС хоста, поэтому стартуют за секунды и тратят куда меньше, чем полноценная виртуальная машина.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">The core promise</span><span class="ru">Главное обещание</span></span>
+      <span class="en">Build the environment once, freeze it into an image, and that frozen environment is what runs everywhere — reproducibly.</span>
+      <span class="ru">Собери окружение один раз, заморозь его в образ, и именно это замороженное окружение бежит везде — воспроизводимо.</span>
+    </div>
+  </div>
+</section>
+
+<section id="concepts">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">3. Core concepts</span><span class="ru">3. Ключевые понятия</span></h2>
+  <div class="card reveal">
+    <h3><span class="en">① Image</span><span class="ru">① Image (образ)</span></h3>
+    <p class="en">A read-only <strong>template</strong>: the frozen snapshot of your app + its environment. Built from a Dockerfile. Think "the recipe baked into a ready-to-ship package".</p>
+    <p class="ru">Read-only <strong>шаблон</strong>: замороженный снимок приложения + его окружения. Собирается из Dockerfile. Думай «рецепт, запечённый в готовый к отгрузке пакет».</p>
+
+    <h3><span class="en">② Container</span><span class="ru">② Container (контейнер)</span></h3>
+    <p class="en">A <strong>running instance</strong> of an image. One image → many containers, like one class → many objects. Containers are disposable: you start, stop, and throw them away.</p>
+    <p class="ru"><strong>Запущенный экземпляр</strong> образа. Один образ → много контейнеров, как один класс → много объектов. Контейнеры одноразовые: запускаешь, останавливаешь и выбрасываешь.</p>
+
+    <h3><span class="en">③ Dockerfile</span><span class="ru">③ Dockerfile</span></h3>
+    <p class="en">A text recipe describing how to build the image, step by step: base image, copy code, install deps, set the start command. Each line becomes a cached <strong>layer</strong>.</p>
+    <p class="ru">Текстовый рецепт, описывающий сборку образа по шагам: базовый образ, копирование кода, установка зависимостей, команда запуска. Каждая строка становится кэшируемым <strong>слоем</strong> (layer).</p>
+
+    <h3><span class="en">④ Registry</span><span class="ru">④ Registry (реестр)</span></h3>
+    <p class="en">Where images are stored and shared — Docker Hub, AWS ECR, GCP Artifact Registry. You <code class="inline">push</code> an image up and <code class="inline">pull</code> it down elsewhere, like GitHub for images.</p>
+    <p class="ru">Где хранятся и раздаются образы — Docker Hub, AWS ECR, GCP Artifact Registry. Ты делаешь <code class="inline">push</code> образа наверх и <code class="inline">pull</code> в другом месте — как GitHub для образов.</p>
+
+    <h3><span class="en">⑤ Volumes &amp; ports</span><span class="ru">⑤ Volumes и порты</span></h3>
+    <p class="en">Containers are ephemeral, so data written inside disappears when they're removed. <strong>Volumes</strong> persist data outside the container; <strong>port mapping</strong> exposes a container's port to the host.</p>
+    <p class="ru">Контейнеры эфемерны, поэтому данные, записанные внутри, исчезают при удалении. <strong>Volumes</strong> сохраняют данные снаружи контейнера; <strong>проброс портов</strong> открывает порт контейнера на хосте.</p>
+
+    <h3><span class="en">⑥ Docker Compose</span><span class="ru">⑥ Docker Compose</span></h3>
+    <p class="en">A tool to define and run <strong>multiple containers together</strong> (e.g. app + database + queue) from one YAML file. Great for local dev of a multi-service stack.</p>
+    <p class="ru">Инструмент, чтобы описать и запустить <strong>несколько контейнеров вместе</strong> (например приложение + база + очередь) из одного YAML-файла. Отлично для локальной разработки многосервисного стека.</p>
+  </div>
+</section>
+
+<section id="example">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">4. A minimal example</span><span class="ru">4. Минимальный пример</span></h2>
+  <div class="card reveal">
+    <p class="en">A Dockerfile for a small Python data job, then the two commands to build and run it.</p>
+    <p class="ru">Dockerfile для небольшого Python-джоба по данным, затем две команды, чтобы собрать и запустить его.</p>
+    <pre><span class="c"># Dockerfile</span>
+<span class="k">FROM</span> python:3.12-slim          <span class="c"># base image (a frozen mini-OS + Python)</span>
+<span class="k">WORKDIR</span> /app                    <span class="c"># working dir inside the container</span>
+<span class="k">COPY</span> requirements.txt .         <span class="c"># copy deps first → layer caching</span>
+<span class="k">RUN</span> pip install -r requirements.txt
+<span class="k">COPY</span> . .                        <span class="c"># copy the rest of the code</span>
+<span class="k">CMD</span> [<span class="green">"python"</span>, <span class="green">"pipeline.py"</span>]  <span class="c"># what runs when the container starts</span></pre>
+    <pre><span class="c"># build an image named "my-pipeline"</span>
+docker build -t my-pipeline .
+
+<span class="c"># run a container from it</span>
+docker run --rm my-pipeline</pre>
+    <div class="key">
+      <span class="lbl"><span class="en">Why COPY requirements first?</span><span class="ru">Почему COPY requirements первым?</span></span>
+      <span class="en">Each Dockerfile line is a cached layer. By copying <code class="inline">requirements.txt</code> and installing deps <em>before</em> copying your code, a code change doesn't re-run the slow <code class="inline">pip install</code> — only the layers after the change rebuild. This caching trick is a classic interview point.</span>
+      <span class="ru">Каждая строка Dockerfile — кэшируемый слой. Копируя <code class="inline">requirements.txt</code> и ставя зависимости <em>до</em> копирования кода, изменение кода не перезапускает медленный <code class="inline">pip install</code> — пересобираются только слои после изменения. Этот трюк с кэшем — классический вопрос на интервью.</span>
+    </div>
+  </div>
+</section>
+
+<section id="vm">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">5. Containers vs Virtual Machines</span><span class="ru">5. Контейнеры vs виртуальные машины</span></h2>
+  <div class="card reveal">
+    <p class="en">Both isolate workloads, but at different levels. This is one of the most common Docker interview questions.</p>
+    <p class="ru">Оба изолируют нагрузки, но на разном уровне. Это один из самых частых вопросов про Docker на интервью.</p>
+    <table class="en">
+      <tr><th></th><th>Virtual Machine</th><th>Container (Docker)</th></tr>
+      <tr><td>Isolates at</td><td>Hardware level (full guest OS)</td><td>Process level (shares host kernel)</td></tr>
+      <tr><td>Size</td><td>Gigabytes (whole OS)</td><td>Megabytes (just app + deps)</td></tr>
+      <tr><td>Startup</td><td>Minutes (boots an OS)</td><td>Seconds (starts a process)</td></tr>
+      <tr><td>Overhead</td><td>Heavy (hypervisor + N OSes)</td><td>Light (one kernel shared)</td></tr>
+      <tr><td>Isolation strength</td><td>Stronger (full separation)</td><td>Weaker (shared kernel)</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th></th><th>Виртуальная машина</th><th>Контейнер (Docker)</th></tr>
+      <tr><td>Изолирует на уровне</td><td>Железа (полная гостевая ОС)</td><td>Процесса (общее ядро хоста)</td></tr>
+      <tr><td>Размер</td><td>Гигабайты (целая ОС)</td><td>Мегабайты (только приложение + зависимости)</td></tr>
+      <tr><td>Старт</td><td>Минуты (грузит ОС)</td><td>Секунды (запускает процесс)</td></tr>
+      <tr><td>Накладные расходы</td><td>Тяжёлые (гипервизор + N ОС)</td><td>Лёгкие (одно общее ядро)</td></tr>
+      <tr><td>Сила изоляции</td><td>Сильнее (полное разделение)</td><td>Слабее (общее ядро)</td></tr>
+    </table>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">One line</span><span class="ru">Одной строкой</span></span>
+      <span class="en">A VM virtualizes a <em>whole machine</em>; a container virtualizes <em>just an app's environment</em> on a shared kernel. Containers trade a bit of isolation for huge gains in speed and density.</span>
+      <span class="ru">ВМ виртуализирует <em>целую машину</em>; контейнер виртуализирует <em>только окружение приложения</em> на общем ядре. Контейнеры жертвуют чуть-чуть изоляцией ради огромного выигрыша в скорости и плотности.</span>
+    </div>
+  </div>
+</section>
+
+<section id="why-de">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">6. Why a data engineer cares</span><span class="ru">6. Почему это важно дата-инженеру</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><strong>Reproducible pipelines.</strong> Pin Python + libraries in an image so a job runs identically today and in a year.</li>
+      <li><strong>It's the unit of work for orchestrators.</strong> Flyte, Airflow (KubernetesExecutor), and Kubernetes all run your task <em>as a container</em>.</li>
+      <li><strong>Clean local dev.</strong> Spin up Postgres, Kafka, or Spark locally with one <code class="inline">docker compose up</code> — no messy host installs.</li>
+      <li><strong>CI/CD.</strong> Tests and builds run in containers for a clean, consistent environment every time.</li>
+      <li><strong>Dependency hell, solved.</strong> Conflicting library versions across jobs simply don't collide — each lives in its own image.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Воспроизводимые пайплайны.</strong> Зафиксируй Python + библиотеки в образе, чтобы джоб бежал одинаково сегодня и через год.</li>
+      <li><strong>Это единица работы для оркестраторов.</strong> Flyte, Airflow (KubernetesExecutor) и Kubernetes запускают твою таску <em>как контейнер</em>.</li>
+      <li><strong>Чистая локальная разработка.</strong> Подними Postgres, Kafka или Spark локально одной <code class="inline">docker compose up</code> — без грязных установок на хост.</li>
+      <li><strong>CI/CD.</strong> Тесты и сборки бегут в контейнерах ради чистого консистентного окружения каждый раз.</li>
+      <li><strong>Ад зависимостей решён.</strong> Конфликтующие версии библиотек между джобами просто не сталкиваются — каждый в своём образе.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">Docker → Kubernetes</span><span class="ru">Docker → Kubernetes</span></span>
+      <span class="en">Docker makes <em>one</em> container. When you need to run <em>thousands</em> across many machines — with restarts, scaling and networking — you need an <strong>orchestrator</strong>: that's <a href="kubernetes-orchestration.html">Kubernetes</a>.</span>
+      <span class="ru">Docker делает <em>один</em> контейнер. Когда нужно запускать <em>тысячи</em> на множестве машин — с рестартами, масштабированием и сетью — нужен <strong>оркестратор</strong>: это <a href="kubernetes-orchestration.html">Kubernetes</a>.</span>
+    </div>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">7. Quick self-check</span><span class="ru">7. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Image vs Container?</span><span class="ru">Image vs Container?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">An <strong>image</strong> is the read-only template (frozen app + env). A <strong>container</strong> is a running instance of it. One image → many containers (like class → objects).</span><span class="ru"><strong>Image</strong> — read-only шаблон (замороженное приложение + окружение). <strong>Container</strong> — его запущенный экземпляр. Один образ → много контейнеров (как класс → объекты).</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What problem does Docker solve?</span><span class="ru">Какую проблему решает Docker?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">"Works on my machine" inconsistencies. It ships the whole environment (runtime, libs, tools) so code runs identically in dev, CI and prod.</span><span class="ru">Несоответствия «у меня же работает». Он отгружает всё окружение (рантайм, библиотеки, утилиты), чтобы код бежал одинаково в dev, CI и проде.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Container vs VM — key difference?</span><span class="ru">Контейнер vs ВМ — ключевая разница?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A VM bundles a full guest OS (GBs, boots in minutes). A container shares the host kernel and packs only the app + deps (MBs, starts in seconds).</span><span class="ru">ВМ несёт полную гостевую ОС (ГБ, грузится минутами). Контейнер использует ядро хоста и пакует только приложение + зависимости (МБ, стартует за секунды).</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What is a Dockerfile, and what's a layer?</span><span class="ru">Что такое Dockerfile и что такое слой?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A recipe to build an image, step by step. Each instruction becomes a cached layer — unchanged layers are reused, so rebuilds are fast.</span><span class="ru">Рецепт сборки образа по шагам. Каждая инструкция — кэшируемый слой; неизменившиеся слои переиспользуются, поэтому пересборка быстрая.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why copy requirements before code?</span><span class="ru">Зачем копировать requirements до кода?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Layer caching: installing deps in an earlier layer means a code change doesn't re-trigger the slow pip install — only later layers rebuild.</span><span class="ru">Кэш слоёв: установка зависимостей в раннем слое означает, что изменение кода не запускает заново медленный pip install — пересобираются только поздние слои.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Containers are ephemeral — how to keep data?</span><span class="ru">Контейнеры эфемерны — как сохранить данные?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Use <strong>volumes</strong> — storage mounted outside the container's lifecycle, so data survives when the container is removed or replaced.</span><span class="ru">Использовать <strong>volumes</strong> — хранилище вне жизненного цикла контейнера, чтобы данные пережили удаление или замену контейнера.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Docker &amp; Containers · part of the DE interview cheatsheets · built for Amal Imangulov · next: <a href="kubernetes-orchestration.html">Kubernetes →</a></span>
+  <span class="ru">Docker и контейнеры · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · далее: <a href="kubernetes-orchestration.html">Kubernetes →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
