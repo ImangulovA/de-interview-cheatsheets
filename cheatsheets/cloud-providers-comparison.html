@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS vs Azure vs GCP — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0; }
+  pre .c { color:var(--muted); } pre .k { color:var(--purple); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:185px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13.5px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">☁️ <span class="en">Cloud providers</span><span class="ru">Облачные провайдеры</span></span>
+  <a href="#what"><span class="en">The big 3</span><span class="ru">Большая тройка</span></a>
+  <a href="#azure"><span class="en">Azure focus</span><span class="ru">Про Azure</span></a>
+  <a href="#services"><span class="en">Service map</span><span class="ru">Карта сервисов</span></a>
+  <a href="#choose"><span class="en">How to choose</span><span class="ru">Как выбирать</span></a>
+  <a href="#why"><span class="en">Why DE cares</span><span class="ru">Зачем DE</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">AWS vs Azure vs GCP</span><span class="ru">AWS vs Azure vs GCP</span></h1>
+  <div class="sub">
+    <span class="en">The three big clouds, what makes each different (especially Azure), and the service names a data engineer keeps bumping into. Concepts &gt; trivia.</span>
+    <span class="ru">Три больших облака, чем каждое отличается (особенно Azure) и названия сервисов, на которые дата-инженер постоянно натыкается. Концепции важнее зубрёжки.</span>
+  </div>
+  <div class="levels">
+    <a class="level active" href="cloud-providers-comparison.html">☁️ <span class="en">Clouds</span><span class="ru">Облака</span></a>
+    <a class="level" href="terraform-iac.html">🏗️ Terraform</a>
+    <a class="level" href="cloud-dataops-cicd.html">⚙️ <span class="en">Cloud &amp; DataOps</span><span class="ru">Cloud и DataOps</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. The big three</span><span class="ru">1. Большая тройка</span></h2>
+  <div class="card reveal">
+    <p class="en">A <strong>cloud provider</strong> rents you computing on demand: servers, storage, databases, networking and managed services, billed by usage instead of buying hardware. Three providers dominate:</p>
+    <p class="ru"><strong>Облачный провайдер</strong> сдаёт тебе вычисления по запросу: серверы, хранилище, базы, сети и управляемые сервисы, оплата по факту использования вместо покупки железа. Доминируют трое:</p>
+    <table class="en">
+      <tr><th></th><th>AWS (Amazon)</th><th>Azure (Microsoft)</th><th>GCP (Google)</th></tr>
+      <tr><td>Market position</td><td>#1, widest catalog</td><td>#2, enterprise favorite</td><td>#3, data/ML &amp; K8s</td></tr>
+      <tr><td>Strength</td><td>Maturity, breadth, everything exists</td><td>Microsoft ecosystem integration</td><td>Data, analytics, Kubernetes</td></tr>
+      <tr><td>Loved by</td><td>Startups, broad adoption</td><td>Enterprises already on Microsoft</td><td>Data engineers, analytics shops</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th></th><th>AWS (Amazon)</th><th>Azure (Microsoft)</th><th>GCP (Google)</th></tr>
+      <tr><td>Позиция</td><td>№1, самый широкий каталог</td><td>№2, любимец энтерпрайза</td><td>№3, data/ML и K8s</td></tr>
+      <tr><td>Сильная сторона</td><td>Зрелость, широта, есть всё</td><td>Интеграция с экосистемой Microsoft</td><td>Данные, аналитика, Kubernetes</td></tr>
+      <tr><td>Кого любит</td><td>Стартапы, массовое внедрение</td><td>Энтерпрайз уже на Microsoft</td><td>Дата-инженеры, аналитика</td></tr>
+    </table>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">The clouds are like three big supermarket chains. They sell mostly the same goods (compute, storage, databases) under <strong>different brand names</strong>, at different prices, with a different "house style". Switching is possible but you relearn the aisles.</span>
+      <span class="ru">Облака — как три больших сети супермаркетов. Продают в основном одни и те же товары (вычисления, хранилище, базы) под <strong>разными брендами</strong>, по разным ценам, со своим «фирменным стилем». Перейти можно, но придётся заново учить расположение полок.</span>
+    </div>
+  </div>
+</section>
+
+<section id="azure">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. What makes Azure different</span><span class="ru">2. Чем Azure отличается</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Azure</strong> is Microsoft's cloud. Its whole personality comes from being the cloud for organizations already living in the Microsoft world:</p>
+    <p class="ru"><strong>Azure</strong> — облако Microsoft. Вся его «личность» в том, что это облако для организаций, уже живущих в мире Microsoft:</p>
+    <ul class="en">
+      <li><strong>Deep Microsoft integration.</strong> Native ties to Active Directory / <strong>Entra ID</strong> (corporate login), Office 365, Windows Server, SQL Server, .NET. If your company runs on Microsoft, Azure feels seamless.</li>
+      <li><strong>Enterprise &amp; compliance lean.</strong> Lots of government, banking and regulated customers; strong certifications and contracts.</li>
+      <li><strong>Hybrid cloud.</strong> <strong>Azure Arc</strong> lets you manage on-prem servers and other clouds from one Azure control plane — big for companies with their own data centers.</li>
+      <li><strong>License portability.</strong> Bring existing Windows / SQL Server licenses for a discount (Azure Hybrid Benefit).</li>
+      <li><strong>Identity-centric.</strong> Resources are grouped into <strong>Resource Groups</strong> and tied to <strong>Subscriptions</strong>, all under Entra ID identity.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Глубокая интеграция с Microsoft.</strong> Родная связка с Active Directory / <strong>Entra ID</strong> (корп-логин), Office 365, Windows Server, SQL Server, .NET. Если компания на Microsoft, Azure заходит бесшовно.</li>
+      <li><strong>Уклон в энтерпрайз и комплаенс.</strong> Много гос-, банковских и регулируемых клиентов; сильные сертификации и контракты.</li>
+      <li><strong>Гибридное облако.</strong> <strong>Azure Arc</strong> позволяет управлять локальными серверами и другими облаками из одной панели Azure — важно для компаний со своими дата-центрами.</li>
+      <li><strong>Переносимость лицензий.</strong> Можно принести существующие лицензии Windows / SQL Server со скидкой (Azure Hybrid Benefit).</li>
+      <li><strong>Завязка на identity.</strong> Ресурсы группируются в <strong>Resource Groups</strong> и привязаны к <strong>Subscriptions</strong>, всё под identity Entra ID.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">In one sentence</span><span class="ru">Одним предложением</span></span>
+      <span class="en">Azure differs less in <em>what</em> it offers (the services rhyme with AWS/GCP) and more in <em>who</em> it's for: the Microsoft-enterprise world, hybrid setups, and identity-first governance.</span>
+      <span class="ru">Azure отличается не столько <em>тем, что</em> предлагает (сервисы рифмуются с AWS/GCP), сколько <em>тем, для кого</em>: мир Microsoft-энтерпрайза, гибридные сценарии и governance с identity во главе.</span>
+    </div>
+  </div>
+</section>
+
+<section id="services">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">3. The service map (same idea, 3 names)</span><span class="ru">3. Карта сервисов (одна идея, 3 названия)</span></h2>
+  <div class="card reveal">
+    <p class="en">The fastest way to read any cloud is to map its names onto concepts you already know. For a data engineer, these are the ones that come up constantly:</p>
+    <p class="ru">Самый быстрый способ понять любое облако — наложить его названия на уже знакомые концепции. Для дата-инженера вот те, что встречаются постоянно:</p>
+    <table class="en">
+      <tr><th>What you need</th><th>AWS</th><th>Azure</th><th>GCP</th></tr>
+      <tr><td>Virtual machine</td><td>EC2</td><td>Virtual Machines</td><td>Compute Engine</td></tr>
+      <tr><td>Object storage</td><td>S3</td><td>Blob Storage</td><td>Cloud Storage</td></tr>
+      <tr><td>Data warehouse</td><td>Redshift</td><td>Synapse Analytics</td><td>BigQuery</td></tr>
+      <tr><td>Managed Kubernetes</td><td>EKS</td><td>AKS</td><td>GKE</td></tr>
+      <tr><td>Serverless functions</td><td>Lambda</td><td>Azure Functions</td><td>Cloud Functions</td></tr>
+      <tr><td>ETL / data pipelines</td><td>Glue / MWAA</td><td>Data Factory</td><td>Dataflow / Composer</td></tr>
+      <tr><td>Managed Spark</td><td>EMR</td><td>Synapse / Databricks</td><td>Dataproc</td></tr>
+      <tr><td>Relational DB (managed)</td><td>RDS</td><td>Azure SQL Database</td><td>Cloud SQL</td></tr>
+      <tr><td>Streaming / pub-sub</td><td>Kinesis</td><td>Event Hubs</td><td>Pub/Sub</td></tr>
+      <tr><td>Identity / IAM</td><td>IAM</td><td>Entra ID (Azure AD)</td><td>Cloud IAM</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th>Что нужно</th><th>AWS</th><th>Azure</th><th>GCP</th></tr>
+      <tr><td>Виртуальная машина</td><td>EC2</td><td>Virtual Machines</td><td>Compute Engine</td></tr>
+      <tr><td>Объектное хранилище</td><td>S3</td><td>Blob Storage</td><td>Cloud Storage</td></tr>
+      <tr><td>Хранилище данных (DWH)</td><td>Redshift</td><td>Synapse Analytics</td><td>BigQuery</td></tr>
+      <tr><td>Управляемый Kubernetes</td><td>EKS</td><td>AKS</td><td>GKE</td></tr>
+      <tr><td>Serverless-функции</td><td>Lambda</td><td>Azure Functions</td><td>Cloud Functions</td></tr>
+      <tr><td>ETL / дата-пайплайны</td><td>Glue / MWAA</td><td>Data Factory</td><td>Dataflow / Composer</td></tr>
+      <tr><td>Управляемый Spark</td><td>EMR</td><td>Synapse / Databricks</td><td>Dataproc</td></tr>
+      <tr><td>Реляционная БД (managed)</td><td>RDS</td><td>Azure SQL Database</td><td>Cloud SQL</td></tr>
+      <tr><td>Стриминг / pub-sub</td><td>Kinesis</td><td>Event Hubs</td><td>Pub/Sub</td></tr>
+      <tr><td>Identity / IAM</td><td>IAM</td><td>Entra ID (Azure AD)</td><td>Cloud IAM</td></tr>
+    </table>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Interview move</span><span class="ru">Приём на интервью</span></span>
+      <span class="en">Don't memorize all three columns. Learn the <em>concepts</em> (object store, warehouse, managed K8s, serverless) and translate names on the fly. "S3 ≈ Blob Storage ≈ Cloud Storage" is enough.</span>
+      <span class="ru">Не зубри все три колонки. Выучи <em>концепции</em> (объектное хранилище, warehouse, managed K8s, serverless) и переводи названия на лету. «S3 ≈ Blob Storage ≈ Cloud Storage» — достаточно.</span>
+    </div>
+  </div>
+</section>
+
+<section id="choose">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">4. How teams actually choose</span><span class="ru">4. Как команды реально выбирают</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><strong>Existing ecosystem.</strong> Already on Microsoft 365 / Active Directory? → Azure. Heavy on Google Workspace / analytics? → GCP. Everything else / widest options? → AWS.</li>
+      <li><strong>Specific best-in-class service.</strong> BigQuery pulls people to GCP; the Microsoft stack and hybrid pull people to Azure; sheer breadth pulls people to AWS.</li>
+      <li><strong>Skills &amp; hiring.</strong> What your team already knows is a real cost.</li>
+      <li><strong>Compliance &amp; region.</strong> Data residency, certifications, available regions.</li>
+      <li><strong>Price for your shape of workload.</strong> Egress fees, committed-use discounts, license reuse.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Существующая экосистема.</strong> Уже на Microsoft 365 / Active Directory? → Azure. Плотно на Google Workspace / аналитике? → GCP. Всё остальное / максимум опций? → AWS.</li>
+      <li><strong>Конкретный лучший сервис.</strong> BigQuery тянет людей в GCP; стек Microsoft и гибрид тянут в Azure; широта каталога тянет в AWS.</li>
+      <li><strong>Навыки и найм.</strong> То, что команда уже знает, — реальная статья расходов.</li>
+      <li><strong>Комплаенс и регион.</strong> Резидентность данных, сертификации, доступные регионы.</li>
+      <li><strong>Цена под форму нагрузки.</strong> Плата за egress, скидки за committed-use, переиспользование лицензий.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">Multi-cloud reality</span><span class="ru">Реальность мультиоблака</span></span>
+      <span class="en">Big orgs often use more than one (e.g. AWS for apps, Azure for the Microsoft-bound parts). This is exactly why a cloud-agnostic IaC tool like <a href="terraform-iac.html">Terraform</a> is valuable — one workflow across all three.</span>
+      <span class="ru">Крупные компании часто используют не одно (например AWS для приложений, Azure для Microsoft-частей). Именно поэтому ценен cloud-agnostic IaC-инструмент вроде <a href="terraform-iac.html">Terraform</a> — один рабочий цикл на все три.</span>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">5. Why a data engineer cares</span><span class="ru">5. Почему это важно дата-инженеру</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><strong>Your stack lives here.</strong> Warehouse, object storage, compute clusters, orchestrators — all are cloud services with provider-specific names.</li>
+      <li><strong>The pattern is universal.</strong> Land raw files in object storage → process with managed Spark / serverless → load a warehouse → serve BI. The names change per cloud; the shape doesn't.</li>
+      <li><strong>Cost is your problem too.</strong> Storage tiers, egress fees and right-sized compute show up directly in DE design choices.</li>
+      <li><strong>Portability.</strong> Knowing the concept-to-name map lets you move between teams/clouds without relearning from scratch.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Твой стек живёт здесь.</strong> Warehouse, объектное хранилище, вычислительные кластеры, оркестраторы — всё это облачные сервисы с названиями под провайдера.</li>
+      <li><strong>Паттерн универсален.</strong> Сырые файлы в объектное хранилище → обработка managed Spark / serverless → загрузка в warehouse → отдача в BI. Названия меняются по облаку; форма — нет.</li>
+      <li><strong>Стоимость — тоже твоя забота.</strong> Тиры хранения, плата за egress и правильный размер compute напрямую влияют на решения DE.</li>
+      <li><strong>Переносимость.</strong> Знание карты концепция→название позволяет переходить между командами/облаками без переучивания с нуля.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">6. Quick self-check</span><span class="ru">6. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What makes Azure different from AWS/GCP?</span><span class="ru">Чем Azure отличается от AWS/GCP?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Deep Microsoft integration (Entra ID/AD, Office 365, Windows/SQL Server, .NET), an enterprise/compliance lean, and strong hybrid-cloud (Azure Arc). Same kinds of services, different audience.</span><span class="ru">Глубокая интеграция с Microsoft (Entra ID/AD, Office 365, Windows/SQL Server, .NET), уклон в энтерпрайз/комплаенс и сильный гибрид (Azure Arc). Похожие сервисы, другая аудитория.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Object storage on each cloud?</span><span class="ru">Объектное хранилище в каждом облаке?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">AWS S3, Azure Blob Storage, GCP Cloud Storage. Same concept: cheap, durable storage for files/objects.</span><span class="ru">AWS S3, Azure Blob Storage, GCP Cloud Storage. Одна концепция: дешёвое надёжное хранилище для файлов/объектов.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Data warehouse on each cloud?</span><span class="ru">DWH в каждом облаке?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">AWS Redshift, Azure Synapse Analytics, GCP BigQuery. BigQuery is often the headline reason teams pick GCP.</span><span class="ru">AWS Redshift, Azure Synapse Analytics, GCP BigQuery. BigQuery часто главная причина выбрать GCP.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">When would a company pick Azure?</span><span class="ru">Когда компания выберет Azure?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">When it already runs on Microsoft (AD, Office 365, Windows/SQL Server), needs hybrid cloud, wants to reuse Microsoft licenses, or has heavy enterprise/compliance needs.</span><span class="ru">Когда она уже на Microsoft (AD, Office 365, Windows/SQL Server), нужен гибрид, хочется переиспользовать лицензии Microsoft или есть серьёзные требования энтерпрайза/комплаенса.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why is multi-cloud common, and what helps?</span><span class="ru">Почему мультиоблако частое и что помогает?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Different teams/needs pick different clouds; avoiding lock-in. A cloud-agnostic IaC tool like Terraform gives one workflow across all three.</span><span class="ru">Разные команды/нужды выбирают разные облака; уход от lock-in. Cloud-agnostic IaC вроде Terraform даёт один рабочий цикл на все три.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Best way to learn a new cloud fast?</span><span class="ru">Как быстрее всего освоить новое облако?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Map its service names onto concepts you already know (object store, warehouse, managed K8s, serverless). The shape of a data platform is the same everywhere.</span><span class="ru">Наложи его названия сервисов на уже знакомые концепции (объектное хранилище, warehouse, managed K8s, serverless). Форма дата-платформы везде одна.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">AWS vs Azure vs GCP · part of the DE interview cheatsheets · built for Amal Imangulov · see also: <a href="terraform-iac.html">Terraform →</a> · <a href="cloud-dataops-cicd.html">Cloud &amp; DataOps →</a></span>
+  <span class="ru">AWS vs Azure vs GCP · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · см. также: <a href="terraform-iac.html">Terraform →</a> · <a href="cloud-dataops-cicd.html">Cloud и DataOps →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>

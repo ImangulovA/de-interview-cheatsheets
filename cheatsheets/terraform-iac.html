@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terraform &amp; IaC — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0; }
+  pre .c { color:var(--muted); } pre .k { color:var(--purple); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:185px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13.5px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🏗️ Terraform</span>
+  <a href="#what"><span class="en">What is it</span><span class="ru">Что это</span></a>
+  <a href="#iac"><span class="en">What is IaC</span><span class="ru">Что такое IaC</span></a>
+  <a href="#concepts"><span class="en">Core concepts</span><span class="ru">Концепции</span></a>
+  <a href="#example"><span class="en">Example</span><span class="ru">Пример</span></a>
+  <a href="#flow"><span class="en">Workflow</span><span class="ru">Рабочий цикл</span></a>
+  <a href="#why"><span class="en">Why DE cares</span><span class="ru">Зачем DE</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Terraform &amp; Infrastructure as Code</span><span class="ru">Terraform и Infrastructure as Code</span></h1>
+  <div class="sub">
+    <span class="en">Describe your cloud infrastructure in code; Terraform makes the real world match it. Declarative, idempotent, multi-cloud.</span>
+    <span class="ru">Опиши свою облачную инфраструктуру кодом; Terraform приводит реальный мир к этому описанию. Декларативно, идемпотентно, мультиоблачно.</span>
+  </div>
+  <div class="levels">
+    <a class="level active" href="terraform-iac.html">🏗️ Terraform</a>
+    <a class="level" href="cloud-providers-comparison.html">☁️ <span class="en">AWS · Azure · GCP</span><span class="ru">AWS · Azure · GCP</span></a>
+    <a class="level" href="cloud-dataops-cicd.html">⚙️ <span class="en">Cloud &amp; DataOps</span><span class="ru">Cloud и DataOps</span></a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. What is Terraform?</span><span class="ru">1. Что такое Terraform?</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Terraform</strong> (by HashiCorp) is an <strong>Infrastructure as Code (IaC)</strong> tool. Instead of clicking around a cloud console to create servers, databases and networks, you <strong>describe</strong> the infrastructure you want in text files, and Terraform creates, changes, or deletes real resources to make reality match your description.</p>
+    <p class="ru"><strong>Terraform</strong> (от HashiCorp) — это инструмент <strong>Infrastructure as Code (IaC)</strong>. Вместо кликанья по облачной консоли, чтобы создавать серверы, базы и сети, ты <strong>описываешь</strong> нужную инфраструктуру в текстовых файлах, а Terraform создаёт, меняет или удаляет реальные ресурсы, приводя реальность к твоему описанию.</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">It's like a <strong>blueprint + a robot builder</strong>. You write the blueprint ("two servers, one database, this network"). The robot compares the blueprint with what's already built and does only the difference — adds what's missing, fixes what changed, removes what you deleted.</span>
+      <span class="ru">Это как <strong>чертёж + робот-строитель</strong>. Ты пишешь чертёж («два сервера, одна база, такая сеть»). Робот сравнивает чертёж с тем, что уже построено, и делает только разницу — добавляет недостающее, чинит изменившееся, убирает удалённое.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">One line</span><span class="ru">Одной строкой</span></span>
+      <span class="en">Terraform = <strong>declarative, version-controlled infrastructure</strong>: you say <em>what</em> you want, it figures out <em>how</em> to get there and tracks the diff.</span>
+      <span class="ru">Terraform = <strong>декларативная инфраструктура под версионным контролем</strong>: ты говоришь <em>что</em> хочешь, он решает <em>как</em> к этому прийти и отслеживает разницу.</span>
+    </div>
+  </div>
+</section>
+
+<section id="iac">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. What is "Infrastructure as Code"?</span><span class="ru">2. Что такое «Infrastructure as Code»?</span></h2>
+  <div class="card reveal">
+    <p class="en">IaC means managing infrastructure with files in version control instead of manual clicks. That unlocks the same superpowers we already use for application code:</p>
+    <p class="ru">IaC — это управление инфраструктурой через файлы в системе контроля версий, а не ручными кликами. Это даёт те же суперсилы, что мы уже используем для кода приложений:</p>
+    <ul class="en">
+      <li><strong>Reviewable.</strong> Infra changes go through pull requests and diffs, like code.</li>
+      <li><strong>Reproducible.</strong> Spin up an identical dev/staging/prod from the same files.</li>
+      <li><strong>Versioned.</strong> Git history of every infra change; roll back if needed.</li>
+      <li><strong>Auditable.</strong> No mystery "who created this server in the console at 2am".</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Можно ревьюить.</strong> Изменения инфры идут через pull request и diff, как код.</li>
+      <li><strong>Воспроизводимо.</strong> Поднять идентичные dev/staging/prod из тех же файлов.</li>
+      <li><strong>Версионируется.</strong> Git-история каждого изменения инфры; можно откатиться.</li>
+      <li><strong>Аудируется.</strong> Никаких загадок «кто создал этот сервер в консоли в 2 ночи».</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">Declarative, not imperative</span><span class="ru">Декларативно, не императивно</span></span>
+      <span class="en">You describe the desired <em>end state</em>, not a script of steps. Terraform computes the steps. Run it twice with no changes → it does nothing (idempotent).</span>
+      <span class="ru">Ты описываешь желаемое <em>конечное состояние</em>, а не скрипт шагов. Terraform сам вычисляет шаги. Запусти дважды без изменений → ничего не сделает (идемпотентно).</span>
+    </div>
+  </div>
+</section>
+
+<section id="concepts">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">3. Core concepts</span><span class="ru">3. Ключевые понятия</span></h2>
+  <div class="card reveal">
+    <h3><span class="en">① Providers</span><span class="ru">① Providers (провайдеры)</span></h3>
+    <p class="en">Plugins that teach Terraform how to talk to a platform: <code class="inline">aws</code>, <code class="inline">azurerm</code>, <code class="inline">google</code>, and hundreds more. Same Terraform, different provider per cloud.</p>
+    <p class="ru">Плагины, которые учат Terraform общаться с платформой: <code class="inline">aws</code>, <code class="inline">azurerm</code>, <code class="inline">google</code> и сотни других. Тот же Terraform, разный провайдер под каждое облако.</p>
+
+    <h3><span class="en">② Resources</span><span class="ru">② Resources (ресурсы)</span></h3>
+    <p class="en">The actual things you manage: a VM, a bucket, a database. Declared as <code class="inline">resource "type" "name" { ... }</code>.</p>
+    <p class="ru">Конкретные вещи, которыми ты управляешь: ВМ, бакет, база. Объявляются как <code class="inline">resource "type" "name" { ... }</code>.</p>
+
+    <h3><span class="en">③ State</span><span class="ru">③ State (состояние)</span></h3>
+    <p class="en">A file (<code class="inline">terraform.tfstate</code>) that records what Terraform has already created, so it can compute the diff between your code and reality. In teams it lives in <strong>remote state</strong> (e.g. an S3 bucket) with locking so two people don't apply at once.</p>
+    <p class="ru">Файл (<code class="inline">terraform.tfstate</code>), записывающий, что Terraform уже создал, чтобы вычислять разницу между твоим кодом и реальностью. В командах хранится в <strong>remote state</strong> (например в бакете S3) с блокировкой, чтобы двое не делали apply одновременно.</p>
+
+    <h3><span class="en">④ Plan &amp; Apply</span><span class="ru">④ Plan и Apply</span></h3>
+    <p class="en"><code class="inline">terraform plan</code> shows the diff (what will be added/changed/destroyed) without touching anything. <code class="inline">terraform apply</code> executes it. <code class="inline">destroy</code> tears it down.</p>
+    <p class="ru"><code class="inline">terraform plan</code> показывает разницу (что будет добавлено/изменено/удалено), ничего не трогая. <code class="inline">terraform apply</code> её применяет. <code class="inline">destroy</code> всё сносит.</p>
+
+    <h3><span class="en">⑤ Variables, outputs &amp; modules</span><span class="ru">⑤ Переменные, выходы и модули</span></h3>
+    <p class="en"><strong>Variables</strong> parameterize configs; <strong>outputs</strong> expose values (like a created DB's address); <strong>modules</strong> are reusable bundles of resources you call with different inputs — the DRY of infra.</p>
+    <p class="ru"><strong>Variables</strong> параметризуют конфиги; <strong>outputs</strong> отдают значения (например адрес созданной БД); <strong>modules</strong> — переиспользуемые наборы ресурсов, вызываемые с разными входами — DRY для инфры.</p>
+  </div>
+</section>
+
+<section id="example">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">4. A minimal example</span><span class="ru">4. Минимальный пример</span></h2>
+  <div class="card reveal">
+    <p class="en">A storage bucket on AWS, then the exact same idea on Azure — only the provider and resource names change. Written in HashiCorp's language, <strong>HCL</strong>.</p>
+    <p class="ru">Бакет хранилища на AWS, затем та же идея на Azure — меняются только провайдер и имена ресурсов. Написано на языке HashiCorp — <strong>HCL</strong>.</p>
+    <pre><span class="c"># --- AWS ---</span>
+<span class="k">resource</span> <span class="green">"aws_s3_bucket"</span> <span class="green">"data"</span> {
+  bucket = <span class="green">"better-de-data-lake"</span>
+  tags   = { Project = <span class="green">"better_de"</span> }
+}
+
+<span class="c"># --- Azure (same concept, different provider) ---</span>
+<span class="k">resource</span> <span class="green">"azurerm_storage_account"</span> <span class="green">"data"</span> {
+  name                     = <span class="green">"betterdedata"</span>
+  resource_group_name      = <span class="green">"my-rg"</span>
+  location                 = <span class="green">"westeurope"</span>
+  account_tier             = <span class="green">"Standard"</span>
+  account_replication_type = <span class="green">"LRS"</span>
+}</pre>
+    <div class="key">
+      <span class="lbl"><span class="en">The diff loop</span><span class="ru">Цикл разницы</span></span>
+      <span class="en">Change <code class="inline">account_tier</code> to <code class="inline">"Premium"</code>, run <code class="inline">plan</code> → Terraform reads the state, sees one attribute differs, and proposes to update just that. Nothing else is touched.</span>
+      <span class="ru">Поменяй <code class="inline">account_tier</code> на <code class="inline">"Premium"</code>, запусти <code class="inline">plan</code> → Terraform читает state, видит, что отличается один атрибут, и предлагает обновить только его. Остальное не трогается.</span>
+    </div>
+  </div>
+</section>
+
+<section id="flow">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">5. The everyday workflow</span><span class="ru">5. Ежедневный рабочий цикл</span></h2>
+  <div class="card reveal">
+    <div class="ascii">  write .tf files  (desired state, in git)
+        │
+        ▼
+  terraform init     ◀── download providers, configure backend/state
+        │
+        ▼
+  terraform plan     ◀── diff: desired state vs state file vs real cloud
+        │                 shows +create / ~update / -destroy
+        ▼
+  terraform apply    ◀── execute the diff, then update the state file
+        │
+        ▼
+  (later) terraform destroy  ◀── tear everything down cleanly</div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Why plan-before-apply matters</span><span class="ru">Почему plan перед apply важен</span></span>
+      <span class="en">The plan is a dry-run preview you can review (and gate in CI) before any real change. "Will this destroy my prod DB?" — the plan tells you before you find out the hard way.</span>
+      <span class="ru">Plan — это сухой прогон-превью, который можно отревьюить (и поставить гейтом в CI) до любых реальных изменений. «А это не снесёт мою прод-базу?» — plan скажет до того, как узнаешь на практике.</span>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">6. Why a data engineer cares</span><span class="ru">6. Почему это важно дата-инженеру</span></h2>
+  <div class="card reveal">
+    <ul class="en">
+      <li><strong>You own infra now.</strong> Modern DE provisions its own warehouses, buckets, clusters, IAM roles, and orchestrator infra — often via Terraform.</li>
+      <li><strong>Reproducible environments.</strong> Stand up an identical staging data platform to test a pipeline change safely.</li>
+      <li><strong>Runs the platform that runs your pipelines.</strong> Terraform can provision the Kubernetes cluster that Flyte/Airflow then runs on.</li>
+      <li><strong>Cost &amp; cleanup.</strong> <code class="inline">destroy</code> a whole experimental environment in one command — no orphaned resources quietly billing you.</li>
+      <li><strong>Collaboration.</strong> Infra changes get reviewed like code, with a visible plan diff before merge.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Теперь инфра на тебе.</strong> Современный DE сам поднимает свои warehouse, бакеты, кластеры, IAM-роли и инфру оркестратора — часто через Terraform.</li>
+      <li><strong>Воспроизводимые окружения.</strong> Поднять идентичный staging дата-платформы, чтобы безопасно протестировать изменение пайплайна.</li>
+      <li><strong>Поднимает платформу под твои пайплайны.</strong> Terraform может развернуть кластер Kubernetes, на котором затем работает Flyte/Airflow.</li>
+      <li><strong>Стоимость и уборка.</strong> <code class="inline">destroy</code> целого экспериментального окружения одной командой — никаких забытых ресурсов, тихо жгущих бюджет.</li>
+      <li><strong>Совместная работа.</strong> Изменения инфры ревьюятся как код, с видимым plan-diff до мёрджа.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">Terraform vs the rest</span><span class="ru">Terraform vs остальные</span></span>
+      <span class="en"><strong>Terraform</strong> = cloud-agnostic, declarative provisioning (create the infra). <strong>Ansible/Chef</strong> = configuration management (set up software on existing machines). <strong>CloudFormation</strong> = AWS-only Terraform. <strong>Pulumi</strong> = same idea but infra in real languages (Python/TS). Terraform's edge: multi-cloud + huge provider ecosystem.</span>
+      <span class="ru"><strong>Terraform</strong> = провижининг без привязки к облаку, декларативно (создать инфру). <strong>Ansible/Chef</strong> = управление конфигурацией (настроить софт на существующих машинах). <strong>CloudFormation</strong> = Terraform только для AWS. <strong>Pulumi</strong> = та же идея, но инфра на настоящих языках (Python/TS). Преимущество Terraform: мультиоблачность + огромная экосистема провайдеров.</span>
+    </div>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">7. Quick self-check</span><span class="ru">7. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What is Terraform in one line?</span><span class="ru">Что такое Terraform одной строкой?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A declarative Infrastructure-as-Code tool: describe desired infra in HCL, and it creates/changes/destroys real cloud resources to match.</span><span class="ru">Декларативный инструмент Infrastructure-as-Code: описываешь желаемую инфру на HCL, а он создаёт/меняет/удаляет реальные облачные ресурсы под неё.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What is the state file for?</span><span class="ru">Зачем нужен state-файл?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">It records what Terraform already created, so it can compute the diff between your code and reality. In teams: remote state + locking.</span><span class="ru">Он записывает, что Terraform уже создал, чтобы вычислять разницу между кодом и реальностью. В командах: remote state + блокировка.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">plan vs apply?</span><span class="ru">plan vs apply?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en"><strong>plan</strong> = dry-run preview of the diff, touches nothing. <strong>apply</strong> = actually execute that diff and update state.</span><span class="ru"><strong>plan</strong> = сухой прогон-превью разницы, ничего не трогает. <strong>apply</strong> = реально применить эту разницу и обновить state.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why "declarative" + "idempotent"?</span><span class="ru">Почему «декларативно» + «идемпотентно»?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">You describe the end state, not steps. Running apply when nothing changed does nothing — the result depends only on the desired state, not how many times you run it.</span><span class="ru">Описываешь конечное состояние, а не шаги. apply при отсутствии изменений ничего не делает — результат зависит только от желаемого состояния, а не от числа запусков.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">How does one config target AWS and Azure?</span><span class="ru">Как один конфиг работает с AWS и Azure?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Via <strong>providers</strong>. Same Terraform engine + HCL; you swap the provider (aws / azurerm / google) and use that cloud's resource types.</span><span class="ru">Через <strong>providers</strong>. Тот же движок Terraform + HCL; меняешь провайдер (aws / azurerm / google) и используешь типы ресурсов этого облака.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Terraform vs Ansible?</span><span class="ru">Terraform vs Ansible?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Terraform <strong>provisions</strong> infra (create the servers/DBs/network). Ansible <strong>configures</strong> software on machines that already exist. Often used together.</span><span class="ru">Terraform <strong>создаёт</strong> инфру (серверы/БД/сеть). Ansible <strong>настраивает</strong> софт на уже существующих машинах. Часто используются вместе.</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Terraform &amp; IaC · part of the DE interview cheatsheets · built for Amal Imangulov · see also: <a href="cloud-providers-comparison.html">AWS · Azure · GCP →</a></span>
+  <span class="ru">Terraform и IaC · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · см. также: <a href="cloud-providers-comparison.html">AWS · Azure · GCP →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>

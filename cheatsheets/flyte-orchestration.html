@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flyte — Data Engineering Interview Cheatsheet</title>
+<style>
+  :root { --bg:#0a0e1a; --card:#151d30; --card2:#1b2641; --text:#e7ecf5; --muted:#94a3b8; --border:#25304d;
+    --accent:#1877F2; --green:#02e2ac; --orange:#f59e0b; --purple:#a855f7; --code-bg:#0d1322; --shadow:rgba(0,0,0,0.45); }
+  [data-theme="light"] { --bg:#f4f6fb; --card:#fff; --card2:#eef2fa; --text:#14213d; --muted:#5b6b86; --border:#d6deec;
+    --accent:#1259c3; --green:#058f6e; --orange:#c2790a; --purple:#8b3fd6; --code-bg:#f0f3fa; --shadow:rgba(40,60,100,0.12); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15.5px; transition:background .25s,color .25s; }
+  code,pre,.mono { font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace; }
+  [data-lang="en"] .ru { display:none !important; }
+  [data-lang="ru"] .en { display:none !important; }
+  nav { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:4px;
+    padding:8px 14px; overflow-x:auto; white-space:nowrap; }
+  nav .brand { font-weight:700; color:var(--accent); margin-right:10px; font-size:14px; flex-shrink:0; }
+  nav a { color:var(--muted); text-decoration:none; font-size:12.5px; padding:5px 9px; border-radius:7px; flex-shrink:0; }
+  nav a:hover { color:var(--text); background:var(--card2); }
+  .toggles { margin-left:auto; display:flex; gap:6px; flex-shrink:0; }
+  .toggle-btn { background:var(--card2); color:var(--text); border:1px solid var(--border); border-radius:8px;
+    padding:5px 11px; cursor:pointer; font-size:13px; font-weight:600; }
+  .toggle-btn:hover { border-color:var(--accent); }
+  header.hero { padding:34px 20px 18px; max-width:940px; margin:0 auto; }
+  header.hero h1 { margin:0 0 6px; font-size:30px; letter-spacing:-.5px; }
+  header.hero .sub { color:var(--muted); font-size:15.5px; }
+  .levels { margin-top:16px; display:flex; gap:8px; flex-wrap:wrap; }
+  .level { padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:var(--card2);
+    color:var(--muted); font-size:13px; font-weight:600; text-decoration:none; }
+  .level:hover { border-color:var(--accent); }
+  .level.active { border-color:var(--accent); color:var(--text); }
+  main { max-width:940px; margin:0 auto; padding:6px 20px 80px; }
+  section { margin:26px 0; }
+  h2 { font-size:21px; margin:28px 0 4px; display:flex; align-items:center; gap:9px; letter-spacing:-.3px; }
+  h2 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  h3 { font-size:16px; margin:14px 0 6px; }
+  p { margin:9px 0; } ul { margin:8px 0; padding-left:22px; } li { margin:5px 0; }
+  strong { color:var(--text); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin:14px 0; box-shadow:0 4px 18px var(--shadow); }
+  code.inline { background:var(--code-bg); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-size:13px; color:var(--green); }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:13px 15px; overflow-x:auto; font-size:13px; line-height:1.5; margin:10px 0; }
+  pre .c { color:var(--muted); } pre .k { color:var(--purple); }
+  .ascii { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.5px; line-height:1.45; color:var(--text); white-space:pre; }
+  .analogy,.key,.takeaway { border-left:4px solid; border-radius:0 10px 10px 0; padding:11px 15px; margin:12px 0; font-size:14.5px; }
+  .analogy { border-color:var(--purple); background:color-mix(in srgb,var(--purple) 9%,var(--card)); }
+  .key { border-color:var(--green); background:color-mix(in srgb,var(--green) 9%,var(--card)); }
+  .takeaway { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+  .lbl { font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .analogy .lbl { color:var(--purple); } .key .lbl { color:var(--green); } .takeaway .lbl { color:var(--accent); }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { color:var(--accent); font-weight:650; border-bottom:2px solid var(--border); }
+  .flip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:14px 0; }
+  .flip { perspective:1200px; height:185px; cursor:pointer; }
+  .flip-inner { position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d; }
+  .flip.flipped .flip-inner { transform:rotateY(180deg); }
+  .flip-face { position:absolute; inset:0; backface-visibility:hidden; border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; justify-content:center; box-shadow:0 4px 18px var(--shadow); }
+  .flip-front { background:var(--card); } .flip-front .q { font-weight:650; font-size:15px; }
+  .flip-front .tap { color:var(--muted); font-size:11.5px; margin-top:auto; }
+  .flip-back { background:var(--card2); transform:rotateY(180deg); font-size:13.5px; overflow-y:auto; }
+  .reveal { opacity:0; transform:translateY(16px); transition:opacity .5s,transform .5s; }
+  .reveal.in { opacity:1; transform:none; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; padding:30px 20px; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">🚀 Flyte</span>
+  <a href="#what"><span class="en">What is it</span><span class="ru">Что это</span></a>
+  <a href="#why"><span class="en">Why it exists</span><span class="ru">Зачем</span></a>
+  <a href="#concepts"><span class="en">Core concepts</span><span class="ru">Концепции</span></a>
+  <a href="#example"><span class="en">Example</span><span class="ru">Пример</span></a>
+  <a href="#how"><span class="en">How it works</span><span class="ru">Как устроен</span></a>
+  <a href="#vs"><span class="en">vs Airflow</span><span class="ru">vs Airflow</span></a>
+  <a href="#quiz">Quiz</a>
+  <span class="toggles">
+    <button class="toggle-btn" id="langBtn">🌐 RU</button>
+    <button class="toggle-btn" id="themeBtn">🌙 Dark</button>
+  </span>
+</nav>
+
+<header class="hero">
+  <h1><span class="en">Flyte — the friendly intro</span><span class="ru">Flyte — дружелюбное введение</span></h1>
+  <div class="sub">
+    <span class="en">A Kubernetes-native orchestrator for data &amp; ML pipelines, built around strong typing, versioning and caching. Plain words, code-first.</span>
+    <span class="ru">Kubernetes-native оркестратор для data- и ML-пайплайнов, построенный вокруг строгой типизации, версионирования и кэширования. Простыми словами, код в центре.</span>
+  </div>
+  <div class="levels">
+    <a class="level active" href="flyte-orchestration.html">🚀 Flyte</a>
+    <a class="level" href="airflow-orchestration.html">📅 <span class="en">Airflow</span><span class="ru">Airflow</span></a>
+    <a class="level" href="terraform-iac.html">🏗️ Terraform</a>
+  </div>
+</header>
+
+<main>
+
+<section id="what">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">1. What is Flyte?</span><span class="ru">1. Что такое Flyte?</span></h2>
+  <div class="card reveal">
+    <p class="en"><strong>Flyte</strong> is an open-source <strong>workflow orchestrator</strong> for data and machine-learning pipelines. You write your steps as plain Python functions, decorate them, and Flyte runs them as a versioned <strong>DAG</strong> (directed acyclic graph) on top of <strong>Kubernetes</strong> — each step in its own container, with resources, retries and caching handled for you.</p>
+    <p class="ru"><strong>Flyte</strong> — это опенсорсный <strong>оркестратор воркфлоу</strong> для data- и ML-пайплайнов. Ты пишешь шаги как обычные Python-функции, навешиваешь декораторы, и Flyte запускает их как версионируемый <strong>DAG</strong> (направленный ацикличный граф) поверх <strong>Kubernetes</strong> — каждый шаг в своём контейнере, с ресурсами, ретраями и кэшированием «из коробки».</p>
+    <div class="analogy">
+      <span class="lbl"><span class="en">Analogy</span><span class="ru">Аналогия</span></span>
+      <span class="en">Think of Flyte as a <strong>kitchen pass with strict recipe cards</strong>. Each cook (task) gets a card that says exactly what ingredients (typed inputs) come in and what dish (typed outputs) goes out. If the same dish was already cooked from the same ingredients, the pass just hands back the cached plate instead of cooking again.</span>
+      <span class="ru">Представь Flyte как <strong>раздачу на кухне со строгими рецептурными карточками</strong>. Каждый повар (таска) получает карточку: какие именно ингредиенты (типизированные входы) приходят и какое блюдо (типизированные выходы) выходит. Если такое блюдо уже готовили из тех же ингредиентов — раздача просто отдаёт сохранённую тарелку, а не готовит заново.</span>
+    </div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">One line</span><span class="ru">Одной строкой</span></span>
+      <span class="en">Flyte = <strong>typed, versioned, cached Python pipelines that run as containers on Kubernetes</strong>. Reproducibility and ML-scale are its whole point.</span>
+      <span class="ru">Flyte = <strong>типизированные, версионируемые, кэшируемые Python-пайплайны, бегущие как контейнеры на Kubernetes</strong>. Воспроизводимость и ML-масштаб — его суть.</span>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">2. Why does it exist?</span><span class="ru">2. Зачем он нужен?</span></h2>
+  <div class="card reveal">
+    <p class="en">Classic orchestrators (like early Airflow) struggle with ML/data work in a few ways. Flyte was built (originally at Lyft) to fix them:</p>
+    <p class="ru">Классические оркестраторы (как ранний Airflow) плохо тянут ML/data-задачи по нескольким причинам. Flyte (изначально в Lyft) сделан, чтобы их закрыть:</p>
+    <ul class="en">
+      <li><strong>No type safety.</strong> Passing the wrong shape between steps blows up at runtime, hours in. Flyte checks types <em>before</em> running.</li>
+      <li><strong>No real caching.</strong> Re-running recomputes everything. Flyte caches outputs by inputs + version and skips unchanged steps.</li>
+      <li><strong>Weak versioning.</strong> Hard to reproduce "the run from last Tuesday". Flyte versions every workflow and task.</li>
+      <li><strong>Resource pain.</strong> GPUs, memory, parallel fan-out are awkward. Flyte makes per-task resources and dynamic fan-out first-class.</li>
+    </ul>
+    <ul class="ru">
+      <li><strong>Нет проверки типов.</strong> Передал не ту структуру между шагами — падает в рантайме, спустя часы. Flyte проверяет типы <em>до</em> запуска.</li>
+      <li><strong>Нет настоящего кэша.</strong> Повторный запуск всё пересчитывает. Flyte кэширует выходы по входам + версии и пропускает неизменившиеся шаги.</li>
+      <li><strong>Слабое версионирование.</strong> Трудно воспроизвести «тот запуск с прошлого вторника». Flyte версионирует каждый воркфлоу и таску.</li>
+      <li><strong>Боль с ресурсами.</strong> GPU, память, параллельный fan-out неудобны. Во Flyte ресурсы на таску и динамический fan-out — первоклассные граждане.</li>
+    </ul>
+    <div class="key">
+      <span class="lbl"><span class="en">The selling point</span><span class="ru">Главный плюс</span></span>
+      <span class="en">Reproducibility by construction: same code version + same inputs → same outputs, and Flyte can prove it and reuse them.</span>
+      <span class="ru">Воспроизводимость по построению: та же версия кода + те же входы → те же выходы, и Flyte это гарантирует и переиспользует.</span>
+    </div>
+  </div>
+</section>
+
+<section id="concepts">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">3. Core concepts</span><span class="ru">3. Ключевые понятия</span></h2>
+  <div class="card reveal">
+    <h3><span class="en">① Task</span><span class="ru">① Task (таска)</span></h3>
+    <p class="en">The smallest unit of work: one Python function decorated with <code class="inline">@task</code>. It runs in its own container, declares its inputs/outputs by type, and can request CPU/GPU/memory.</p>
+    <p class="ru">Минимальная единица работы: одна Python-функция с декоратором <code class="inline">@task</code>. Бежит в своём контейнере, объявляет входы/выходы по типам, может запросить CPU/GPU/память.</p>
+
+    <h3><span class="en">② Workflow</span><span class="ru">② Workflow (воркфлоу)</span></h3>
+    <p class="en">A function decorated with <code class="inline">@workflow</code> that wires tasks together. Flyte reads the data dependencies between tasks to build the DAG and decide what can run in parallel.</p>
+    <p class="ru">Функция с декоратором <code class="inline">@workflow</code>, которая связывает таски. Flyte читает зависимости по данным между тасками, строит DAG и решает, что можно запустить параллельно.</p>
+
+    <h3><span class="en">③ Caching &amp; versioning</span><span class="ru">③ Кэширование и версионирование</span></h3>
+    <p class="en">With <code class="inline">cache=True</code> + a <code class="inline">cache_version</code>, Flyte stores outputs keyed by (inputs, version). Re-run with the same inputs → it returns the cached result instantly instead of recomputing.</p>
+    <p class="ru">С <code class="inline">cache=True</code> + <code class="inline">cache_version</code> Flyte сохраняет выходы по ключу (входы, версия). Повторный запуск с теми же входами → мгновенно возвращает сохранённый результат вместо пересчёта.</p>
+
+    <h3><span class="en">④ Dynamic workflows &amp; map tasks</span><span class="ru">④ Динамические воркфлоу и map-таски</span></h3>
+    <p class="en">When the shape of the DAG depends on data (e.g. "process N files, N unknown until runtime"), <code class="inline">@dynamic</code> builds the graph at runtime, and <code class="inline">map_task</code> fans the same task out over a list in parallel.</p>
+    <p class="ru">Когда форма DAG зависит от данных (например «обработать N файлов, N неизвестно до запуска»), <code class="inline">@dynamic</code> строит граф в рантайме, а <code class="inline">map_task</code> распараллеливает одну таску по списку.</p>
+
+    <h3><span class="en">⑤ Launch plans &amp; schedules</span><span class="ru">⑤ Launch plans и расписания</span></h3>
+    <p class="en">A <strong>launch plan</strong> binds a workflow to specific inputs and an optional schedule (cron) — how you productionize and trigger a workflow.</p>
+    <p class="ru">A <strong>launch plan</strong> привязывает воркфлоу к конкретным входам и опциональному расписанию (cron) — так воркфлоу выводят в прод и запускают.</p>
+  </div>
+</section>
+
+<section id="example">
+  <h2><span class="dot" style="background:var(--purple)"></span><span class="en">4. A minimal example</span><span class="ru">4. Минимальный пример</span></h2>
+  <div class="card reveal">
+    <p class="en">A two-step pipeline: clean the data (cached), then average it. Notice the types on every edge.</p>
+    <p class="ru">Пайплайн из двух шагов: почистить данные (с кэшем), затем усреднить. Обрати внимание на типы на каждом ребре.</p>
+    <pre><span class="k">from</span> flytekit <span class="k">import</span> task, workflow
+
+<span class="c"># cached by (inputs, cache_version): same input → no recompute</span>
+<span class="k">@task</span>(cache=<span class="k">True</span>, cache_version=<span class="green">"1.0"</span>, requests=Resources(cpu=<span class="green">"1"</span>, mem=<span class="green">"1Gi"</span>))
+<span class="k">def</span> clean_data(raw: list[int]) -&gt; list[int]:
+    <span class="k">return</span> [x <span class="k">for</span> x <span class="k">in</span> raw <span class="k">if</span> x &gt; 0]
+
+<span class="k">@task</span>
+<span class="k">def</span> average(nums: list[int]) -&gt; float:
+    <span class="k">return</span> sum(nums) / len(nums)
+
+<span class="k">@workflow</span>
+<span class="k">def</span> pipeline(raw: list[int]) -&gt; float:
+    cleaned = clean_data(raw=raw)   <span class="c"># Flyte sees clean_data → average dependency</span>
+    <span class="k">return</span> average(nums=cleaned)   <span class="c"># type mismatch here = caught before running</span></pre>
+    <div class="key">
+      <span class="lbl"><span class="en">What Flyte does with this</span><span class="ru">Что Flyte с этим делает</span></span>
+      <span class="en">Builds the DAG <code class="inline">clean_data → average</code>, runs each task in a container, type-checks the edges, and caches <code class="inline">clean_data</code> so the next run with the same <code class="inline">raw</code> skips straight to <code class="inline">average</code>.</span>
+      <span class="ru">Строит DAG <code class="inline">clean_data → average</code>, запускает каждую таску в контейнере, проверяет типы на рёбрах и кэширует <code class="inline">clean_data</code>, так что следующий запуск с тем же <code class="inline">raw</code> сразу переходит к <code class="inline">average</code>.</span>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <h2><span class="dot" style="background:var(--green)"></span><span class="en">5. How it works (high level)</span><span class="ru">5. Как он устроен (в целом)</span></h2>
+  <div class="card reveal">
+    <p class="en">You register a workflow with the Flyte backend (FlytePropeller, a Kubernetes operator). On execution, Flyte turns each task into a pod, passes typed inputs/outputs through blob storage (S3/GCS), and tracks state.</p>
+    <p class="ru">Ты регистрируешь воркфлоу в бэкенде Flyte (FlytePropeller — оператор Kubernetes). При запуске Flyte превращает каждую таску в pod, прокидывает типизированные входы/выходы через blob-хранилище (S3/GCS) и отслеживает состояние.</p>
+    <div class="ascii">  Python (@task/@workflow)
+        └─▶ flytekit packages + registers a versioned workflow
+              └─▶ FlytePropeller (K8s operator) plans the DAG
+                    └─▶ each task ─▶ a Pod (its own container + resources)
+                          └─▶ typed inputs/outputs via S3/GCS
+                                └─▶ cache lookup: hit ⇒ skip, miss ⇒ run + store</div>
+    <div class="takeaway">
+      <span class="lbl"><span class="en">Mental model</span><span class="ru">Модель в голове</span></span>
+      <span class="en">Flyte = a typed contract layer + a Kubernetes execution engine. The contract gives reproducibility; K8s gives scale and isolation.</span>
+      <span class="ru">Flyte = слой типизированных контрактов + движок исполнения на Kubernetes. Контракт даёт воспроизводимость; K8s даёт масштаб и изоляцию.</span>
+    </div>
+  </div>
+</section>
+
+<section id="vs">
+  <h2><span class="dot" style="background:var(--accent)"></span><span class="en">6. Flyte vs Airflow vs Dataswarm</span><span class="ru">6. Flyte vs Airflow vs Dataswarm</span></h2>
+  <div class="card reveal">
+    <table class="en">
+      <tr><th></th><th>Airflow</th><th>Flyte</th></tr>
+      <tr><td>Primary world</td><td>General scheduling / ETL</td><td>Data + ML, reproducibility-first</td></tr>
+      <tr><td>Typing</td><td>Untyped (XComs, dicts)</td><td>Strongly typed task interfaces</td></tr>
+      <tr><td>Caching</td><td>None built-in</td><td>Native, keyed by inputs + version</td></tr>
+      <tr><td>Isolation</td><td>Per-operator (varies)</td><td>Per-task container on K8s</td></tr>
+      <tr><td>Versioning</td><td>DAG file = current state</td><td>Every workflow/task version pinned</td></tr>
+      <tr><td>Dynamic graphs</td><td>Harder (dynamic task mapping newer)</td><td>First-class (@dynamic, map_task)</td></tr>
+    </table>
+    <table class="ru">
+      <tr><th></th><th>Airflow</th><th>Flyte</th></tr>
+      <tr><td>Основной мир</td><td>Общее планирование / ETL</td><td>Data + ML, воспроизводимость во главе</td></tr>
+      <tr><td>Типизация</td><td>Без типов (XCom, словари)</td><td>Строго типизированные интерфейсы тасок</td></tr>
+      <tr><td>Кэширование</td><td>Нет «из коробки»</td><td>Нативное, по ключу входы + версия</td></tr>
+      <tr><td>Изоляция</td><td>По оператору (варьируется)</td><td>Контейнер на таску в K8s</td></tr>
+      <tr><td>Версионирование</td><td>DAG-файл = текущее состояние</td><td>Версия каждого воркфлоу/таски зафиксирована</td></tr>
+      <tr><td>Динамические графы</td><td>Сложнее (dynamic mapping появился позже)</td><td>Первокласно (@dynamic, map_task)</td></tr>
+    </table>
+    <div class="key">
+      <span class="lbl"><span class="en">Meta context</span><span class="ru">Контекст Meta</span></span>
+      <span class="en">Meta's internal <strong>Dataswarm/Chronos</strong> plays a similar orchestration role; Flyte is the popular open-source equivalent (Lyft, Spotify) you'd reach for outside Meta. Same job — schedule a typed DAG — different ecosystem.</span>
+      <span class="ru">Внутренние <strong>Dataswarm/Chronos</strong> в Meta играют похожую роль оркестрации; Flyte — популярный опенсорсный аналог (Lyft, Spotify), который берут вне Meta. Та же задача — запустить типизированный DAG — другая экосистема.</span>
+    </div>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="dot" style="background:var(--orange)"></span><span class="en">7. Quick self-check</span><span class="ru">7. Быстрая самопроверка</span></h2>
+  <p style="color:var(--muted);font-size:14px"><span class="en">Answer in your head, then tap to flip.</span><span class="ru">Ответь про себя, потом нажми, чтобы перевернуть.</span></p>
+  <div class="flip-grid">
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What's the one-line definition of Flyte?</span><span class="ru">Определение Flyte одной строкой?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A Kubernetes-native orchestrator for typed, versioned, cached data/ML pipelines written in Python.</span><span class="ru">Kubernetes-native оркестратор для типизированных, версионируемых, кэшируемых data/ML-пайплайнов на Python.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Task vs Workflow?</span><span class="ru">Task vs Workflow?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">A <strong>task</strong> (@task) is one containerized step with typed I/O. A <strong>workflow</strong> (@workflow) wires tasks into a DAG via their data dependencies.</span><span class="ru"><strong>Task</strong> (@task) — один контейнеризованный шаг с типизированным I/O. <strong>Workflow</strong> (@workflow) связывает таски в DAG через их зависимости по данным.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Why does Flyte cache, and on what key?</span><span class="ru">Зачем Flyte кэширует и по какому ключу?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">To skip recomputation. Outputs are keyed by (inputs, cache_version) — same inputs + version ⇒ cached result returned instantly.</span><span class="ru">Чтобы не пересчитывать. Выходы по ключу (входы, cache_version) — те же входы + версия ⇒ сразу отдаётся сохранённый результат.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">Biggest advantage over classic Airflow?</span><span class="ru">Главное преимущество над классическим Airflow?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Strong typing + native caching + per-task containers = reproducibility by construction. Airflow is untyped with no built-in caching.</span><span class="ru">Строгая типизация + нативный кэш + контейнер на таску = воспроизводимость по построению. Airflow без типов и без встроенного кэша.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">When do you use @dynamic / map_task?</span><span class="ru">Когда нужны @dynamic / map_task?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">When the DAG shape depends on data: @dynamic builds the graph at runtime; map_task fans one task out over a list in parallel.</span><span class="ru">Когда форма DAG зависит от данных: @dynamic строит граф в рантайме; map_task распараллеливает одну таску по списку.</span></div></div>
+    </div></div>
+    <div class="flip"><div class="flip-inner">
+      <div class="flip-face flip-front"><div class="q"><span class="en">What runs Flyte tasks under the hood?</span><span class="ru">Что исполняет таски Flyte под капотом?</span></div><div class="tap"><span class="en">tap</span><span class="ru">нажми</span></div></div>
+      <div class="flip-face flip-back"><div><span class="en">Kubernetes. FlytePropeller (a K8s operator) turns each task into a pod and passes typed I/O via blob storage (S3/GCS).</span><span class="ru">Kubernetes. FlytePropeller (оператор K8s) превращает каждую таску в pod и прокидывает типизированный I/O через blob-хранилище (S3/GCS).</span></div></div>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  <span class="en">Flyte · part of the DE interview cheatsheets · built for Amal Imangulov · see also: <a href="airflow-orchestration.html">Airflow →</a> · <a href="terraform-iac.html">Terraform →</a></span>
+  <span class="ru">Flyte · часть набора шпаргалок для DE-интервью · сделано для Amal Imangulov · см. также: <a href="airflow-orchestration.html">Airflow →</a> · <a href="terraform-iac.html">Terraform →</a></span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){ root.setAttribute('data-theme', t); themeBtn.textContent = t==='dark' ? '🌙 Dark' : '☀️ Light'; }
+  var st=null; try{ st=localStorage.getItem('de_cheat_theme'); }catch(e){}
+  applyTheme(st || 'dark');
+  themeBtn.addEventListener('click', function(){ var n=root.getAttribute('data-theme')==='dark'?'light':'dark'; applyTheme(n); try{localStorage.setItem('de_cheat_theme',n);}catch(e){} });
+  var langBtn = document.getElementById('langBtn');
+  function applyLang(l){ root.setAttribute('data-lang', l); root.setAttribute('lang', l); langBtn.textContent = l==='en' ? '🌐 RU' : '🌐 EN'; }
+  var sl=null; try{ sl=localStorage.getItem('de_cheat_lang'); }catch(e){}
+  applyLang(sl || 'en');
+  langBtn.addEventListener('click', function(){ var n=root.getAttribute('data-lang')==='en'?'ru':'en'; applyLang(n); try{localStorage.setItem('de_cheat_lang',n);}catch(e){} });
+  document.querySelectorAll('.flip').forEach(function(c){ c.addEventListener('click', function(){ c.classList.toggle('flipped'); }); });
+  var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }); }, {threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
